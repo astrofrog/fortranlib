@@ -91,6 +91,25 @@ module lib_array
      module procedure xval_dp
   end interface xval
 
+  public :: quicksort
+  interface quicksort
+     module procedure quicksort_sp
+     module procedure quicksort_all_sp
+     module procedure quicksort_dp
+     module procedure quicksort_all_dp
+  end interface quicksort
+
+  public :: quicksort_index
+  interface quicksort_index
+     module procedure quicksort_index_sp
+     module procedure quicksort_index_all_sp
+     module procedure quicksort_index_dp
+     module procedure quicksort_index_all_dp
+  end interface quicksort_index
+
+  public :: test_quicksort_sp
+  public :: test_quicksort_dp
+
 contains
 
   !!@FOR real(sp):sp real(dp):dp
@@ -734,8 +753,171 @@ contains
 
   end subroutine histogram2d_<T>
 
-  !!@END FOR
 
+  pure subroutine swap_<T>(array, i, j)
+    implicit none
+    real(<T>),intent(inout) :: array(:)
+    integer,intent(in) :: i, j
+    real(<T>) :: temp
+    temp = array(j)
+    array(j) = array(i)
+    array(i) = temp
+  end subroutine swap_<T>
+
+  pure subroutine partition_<T>(array, left, right, pivot_index, store_index)
+    implicit none
+    real(<T>),intent(inout) :: array(:)
+    integer,intent(in) :: left, right, pivot_index
+    integer,intent(out) :: store_index
+    real(<T>) :: pivot_value
+    integer :: i
+    pivot_value = array(pivot_index)
+    call swap_<T>(array, pivot_index, right)
+    store_index = left
+    do i=left, right-1
+       if(array(i) <= pivot_value) then
+          call swap_<T>(array, i, store_index)
+          store_index = store_index + 1
+       end if
+    end do
+    call swap_<T>(array, store_index, right)
+  end subroutine partition_<T>
+
+  recursive pure subroutine quicksort_<T>(array, left, right)
+    implicit none
+    real(<T>),intent(inout) :: array(:)
+    integer,intent(in) :: left, right
+    integer :: pivot_index, new_pivot_index
+    if(right > left) then
+       pivot_index = left+(right-left)/2
+       call partition_<T>(array, left, right, pivot_index, new_pivot_index)
+       call quicksort_<T>(array, left, new_pivot_index - 1)
+       call quicksort_<T>(array, new_pivot_index + 1, right)
+    end if
+  end subroutine quicksort_<T>
+
+  recursive pure subroutine quicksort_all_<T>(array)
+    implicit none
+    real(<T>),intent(inout) :: array(:)
+    call quicksort_<T>(array, 1, size(array))
+  end subroutine quicksort_all_<T>
+
+  pure subroutine swap_index_<T>(array, index, i, j)
+    implicit none
+    real(<T>),intent(inout) :: array(:)
+    integer,intent(inout) :: index(:)
+    integer,intent(in) :: i, j
+    real(<T>) :: temp
+    integer :: temp_i
+    temp = array(j)
+    temp_i = index(j)
+    array(j) = array(i)
+    index(j) = index(i)
+    array(i) = temp
+    index(i) = temp_i
+  end subroutine swap_index_<T>
+
+  pure subroutine partition_index_<T>(array, index, left, right, pivot_index, store_index)
+    implicit none
+    real(<T>),intent(inout) :: array(:)
+    integer,intent(inout) :: index(:)
+    integer,intent(in) :: left, right, pivot_index
+    integer,intent(out) :: store_index
+    real(<T>) :: pivot_value
+    integer :: i
+    pivot_value = array(pivot_index)
+    call swap_index_<T>(array, index, pivot_index, right)
+    store_index = left
+    do i=left, right-1
+       if(array(i) <= pivot_value) then
+          call swap_index_<T>(array, index, i, store_index)
+          store_index = store_index + 1
+       end if
+    end do
+    call swap_index_<T>(array, index, store_index, right)
+  end subroutine partition_index_<T>
+
+  recursive pure subroutine quicksort_index_<T>(array, index, left, right)
+    implicit none
+    real(<T>),intent(inout) :: array(:)
+    integer,intent(inout) :: index(:)
+    integer,intent(in) :: left, right
+    integer :: pivot_index, new_pivot_index
+    if(right > left) then
+       pivot_index = left+(right-left)/2
+       call partition_index_<T>(array, index, left, right, pivot_index, new_pivot_index)
+       call quicksort_index_<T>(array, index, left, new_pivot_index - 1)
+       call quicksort_index_<T>(array, index, new_pivot_index + 1, right)
+    end if
+  end subroutine quicksort_index_<T>
+
+  recursive pure subroutine quicksort_index_all_<T>(array, index)
+    implicit none
+    real(<T>),intent(inout) :: array(:)
+    integer,intent(inout) :: index(:)
+    call quicksort_index_<T>(array, index, 1, size(array))
+  end subroutine quicksort_index_all_<T>
+
+  subroutine check_sort_<T>(array)
+    implicit none
+    real(<T>),intent(inout) :: array(:)
+    integer :: j
+    do j=1,size(array)-1
+       if(array(j+1) < array(j)) stop "Incorrectly sorted array"
+    end do
+  end subroutine check_sort_<T>
+
+  subroutine test_quicksort_<T>()
+
+    implicit none
+
+    real(<T>),allocatable :: array1(:), array2(:)
+    integer,allocatable :: index(:)
+    integer :: j,i
+
+    write(*,'(" Testing quicksort")')
+
+    do j=1,20
+
+       write(*,'("  - n=",I0)') 2**j
+
+       allocate(array1(2**j))
+
+       call random_number(array1)
+
+       call quicksort(array1)
+
+       call check_sort_<T>(array1)
+
+       deallocate(array1)
+
+    end do
+
+    write(*,'(" Testing quicksort_index")')
+
+    do j=1,20
+
+       write(*,'("  - n=",I0)') 2**j
+
+       allocate(array1(2**j), array2(2**j), index(2**j))
+
+       call random_number(array1)
+       array2 = array1
+       forall(i=1:2**j) index(i) = i
+
+       call quicksort_index(array1, index)
+
+       call check_sort_<T>(array1)
+
+       if(any(array2(index).ne.array1)) stop "Failure in quicksort_index"
+
+       deallocate(array1, array2, index)
+
+    end do
+
+  end subroutine test_quicksort_<T>
+
+  !!@END FOR
 
   subroutine invert_matrix(n,a,c)
 

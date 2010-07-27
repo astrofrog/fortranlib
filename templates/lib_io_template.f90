@@ -3,15 +3,15 @@ module lib_io
   use iso_fortran_env, only : iostat_end
   use lib_messages
   use posix
-  
+
   implicit none
   save
 
   private
-  
+
   integer,parameter :: sp = selected_real_kind(p=6,r=37)
   integer,parameter :: dp = selected_real_kind(p=15,r=307)
-  
+
   public :: list_files
   public :: delete_dir,delete_file
   public :: dir_exists,file_exists
@@ -28,10 +28,10 @@ module lib_io
      module procedure read_column_integer
      module procedure read_column_real4
      module procedure read_column_real8
-  end interface
+  end interface read_column
 
 contains
-  
+
   subroutine list_files(directory,files,pattern)
     implicit none
     character(len=*),intent(in)  :: directory,pattern
@@ -44,13 +44,13 @@ contains
     allocate(files(n_files))
     call open_safe(unit,file='/tmp/list.temp',status='old')
     do f=1,n_files
-      read(unit,'(A1000)') buffer
-      files(f)=adjustl(trim(buffer))
+       read(unit,'(A1000)') buffer
+       files(f)=adjustl(trim(buffer))
     end do
     close(unit)
     call system('rm /tmp/list.temp')
   end subroutine list_files
-  
+
   !**********************************************************************
   ! Delete directory (with prompt) and make new empty directory
   !**********************************************************************
@@ -150,14 +150,14 @@ contains
 
     open (29,file=file, form='unformatted')
     close (29,status='delete')
-!    call flush(29)
+    !    call flush(29)
 
   end subroutine delete_file
 
   !**********************************************************************
   ! Check that file exists and produce error if not
   !**********************************************************************
-  
+
   subroutine check_file_exists(file)
 
     implicit none
@@ -281,13 +281,13 @@ contains
 
     logical,optional :: unformatted
     logical :: formatted
-    
+
     formatted = .true.
 
     if(present(unformatted)) then
        formatted = .not.unformatted
     end if
-    
+
     count=0
 
     call open_safe(u,filename,status='old')
@@ -400,7 +400,7 @@ contains
     unit = next_unit()
 
     ! Set default options
-    
+
     opt_status = 'replace'
     opt_form   = 'formatted'
     opt_position = 'asis'
@@ -500,7 +500,7 @@ contains
     do i=1,n_read
        read(u,*,iostat=ioerr) (dum,j=1,column-1),values(i)
        if(ioerr==iostat_end) then
-         call error("read_column_<T>","end of file reached in "//trim(filename))
+          call error("read_column_<T>","end of file reached in "//trim(filename))
        end if
     end do
 

@@ -1,4 +1,4 @@
-! MD5 of template: 3f86b7d5bcfe994d80c6750e777b10c0
+! MD5 of template: 91795074d8a71be004d32d0a38f4ce99
 ! Algebra routines
 ! Thomas Robitaille (c) 2009
 
@@ -16,37 +16,37 @@ module lib_algebra
   interface cbrt
      module procedure cbrt_sp
      module procedure cbrt_dp
-  end interface
+  end interface cbrt
 
   public :: quadratic
   interface quadratic
      module procedure quadratic_sp
      module procedure quadratic_dp
-  end interface
+  end interface quadratic
 
   public :: quadratic_reduced
   interface quadratic_reduced
      module procedure quadratic_reduced_sp
      module procedure quadratic_reduced_dp
-  end interface
+  end interface quadratic_reduced
 
   public :: quadratic_pascal
   interface quadratic_pascal
      module procedure quadratic_pascal_sp
      module procedure quadratic_pascal_dp
-  end interface
+  end interface quadratic_pascal
 
   public :: quadratic_pascal_reduced
   interface quadratic_pascal_reduced
      module procedure quadratic_pascal_reduced_sp
      module procedure quadratic_pascal_reduced_dp
-  end interface
-  
+  end interface quadratic_pascal_reduced
+
   public :: lineq_gausselim
   interface lineq_gausselim
      module procedure lineq_gausselim_sp
      module procedure lineq_gausselim_dp
-  end interface
+  end interface lineq_gausselim
 
 contains
 
@@ -138,42 +138,42 @@ contains
   end subroutine quadratic_pascal_reduced_dp
 
   subroutine lineq_gausselim_dp(a,b)
-  
+
     implicit none
     real(dp),intent(inout) :: a(:,:),b(:)
     real(dp) :: frac
     integer :: i,j
     integer :: n
-    
+
     n = size(a,1)
 
     do i=1,n-1
-      if(a(i,i)==0) stop "Zero pivot value"
-      do j=i+1,n
-        if(a(i,j).ne.0.) then
-          frac = a(i,j)/a(i,i)
-          b(j) = b(j) - frac * b(i)
-          a(i:,j) = a(i:,j) - frac * a(i:,i)
-        end if
-      end do
+       if(a(i,i)==0) stop "Zero pivot value"
+       do j=i+1,n
+          if(a(i,j).ne.0.) then
+             frac = a(i,j)/a(i,i)
+             b(j) = b(j) - frac * b(i)
+             a(i:,j) = a(i:,j) - frac * a(i:,i)
+          end if
+       end do
     end do
 
     do i=n,2,-1
-      do j=i-1,1,-1
-        if(a(i,j).ne.0.) then
-          frac = a(i,j)/a(i,i)
-          b(j) = b(j) - frac * b(i)
-          a(i:,j) = a(i:,j) - frac * a(i:,i)
-        end if
-      end do
+       do j=i-1,1,-1
+          if(a(i,j).ne.0.) then
+             frac = a(i,j)/a(i,i)
+             b(j) = b(j) - frac * b(i)
+             a(i:,j) = a(i:,j) - frac * a(i:,i)
+          end if
+       end do
     end do
 
     do i=1,n
-      b(i) = b(i) / a(i,i)
+       b(i) = b(i) / a(i,i)
     end do
 
   end subroutine lineq_gausselim_dp
- 
+
 
   real(sp) function cbrt_sp(x)
     implicit none
@@ -262,41 +262,41 @@ contains
   end subroutine quadratic_pascal_reduced_sp
 
   subroutine lineq_gausselim_sp(a,b)
-  
+
     implicit none
     real(sp),intent(inout) :: a(:,:),b(:)
     real(sp) :: frac
     integer :: i,j
     integer :: n
-    
+
     n = size(a,1)
 
     do i=1,n-1
-      if(a(i,i)==0) stop "Zero pivot value"
-      do j=i+1,n
-        if(a(i,j).ne.0.) then
-          frac = a(i,j)/a(i,i)
-          b(j) = b(j) - frac * b(i)
-          a(i:,j) = a(i:,j) - frac * a(i:,i)
-        end if
-      end do
+       if(a(i,i)==0) stop "Zero pivot value"
+       do j=i+1,n
+          if(a(i,j).ne.0.) then
+             frac = a(i,j)/a(i,i)
+             b(j) = b(j) - frac * b(i)
+             a(i:,j) = a(i:,j) - frac * a(i:,i)
+          end if
+       end do
     end do
 
     do i=n,2,-1
-      do j=i-1,1,-1
-        if(a(i,j).ne.0.) then
-          frac = a(i,j)/a(i,i)
-          b(j) = b(j) - frac * b(i)
-          a(i:,j) = a(i:,j) - frac * a(i:,i)
-        end if
-      end do
+       do j=i-1,1,-1
+          if(a(i,j).ne.0.) then
+             frac = a(i,j)/a(i,i)
+             b(j) = b(j) - frac * b(i)
+             a(i:,j) = a(i:,j) - frac * a(i:,i)
+          end if
+       end do
     end do
 
     do i=1,n
-      b(i) = b(i) / a(i,i)
+       b(i) = b(i) / a(i,i)
     end do
 
   end subroutine lineq_gausselim_sp
- 
+
 
 end module lib_algebra

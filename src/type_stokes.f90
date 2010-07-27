@@ -1,4 +1,4 @@
-! MD5 of template: 1168e5117d09b9ae21ba9a1d637e9527
+! MD5 of template: c9b1da11e62afeaaac5b4eb6193f1121
 ! Stokes vector related routines
 ! Thomas Robitaille (c) 2009
 
@@ -16,7 +16,7 @@ module type_stokes
   type stokes_dp
      real(dp) :: I,U,Q,V
   end type stokes_dp
-  
+
   public :: stokes_sp
   type stokes_sp
      real(sp) :: I,U,Q,V
@@ -24,27 +24,27 @@ module type_stokes
 
   public :: operator(+)
   interface operator(+)
-    module procedure add_stokes_sp
-    module procedure add_stokes_dp
-  end interface
+     module procedure add_stokes_sp
+     module procedure add_stokes_dp
+  end interface operator(+)
 
   public :: operator(-)
   interface operator(-)
      module procedure sub_stokes_sp
      module procedure sub_stokes_dp
-  end interface
+  end interface operator(-)
 
   public :: operator(*)
   interface operator(*)
      module procedure scalar_stokes_mult_sp,stokes_scalar_mult_sp
      module procedure scalar_stokes_mult_dp,stokes_scalar_mult_dp
-  end interface
+  end interface operator(*)
 
   public :: operator(/)
   interface operator(/)
      module procedure scalar_stokes_div_sp,stokes_scalar_div_sp
      module procedure scalar_stokes_div_dp,stokes_scalar_div_dp
-  end interface
+  end interface operator(/)
 
 contains
 
@@ -146,7 +146,7 @@ contains
     s%V = a%V / b
 
   end function stokes_scalar_div_dp
-  
+
 
   !**********************************************************************!
   ! Stokes addition
@@ -245,6 +245,6 @@ contains
     s%V = a%V / b
 
   end function stokes_scalar_div_sp
-  
+
 
 end module type_stokes

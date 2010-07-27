@@ -73,7 +73,7 @@ module lib_cfitsio
      module procedure fits_write_6d_array_j
      module procedure fits_write_6d_array_e
      module procedure fits_write_6d_array_d
-  end interface
+  end interface fits_write_array
 
   interface fits_read_array
      module procedure fits_read_2d_array_j
@@ -91,7 +91,7 @@ module lib_cfitsio
      module procedure fits_read_6d_array_j
      module procedure fits_read_6d_array_e
      module procedure fits_read_6d_array_d   
-  end interface
+  end interface fits_read_array
 
   interface fits_read_array_auto
      module procedure fits_read_2d_array_alloc_j
@@ -109,7 +109,7 @@ module lib_cfitsio
      module procedure fits_read_6d_array_alloc_j
      module procedure fits_read_6d_array_alloc_e
      module procedure fits_read_6d_array_alloc_d   
-  end interface
+  end interface fits_read_array_auto
 
   interface fits_read_keyword
      module procedure fits_read_kj
@@ -117,7 +117,7 @@ module lib_cfitsio
      module procedure fits_read_kd
      module procedure fits_read_ks
      module procedure fits_read_kl
-  end interface
+  end interface fits_read_keyword
 
   interface fits_write_keyword
      module procedure fits_write_kj
@@ -125,7 +125,7 @@ module lib_cfitsio
      module procedure fits_write_kd
      module procedure fits_write_ks
      module procedure fits_write_kl
-  end interface
+  end interface fits_write_keyword
 
   interface fits_table_write_column
      module procedure write_table_column_0d_j
@@ -143,7 +143,7 @@ module lib_cfitsio
      module procedure write_table_column_0d_l
      module procedure write_table_column_1d_l
      module procedure write_table_column_2d_l  
-  end interface
+  end interface fits_table_write_column
 
   interface fits_table_read_column
      module procedure read_table_column_0d_j
@@ -161,7 +161,7 @@ module lib_cfitsio
      module procedure read_table_column_0d_l
      module procedure read_table_column_1d_l
      module procedure read_table_column_2d_l
-  end interface
+  end interface fits_table_read_column
 
   interface fits_table_read_column_auto
      module procedure read_table_column_1d_alloc_j
@@ -172,20 +172,20 @@ module lib_cfitsio
      module procedure read_table_column_2d_alloc_d
      module procedure read_table_column_1d_alloc_s
      module procedure read_table_column_2d_alloc_s
-  end interface
+  end interface fits_table_read_column_auto
 
 
   interface fits_write_array_line
      module procedure fits_write_array_line_e
      module procedure fits_write_array_line_d
      module procedure fits_write_array_line_b
-  end interface
+  end interface fits_write_array_line
 
   interface fits_read_array_line
      module procedure fits_read_array_line_e
      module procedure fits_read_array_line_d
      module procedure fits_read_array_line_b
-  end interface
+  end interface fits_read_array_line
 
   logical :: verbose = .false.
 

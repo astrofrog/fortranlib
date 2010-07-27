@@ -31,43 +31,43 @@ module type_angle3d
   interface angle3d_deg
      module procedure angle3d_deg_sp
      module procedure angle3d_deg_dp
-  end interface
+  end interface angle3d_deg
 
   public :: display_angle
   interface display_angle
      module procedure display_angle_sp
      module procedure display_angle_dp
-  end interface
+  end interface display_angle
 
   public :: operator(.dot.)
   interface operator(.dot.)
      module procedure dot_product_sp
      module procedure dot_product_dp
-  end interface
+  end interface operator(.dot.)
 
   public :: rotate_angle3d
   interface rotate_angle3d
      module procedure rotate_angle3d_sp
      module procedure rotate_angle3d_dp
-  end interface
+  end interface rotate_angle3d
 
   public :: difference_angle3d
   interface difference_angle3d
      module procedure difference_angle3d_sp
      module procedure difference_angle3d_dp
-  end interface
+  end interface difference_angle3d
 
   public :: random_sphere_angle3d
   interface random_sphere_angle3d
      module procedure random_sphere_angle3d_sp
      module procedure random_sphere_angle3d_dp
-  end interface
+  end interface random_sphere_angle3d
 
   public :: operator(-)
   interface operator(-)
      module procedure minus_angle_sp
      module procedure minus_angle_dp
-  end interface
+  end interface operator(-)
 
 contains
 

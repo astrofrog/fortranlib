@@ -1,4 +1,4 @@
-! MD5 of template: 3e0d01b914b58fc14d121934407ce610
+! MD5 of template: e67d8ebecce8ba9cfc69ad4f9523b4b5
 ! Array related routines (Integration, Interpolation, etc.)
 ! Thomas Robitaille (c) 2009
 
@@ -30,14 +30,14 @@ module lib_conf
 
   implicit none
   save
-  
+
   private
   public :: load_config_file
-  
+
   integer,parameter :: idp = selected_int_kind(13)
   integer,parameter :: sp = selected_real_kind(p=6,r=37)
   integer,parameter :: dp = selected_real_kind(p=15,r=307)
-  
+
   integer,parameter :: config_file_len=1000
   integer,parameter :: config_line_len=100
   character(len=6),parameter :: config_line_fmt='(A100)'
@@ -51,8 +51,8 @@ module lib_conf
   public :: read_config
   interface read_config
      module procedure config_real8,config_real4,config_char,config_int4,config_int8,config_logical
-  end interface
-  
+  end interface read_config
+
   interface read_from_string
      module procedure read_int4_from_string
      module procedure read_int8_from_string
@@ -70,7 +70,7 @@ contains
     integer,intent(out) :: value
     read(string,*) value
   end subroutine read_int4_from_string
-  
+
   subroutine read_int8_from_string(string,value)
     implicit none
     character(len=*),intent(in) :: string
@@ -172,7 +172,7 @@ contains
 
     integer,optional,intent(in) :: element
     ! array element (if needed)
-    
+
     ! --- Output --- !
 
     logical,intent(out) :: value
@@ -203,18 +203,18 @@ contains
           pos = index(line(i),'=')
           name_check = adjustl(line(i)(1:pos-1))
           if(trim(name_check) == trim(par_name_new)) then
-            call read_from_string(line(i)(pos+1:),value)
-            found = .true.
-            exit
+             call read_from_string(line(i)(pos+1:),value)
+             found = .true.
+             exit
           end if
-          
+
        end if
 
     end do
 
     if(.not.found) then
-      print *, "Parameter not found : "//trim(par_name_new)
-      stop
+       print *, "Parameter not found : "//trim(par_name_new)
+       stop
     end if
 
   end subroutine config_logical
@@ -231,7 +231,7 @@ contains
 
     integer,optional,intent(in) :: element
     ! array element (if needed)
-    
+
     ! --- Output --- !
 
     real(dp),intent(out) :: value
@@ -262,18 +262,18 @@ contains
           pos = index(line(i),'=')
           name_check = adjustl(line(i)(1:pos-1))
           if(trim(name_check) == trim(par_name_new)) then
-            call read_from_string(line(i)(pos+1:),value)
-            found = .true.
-            exit
+             call read_from_string(line(i)(pos+1:),value)
+             found = .true.
+             exit
           end if
-          
+
        end if
 
     end do
 
     if(.not.found) then
-      print *, "Parameter not found : "//trim(par_name_new)
-      stop
+       print *, "Parameter not found : "//trim(par_name_new)
+       stop
     end if
 
   end subroutine config_real8
@@ -290,7 +290,7 @@ contains
 
     integer,optional,intent(in) :: element
     ! array element (if needed)
-    
+
     ! --- Output --- !
 
     real(sp),intent(out) :: value
@@ -321,18 +321,18 @@ contains
           pos = index(line(i),'=')
           name_check = adjustl(line(i)(1:pos-1))
           if(trim(name_check) == trim(par_name_new)) then
-            call read_from_string(line(i)(pos+1:),value)
-            found = .true.
-            exit
+             call read_from_string(line(i)(pos+1:),value)
+             found = .true.
+             exit
           end if
-          
+
        end if
 
     end do
 
     if(.not.found) then
-      print *, "Parameter not found : "//trim(par_name_new)
-      stop
+       print *, "Parameter not found : "//trim(par_name_new)
+       stop
     end if
 
   end subroutine config_real4
@@ -349,7 +349,7 @@ contains
 
     integer,optional,intent(in) :: element
     ! array element (if needed)
-    
+
     ! --- Output --- !
 
     character(len=*),intent(out) :: value
@@ -380,18 +380,18 @@ contains
           pos = index(line(i),'=')
           name_check = adjustl(line(i)(1:pos-1))
           if(trim(name_check) == trim(par_name_new)) then
-            call read_from_string(line(i)(pos+1:),value)
-            found = .true.
-            exit
+             call read_from_string(line(i)(pos+1:),value)
+             found = .true.
+             exit
           end if
-          
+
        end if
 
     end do
 
     if(.not.found) then
-      print *, "Parameter not found : "//trim(par_name_new)
-      stop
+       print *, "Parameter not found : "//trim(par_name_new)
+       stop
     end if
 
   end subroutine config_char
@@ -408,7 +408,7 @@ contains
 
     integer,optional,intent(in) :: element
     ! array element (if needed)
-    
+
     ! --- Output --- !
 
     integer(idp),intent(out) :: value
@@ -439,18 +439,18 @@ contains
           pos = index(line(i),'=')
           name_check = adjustl(line(i)(1:pos-1))
           if(trim(name_check) == trim(par_name_new)) then
-            call read_from_string(line(i)(pos+1:),value)
-            found = .true.
-            exit
+             call read_from_string(line(i)(pos+1:),value)
+             found = .true.
+             exit
           end if
-          
+
        end if
 
     end do
 
     if(.not.found) then
-      print *, "Parameter not found : "//trim(par_name_new)
-      stop
+       print *, "Parameter not found : "//trim(par_name_new)
+       stop
     end if
 
   end subroutine config_int8
@@ -467,7 +467,7 @@ contains
 
     integer,optional,intent(in) :: element
     ! array element (if needed)
-    
+
     ! --- Output --- !
 
     integer,intent(out) :: value
@@ -498,18 +498,18 @@ contains
           pos = index(line(i),'=')
           name_check = adjustl(line(i)(1:pos-1))
           if(trim(name_check) == trim(par_name_new)) then
-            call read_from_string(line(i)(pos+1:),value)
-            found = .true.
-            exit
+             call read_from_string(line(i)(pos+1:),value)
+             found = .true.
+             exit
           end if
-          
+
        end if
 
     end do
 
     if(.not.found) then
-      print *, "Parameter not found : "//trim(par_name_new)
-      stop
+       print *, "Parameter not found : "//trim(par_name_new)
+       stop
     end if
 
   end subroutine config_int4

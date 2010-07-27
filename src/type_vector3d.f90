@@ -1,4 +1,4 @@
-! MD5 of template: 8258d7d7d899421e5c06c75777d6c651
+! MD5 of template: 3085b3fb56e87da7acada999db37b322
 ! 3D vector related routines
 ! Thomas Robitaille (c) 2009
 
@@ -28,25 +28,25 @@ module type_vector3d
   interface operator(+)
      module procedure add_vector3d_sp
      module procedure add_vector3d_dp
-  end interface
+  end interface operator(+)
 
   public :: operator(-)
   interface operator(-)
      module procedure sub_vector3d_sp
      module procedure sub_vector3d_dp
-  end interface
+  end interface operator(-)
 
   public :: operator(.dot.)
   interface operator(.dot.)
      module procedure dot_product_sp
      module procedure dot_product_dp
-  end interface
+  end interface operator(.dot.)
 
   public :: operator(.cross.)
   interface operator(.cross.)
      module procedure cross_product_sp
      module procedure cross_product_dp
-  end interface
+  end interface operator(.cross.)
 
   public :: operator(*)
   interface operator(*)
@@ -54,7 +54,7 @@ module type_vector3d
      module procedure scalar_vector3d_mult_dp
      module procedure vector3d_scalar_mult_sp
      module procedure vector3d_scalar_mult_dp
-  end interface
+  end interface operator(*)
 
   public :: operator(/)
   interface operator(/)
@@ -62,25 +62,25 @@ module type_vector3d
      module procedure scalar_vector3d_div_dp
      module procedure vector3d_scalar_div_sp
      module procedure vector3d_scalar_div_dp
-  end interface
+  end interface operator(/)
 
   public :: vector3d_to_angle3d
   interface vector3d_to_angle3d
      module procedure vector3d_to_angle3d_sp
      module procedure vector3d_to_angle3d_dp
-  end interface
+  end interface vector3d_to_angle3d
 
   public :: angle3d_to_vector3d
   interface angle3d_to_vector3d
      module procedure angle3d_to_vector3d_sp
      module procedure angle3d_to_vector3d_dp
-  end interface
+  end interface angle3d_to_vector3d
 
   public :: random_sphere_vector3d
   interface random_sphere_vector3d
      module procedure random_sphere_vector3d_sp
      module procedure random_sphere_vector3d_dp
-  end interface
+  end interface random_sphere_vector3d
 
 contains
 
