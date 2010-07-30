@@ -1,4 +1,4 @@
-! MD5 of template: 9ce6721643ed0252e75b7091ab1de8f7
+! MD5 of template: 5fbcb82487248af34da450b656bf604f
 ! Array related routines (Integration, Interpolation, etc.)
 ! Thomas Robitaille (c) 2009
 
@@ -28,17 +28,33 @@ module lib_array
   interface integral
      module procedure integral_sp
      module procedure integral_dp
-     module procedure integral_all_sp
-     module procedure integral_all_dp
+     module procedure integral_subset_sp
+     module procedure integral_subset_dp
   end interface integral
 
-  public :: integral_log10
-  interface integral_log10
-     module procedure integral_log10_sp
-     module procedure integral_log10_dp
-     module procedure integral_all_log10_sp
-     module procedure integral_all_log10_dp
-  end interface integral_log10
+  public :: integral_linlog
+  interface integral_linlog
+     module procedure integral_linlog_sp
+     module procedure integral_linlog_dp
+     module procedure integral_linlog_subset_sp
+     module procedure integral_linlog_subset_dp
+  end interface integral_linlog
+
+  public :: integral_loglin
+  interface integral_loglin
+     module procedure integral_loglin_sp
+     module procedure integral_loglin_dp
+     module procedure integral_loglin_subset_sp
+     module procedure integral_loglin_subset_dp
+  end interface integral_loglin
+
+  public :: integral_loglog
+  interface integral_loglog
+     module procedure integral_loglog_sp
+     module procedure integral_loglog_dp
+     module procedure integral_loglog_subset_sp
+     module procedure integral_loglog_subset_dp
+  end interface integral_loglog
 
   public :: locate
   interface locate
@@ -54,19 +70,35 @@ module lib_array
      module procedure interp1d_array_dp
   end interface interp1d
 
+  public :: interp1d_linlog
+  interface interp1d_linlog
+     module procedure interp1d_linlog_sp
+     module procedure interp1d_linlog_dp
+     module procedure interp1d_array_linlog_sp
+     module procedure interp1d_array_linlog_dp
+  end interface interp1d_linlog
+
+  public :: interp1d_loglin
+  interface interp1d_loglin
+     module procedure interp1d_loglin_sp
+     module procedure interp1d_loglin_dp
+     module procedure interp1d_array_loglin_sp
+     module procedure interp1d_array_loglin_dp
+  end interface interp1d_loglin
+
+  public :: interp1d_loglog
+  interface interp1d_loglog
+     module procedure interp1d_loglog_sp
+     module procedure interp1d_loglog_dp
+     module procedure interp1d_array_loglog_sp
+     module procedure interp1d_array_loglog_dp
+  end interface interp1d_loglog
+
   public :: interp2d
   interface interp2d
      module procedure interp2d_sp
      module procedure interp2d_dp
   end interface interp2d
-
-  public :: interp1d_log10
-  interface interp1d_log10
-     module procedure interp1d_log10_sp
-     module procedure interp1d_log10_dp
-     module procedure interp1d_array_log10_sp
-     module procedure interp1d_array_log10_dp
-  end interface interp1d_log10
 
   public :: histogram1d
   interface histogram1d
@@ -133,253 +165,249 @@ contains
     x = 10._dp**x
   end subroutine logspace_dp
 
-  real(dp) function integral_all_dp(x,y)
+  real(dp) function integral_dp(x,y)
     ! Total integral of a function
     implicit none
     real(dp),intent(in) :: x(:),y(:)
-    real(dp)            :: x1,x2
-    x1 = minval(x,1)
-    x2 = maxval(x,1)
-    integral_all_dp = integral_dp(x,y,x1,x2)
-  end function integral_all_dp
-
-  real(dp) function integral_dp(x,y,x1,x2)
-    ! Integral of a function between two limits
-
-    implicit none
-
-    real(dp),intent(in) :: x(:),y(:),x1,x2
-    integer :: i1,i2
-    real(dp) :: f1,f2,sum
-    integer :: j
-
-    if(x1.gt.x(size(x)).or.x2.lt.x(1)) then
-       integral_dp=0._dp
-       return
-    end if
-
-    if(x1.gt.x(1)) then
-       i1=locate(x,x1)
-       f1 = interp1d(x,y,x1)
-    else 
-       i1=0
-    end if
-
-    if(x2.lt.x(size(x))) then
-       i2=locate(x,x2)
-       f2=interp1d(x,y,x2)
-    else
-       i2=size(x)
-    end if
-
-    sum=0.d0
-
-    if(i2.gt.i1) then
-
-       ! Add central part:
-       do j=i1+1,i2-1
-          sum=sum+0.5_dp*(y(j)+y(j+1))*(x(j+1)-x(j))
-       end do
-
-       ! Add extremities
-       if(x1.gt.x(1)) sum=sum+0.5_dp*(f1+y(i1+1))*(x(i1+1)-x1)
-       if(x2.lt.x(size(x))) sum=sum+0.5_dp*(f2+y(i2))*(x2-x(i2))
-
-       integral_dp=real(sum, dp)
-
-    else
-
-       integral_dp=0.5_dp*(f1+f2)*(x2-x1)
-
-    end if
-
+    integral_dp = integral_general_dp(x, y, trapezium_dp)
   end function integral_dp
 
+  real(dp) function integral_subset_dp(x,y,x1,x2)
+    ! Integral of a function between two limits
+    implicit none
+    real(dp),intent(in) :: x(:),y(:),x1,x2
+    integral_subset_dp = integral_general_subset_dp(x, y, x1, x2, interp1d_dp, trapezium_dp)
+  end function integral_subset_dp
 
-  real(dp) function integral_all_log10_dp(x,y)
+  real(dp) function integral_linlog_dp(x,y)
+    ! Total integral of a function
+    ! (uses linlog interpolation)
+    implicit none
+    real(dp),intent(in) :: x(:),y(:)
+    integral_linlog_dp = integral_general_dp(x, y, trapezium_linlog_dp)
+  end function integral_linlog_dp
+
+  real(dp) function integral_linlog_subset_dp(x,y,x1,x2)
+    ! Integral of a function between two limits
+    ! (uses linlog interpolation)
+    implicit none
+    real(dp),intent(in) :: x(:),y(:),x1,x2
+    integral_linlog_subset_dp = integral_general_subset_dp(x, y, x1, x2, interp1d_linlog_dp, trapezium_linlog_dp)
+  end function integral_linlog_subset_dp
+
+  real(dp) function integral_loglin_dp(x,y)
+    ! Total integral of a function
+    ! (uses loglin interpolation)
+    implicit none
+    real(dp),intent(in) :: x(:),y(:)
+    integral_loglin_dp = integral_general_dp(x, y, trapezium_loglin_dp)
+  end function integral_loglin_dp
+
+  real(dp) function integral_loglin_subset_dp(x,y,x1,x2)
+    ! Integral of a function between two limits
+    ! (uses loglin interpolation)
+    implicit none
+    real(dp),intent(in) :: x(:),y(:),x1,x2
+    integral_loglin_subset_dp = integral_general_subset_dp(x, y, x1, x2, interp1d_loglin_dp, trapezium_loglin_dp)
+  end function integral_loglin_subset_dp
+
+  real(dp) function integral_loglog_dp(x,y)
     ! Total integral of a function
     ! (uses log10 interpolation)
     implicit none
     real(dp),intent(in) :: x(:),y(:)
-    real(dp)            :: x1,x2
-    x1 = minval(x,1)
-    x2 = maxval(x,1)
-    integral_all_log10_dp = integral_log10_dp(x,y,x1,x2)
-  end function integral_all_log10_dp
+    integral_loglog_dp = integral_general_dp(x, y, trapezium_loglog_dp)
+  end function integral_loglog_dp
 
-
-  real(dp) function integral_log10_dp(x,y,x1,x2)
+  real(dp) function integral_loglog_subset_dp(x,y,x1,x2)
     ! Integral of a function between two limits
     ! (uses log10 interpolation)
+    implicit none
+    real(dp),intent(in) :: x(:),y(:),x1,x2
+    integral_loglog_subset_dp = integral_general_subset_dp(x, y, x1, x2, interp1d_loglog_dp, trapezium_loglog_dp)
+  end function integral_loglog_subset_dp
+
+  real(dp) function integral_general_dp(x,y,f_chunk) result(sum)
+    ! Total integral of a function
+    implicit none
+    real(dp),intent(in) :: x(:),y(:)
+    integer :: j
+    interface
+       real(dp) function f_chunk(x1,y1,x2,y2)
+         import :: dp
+         implicit none
+         real(dp),intent(in) :: x1,y1,x2,y2
+       end function f_chunk
+    end interface
+    sum = 0._dp
+    do j=1,size(x)-1
+       sum=sum+f_chunk(x(j),y(j),x(j+1),y(j+1))
+    end do
+  end function integral_general_dp
+
+  real(dp) function integral_general_subset_dp(x,y,x1,x2,f_interp,f_chunk) result(sum)
+    ! Integral of a function between two limits
 
     implicit none
 
     real(dp),intent(in) :: x(:),y(:),x1,x2
     integer :: i1,i2
-    real(dp) :: f1,f2,sum
-    integer :: j
-
-    if(x1.gt.x(size(x)).or.x2.lt.x(1)) then
-       integral_log10_dp=0._dp
-       return
-    end if
-
-    if(x1.gt.x(1)) then
-       i1=locate(x,x1)
-       f1 = interp1d_log10(x,y,x1)
-    else 
-       i1=0
-    end if
-
-    if(x2.lt.x(size(x))) then
-       i2=locate(x,x2)
-       f2=interp1d_log10(x,y,x2)
-    else
-       i2=size(x)
-    end if
-
-    sum=0.d0
-
-    if(i2.gt.i1) then
-
-       ! Add central part:
-       do j=i1+1,i2-1
-          sum=sum+trapezium_log10(x(j),y(j),x(j+1),y(j+1))
-       end do
-
-       ! Add extremities
-       if(x1.gt.x(1)) sum=sum+trapezium_log10(x1,f1,x(i1+1),y(i1+1))
-       if(x2.lt.x(size(x))) sum=sum+trapezium_log10(x(i2),y(i2),x2,f2)
-
-       integral_log10_dp=real(sum, dp)
-
-    else
-
-       integral_log10_dp=trapezium_log10(x1,f1,x2,f2)
-
-    end if
-
-  contains
-
-    real(dp) function trapezium_log10(x1,y1,x2,y2)
-      implicit none
-      real(dp),intent(in) :: x1,y1,x2,y2
-      real(dp) :: b
-      if(x1==x2) then
-         trapezium_log10 = 0.
-      else if(y1==0..or.y2==0.) then
-         trapezium_log10 = 0.
-      else
-         b = log10(y1/y2) / log10(x1/x2)
-         trapezium_log10 = y1 * (x2*(x2/x1)**b-x1) / (b+1)
-      end if
-    end function trapezium_log10
-
-  end function integral_log10_dp
-
-  function interp1d_array_log10_dp(x,y,xval,bounds_error,fill_value)
-    implicit none
-    real(dp),intent(in) :: x(:),y(:)
-    real(dp),intent(in) :: xval(:)
-    logical,intent(in),optional :: bounds_error
-    real(dp),intent(in),optional :: fill_value
-    real(dp) :: interp1d_array_log10_dp(size(xval))
-    integer :: i
-    do i=1,size(xval)
-       interp1d_array_log10_dp(i) = interp1d_log10_dp(x,y,xval(i),bounds_error,fill_value)
-    end do
-  end function interp1d_array_log10_dp
-
-  real(dp) function interp1d_log10_dp(x,y,xval,bounds_error,fill_value)
-    ! Interpolate y = f(x) at xval in log10 space
-    ! This is faster than using interp1d(log10(x),log10(y),log10(xval))
-    ! because we only take the log10() of 5 values instead of the
-    ! entire input arrays. But the results should be the same
-
-    implicit none
-
-    ! --- Input --- !
-
+    real(dp) :: f1,f2
     integer :: n
-    ! the size of the array
 
-    real(dp),dimension(:),intent(in) :: x,y
-    ! the x and y arrays
-
-    real(dp),intent(in) :: xval
-    ! the value at which to interpolate y
-
-    logical,intent(in),optional :: bounds_error
-    ! whether to raise an out of bounds error
-
-    real(dp),intent(in),optional :: fill_value
-    ! value for out of bounds if bounds_error is .false.
-
-    ! --- Local variables --- !
-
-    integer :: ipos
-    ! position of x value in x array
-
-    real(dp) :: frac
-    ! temporary fraction
-
-    real(dp) :: x1,x2,y1,y2
-
-    logical :: bounds_error_tmp
-    real(dp) :: fill_value_tmp
-
-    if(present(bounds_error)) then
-       bounds_error_tmp = bounds_error
-    else
-       bounds_error_tmp = .true.
-    end if
-
-    if(.not.bounds_error_tmp) then
-       if(present(fill_value)) then
-          fill_value_tmp = fill_value
-       else
-          fill_value_tmp = 0.
-       end if
-    end if
+    interface
+       real(dp) function f_interp(x, y, xval,bounds_error,fill_value)
+         import :: dp
+         implicit none
+         real(dp),dimension(:),intent(in) :: x,y
+         real(dp),intent(in) :: xval
+         logical,intent(in),optional :: bounds_error
+         real(dp),intent(in),optional :: fill_value
+       end function f_interp
+       real(dp) function f_chunk(x1,y1,x2,y2)
+         import :: dp
+         implicit none
+         real(dp),intent(in) :: x1,y1,x2,y2
+       end function f_chunk
+    end interface
 
     n = size(x)
 
-    ipos = locate(x,xval)
-
-    ! --- First some error checking --- !
-
-    if(ipos == -1) then
-       if(bounds_error_tmp) then
-          write(*,'("ERROR: Interpolation out of bounds : ",ES11.4," in [",ES11.4,":",ES11.4,"]")') xval,x(1),x(n)
-          stop
-       else
-          interp1d_log10_dp = fill_value_tmp
-          return
-       end if
+    if(x1.gt.x(n).or.x2.lt.x(1)) then
+       sum = 0._dp
+       return
     end if
 
-    if( ipos < n .and. ipos > 0) then
-       if(y(ipos)==0..or.y(ipos+1)==0.) then
-          interp1d_log10_dp = 0.
-       else
-          x1 = log10(x(ipos))
-          x2 = log10(x(ipos+1))
-          y1 = log10(y(ipos))
-          y2 = log10(y(ipos+1))
-          frac = ( log10(xval) - x1 ) / ( x2 - x1 )
-          interp1d_log10_dp = y1 + frac * ( y2 - y1 )
-          interp1d_log10_dp = 10._dp**(interp1d_log10_dp)
-       end if
-    else if(ipos == n) then
-       interp1d_log10_dp = y(n)
-    else if(ipos == 0) then
-       interp1d_log10_dp = y(1)
+    if(x1.gt.x(1)) then
+       i1 = locate(x,x1)
+       f1 = f_interp(x,y,x1)
+    else 
+       i1 = 0
+       f1 = 0._dp
+    end if
+
+    if(x2.lt.x(n)) then
+       i2 = locate(x,x2)
+       f2 = f_interp(x,y,x2)
     else
-       write(*,'("ERROR: Unexpected value of ipos : ",I0)') ipos
-       stop
+       i2 = n
+       f2 = 0._dp
     end if
 
-  end function interp1d_log10_dp
+    if(i2.gt.i1) then
+
+       ! Add main part
+       if(i2 > i1+1) then
+          sum = integral_general_dp(x(i1+1:i2), y(i1+1:i2), f_chunk)
+       else
+          sum = 0._dp
+       end if
+
+       ! Add extremities
+       sum = sum + f_chunk(x1,f1,x(i1+1),y(i1+1))
+       sum = sum + f_chunk(x(i2),y(i2),x2,f2)
+
+    else
+
+       sum = f_chunk(x1,f1,x2,f2)
+
+    end if
+
+  end function integral_general_subset_dp
+
+  real(dp) function trapezium_dp(x1,y1,x2,y2)
+    implicit none
+    real(dp),intent(in) :: x1,y1,x2,y2
+    trapezium_dp = 0.5_dp*(y1+y2)*(x2-x1)
+  end function trapezium_dp
+
+  real(dp) function trapezium_loglin_dp(x1,y1,x2,y2)
+    implicit none
+    real(dp),intent(in) :: x1,y1,x2,y2
+    real(dp) :: a,b
+    if(x1==x2) then
+       trapezium_loglin_dp = 0._dp
+    else
+       a = (y1-y2) / log10(x1/x2)
+       b = y1 - a * log10(x1)
+       trapezium_loglin_dp = a*(x2*log10(x2) - x1*log10(x1)) &
+            &                     + (b-a/log(10._dp)) * (x2 - x1)
+    end if
+  end function trapezium_loglin_dp
+
+  real(dp) function trapezium_linlog_dp(x1,y1,x2,y2)
+    implicit none
+    real(dp),intent(in) :: x1,y1,x2,y2
+    real(dp) :: a,b,c,d
+    if(x1==x2) then
+       trapezium_linlog_dp = 0._dp
+    else
+       a = log10(y1/y2) / (x1-x2)
+       b = log10(y1) - a * x1
+       c = 10._dp**b
+       d = 10._dp**a
+       trapezium_linlog_dp = c/log(d) * (d**x2 - d**x1)
+    end if
+  end function trapezium_linlog_dp
+
+  real(dp) function trapezium_loglog_dp(x1,y1,x2,y2)
+    implicit none
+    real(dp),intent(in) :: x1,y1,x2,y2
+    real(dp) :: b
+    if(x1==x2) then
+       trapezium_loglog_dp = 0._dp
+    else if(y1==0..or.y2==0.) then
+       trapezium_loglog_dp = 0._dp
+    else
+       b = log10(y1/y2) / log10(x1/x2)
+       trapezium_loglog_dp = y1 * (x2*(x2/x1)**b-x1) / (b+1)
+    end if
+  end function trapezium_loglog_dp
+
+  real(dp) function interp1d_single_dp(x1,y1,x2,y2,xval) result(yval)
+    real(dp),intent(in) :: x1,y1,x2,y2,xval
+    real(dp) :: frac
+    frac = ( xval - x1 ) / ( x2 - x1 )
+    yval = y1 + frac * ( y2 - y1 )
+  end function interp1d_single_dp
+
+  real(dp) function interp1d_single_linlog_dp(x1,y1,x2,y2,xval) result(yval)
+    real(dp),intent(in) :: x1,y1,x2,y2,xval
+    real(dp) :: frac
+    if(y1==0..or.y2==0.) then
+       yval = 0._dp
+    else
+       frac = ( xval - x1 ) / ( x2 - x1 )
+       yval = 10._dp**(log10(y1) + frac * ( log10(y2) - log10(y1) ))
+    end if
+  end function interp1d_single_linlog_dp
+
+  real(dp) function interp1d_single_loglin_dp(x1,y1,x2,y2,xval) result(yval)
+    real(dp),intent(in) :: x1,y1,x2,y2,xval
+    real(dp) :: frac
+    frac = ( log10(xval) - log10(x1) ) / ( log10(x2) - log10(x1) )
+    yval = y1 + frac * ( y2 - y1 )
+  end function interp1d_single_loglin_dp
+
+  real(dp) function interp1d_single_loglog_dp(x1,y1,x2,y2,xval) result(yval)
+    real(dp),intent(in) :: x1,y1,x2,y2,xval
+    real(dp) :: frac
+    if(y1==0..or.y2==0.) then
+       yval = 0._dp
+    else
+       frac = ( log10(xval) - log10(x1) ) / ( log10(x2) - log10(x1) )
+       yval = 10._dp**(log10(y1) + frac * ( log10(y2) - log10(y1) ))
+    end if
+  end function interp1d_single_loglog_dp
+
+  real(dp) function interp1d_dp(x,y,xval,bounds_error,fill_value) result(yval)
+    implicit none
+    real(dp),dimension(:),intent(in) :: x,y
+    real(dp),intent(in) :: xval
+    logical,intent(in),optional :: bounds_error
+    real(dp),intent(in),optional :: fill_value
+    yval = interp1d_general_dp(x,y,xval,interp1d_single_dp,bounds_error,fill_value)
+  end function interp1d_dp
 
   function interp1d_array_dp(x,y,xval,bounds_error,fill_value)
     implicit none
@@ -394,12 +422,75 @@ contains
     end do
   end function interp1d_array_dp
 
-  real(dp) function interp1d_dp(x,y,xval,bounds_error,fill_value)
-    ! Interpolate y = f(x) at xval
+  real(dp) function interp1d_linlog_dp(x,y,xval,bounds_error,fill_value) result(yval)
+    implicit none
+    real(dp),dimension(:),intent(in) :: x,y
+    real(dp),intent(in) :: xval
+    logical,intent(in),optional :: bounds_error
+    real(dp),intent(in),optional :: fill_value
+    yval = interp1d_general_dp(x,y,xval,interp1d_single_linlog_dp,bounds_error,fill_value)
+  end function interp1d_linlog_dp
+
+  function interp1d_array_linlog_dp(x,y,xval,bounds_error,fill_value)
+    implicit none
+    real(dp),intent(in) :: x(:),y(:)
+    real(dp),intent(in) :: xval(:)
+    logical,intent(in),optional :: bounds_error
+    real(dp),intent(in),optional :: fill_value
+    real(dp) :: interp1d_array_linlog_dp(size(xval))
+    integer :: i
+    do i=1,size(xval)
+       interp1d_array_linlog_dp(i) = interp1d_linlog_dp(x,y,xval(i),bounds_error,fill_value)
+    end do
+  end function interp1d_array_linlog_dp
+
+  real(dp) function interp1d_loglin_dp(x,y,xval,bounds_error,fill_value) result(yval)
+    implicit none
+    real(dp),dimension(:),intent(in) :: x,y
+    real(dp),intent(in) :: xval
+    logical,intent(in),optional :: bounds_error
+    real(dp),intent(in),optional :: fill_value
+    yval = interp1d_general_dp(x,y,xval,interp1d_single_loglin_dp,bounds_error,fill_value)
+  end function interp1d_loglin_dp
+
+  function interp1d_array_loglin_dp(x,y,xval,bounds_error,fill_value)
+    implicit none
+    real(dp),intent(in) :: x(:),y(:)
+    real(dp),intent(in) :: xval(:)
+    logical,intent(in),optional :: bounds_error
+    real(dp),intent(in),optional :: fill_value
+    real(dp) :: interp1d_array_loglin_dp(size(xval))
+    integer :: i
+    do i=1,size(xval)
+       interp1d_array_loglin_dp(i) = interp1d_loglin_dp(x,y,xval(i),bounds_error,fill_value)
+    end do
+  end function interp1d_array_loglin_dp
+
+  real(dp) function interp1d_loglog_dp(x,y,xval,bounds_error,fill_value) result(yval)
+    implicit none
+    real(dp),dimension(:),intent(in) :: x,y
+    real(dp),intent(in) :: xval
+    logical,intent(in),optional :: bounds_error
+    real(dp),intent(in),optional :: fill_value
+    yval = interp1d_general_dp(x,y,xval,interp1d_single_loglog_dp,bounds_error,fill_value)
+  end function interp1d_loglog_dp
+
+  function interp1d_array_loglog_dp(x,y,xval,bounds_error,fill_value)
+    implicit none
+    real(dp),intent(in) :: x(:),y(:)
+    real(dp),intent(in) :: xval(:)
+    logical,intent(in),optional :: bounds_error
+    real(dp),intent(in),optional :: fill_value
+    real(dp) :: interp1d_array_loglog_dp(size(xval))
+    integer :: i
+    do i=1,size(xval)
+       interp1d_array_loglog_dp(i) = interp1d_loglog_dp(x,y,xval(i),bounds_error,fill_value)
+    end do
+  end function interp1d_array_loglog_dp
+
+  real(dp) function interp1d_general_dp(x,y,xval,f_single,bounds_error,fill_value) result(yval)
 
     implicit none
-
-    ! --- Input --- !
 
     integer :: n
     ! the size of the array
@@ -410,19 +501,22 @@ contains
     real(dp),intent(in) :: xval
     ! the value at which to interpolate y
 
+    interface
+       real(dp) function f_single(x1,y1,x2,y2,xval)
+         import :: dp
+         implicit none
+         real(dp),intent(in) :: x1,y1,x2,y2,xval
+       end function f_single
+    end interface
+
     logical,intent(in),optional :: bounds_error
     ! whether to raise an out of bounds error
 
     real(dp),intent(in),optional :: fill_value
     ! value for out of bounds if bounds_error is .false.
 
-    ! --- Local variables --- !
-
     integer :: ipos
     ! position of x value in x array
-
-    real(dp) :: frac
-    ! temporary fraction
 
     logical :: bounds_error_tmp
     real(dp) :: fill_value_tmp
@@ -437,7 +531,7 @@ contains
        if(present(fill_value)) then
           fill_value_tmp = fill_value
        else
-          fill_value_tmp = 0.
+          fill_value_tmp = 0._dp
        end if
     end if
 
@@ -452,25 +546,23 @@ contains
           write(*,'("ERROR: Interpolation out of bounds : ",ES11.4," in [",ES11.4,":",ES11.4,"]")') xval,x(1),x(n)
           stop
        else
-          interp1d_dp = fill_value_tmp
+          yval = fill_value_tmp
           return
        end if
     end if
 
     if( ipos < n .and. ipos > 0) then
-       frac = ( xval - x(ipos) ) / ( x(ipos+1) - x(ipos) )
-       interp1d_dp = y(ipos) + frac * ( y(ipos+1) - y(ipos) )
+       yval = f_single(x(ipos), y(ipos), x(ipos+1), y(ipos+1), xval)
     else if(ipos == n) then
-       interp1d_dp = y(n)
+       yval = y(n)
     else if(ipos == 0) then
-       interp1d_dp = y(1)
+       yval = y(1)
     else
        write(*,'("ERROR: Unexpected value of ipos : ",I0)') ipos
        stop
     end if
 
-  end function interp1d_dp
-
+  end function interp1d_general_dp
 
   function interp2d_dp(x,y,array,x0,y0,bounds_error,fill_value) result(value)
     ! Bilinar interpolation of array = f(x,y) at (x0,y0)
@@ -501,7 +593,7 @@ contains
        if(present(fill_value)) then
           fill_value_tmp = fill_value
        else
-          fill_value_tmp = 0.
+          fill_value_tmp = 0._dp
        end if
     end if
 
@@ -578,7 +670,7 @@ contains
   end function locate_dp
 
 
-  integer pure function ipos_dp(xmin,xmax,x,nbin)
+  integer function ipos_dp(xmin,xmax,x,nbin)
     ! Find bin a value falls in for a regular histogram
 
     implicit none
@@ -621,7 +713,7 @@ contains
   end function ipos_dp
 
 
-  real(dp) pure function xval_dp(xmin,xmax,i,nbin)
+  real(dp) function xval_dp(xmin,xmax,i,nbin)
     ! Find central value of a bin for a regular histogram
 
     implicit none
@@ -644,7 +736,7 @@ contains
   end function xval_dp
 
 
-  pure subroutine histogram1d_dp(array,xmin,xmax,nbin,hist_x,hist_y,mask,weights)
+  subroutine histogram1d_dp(array,xmin,xmax,nbin,hist_x,hist_y,mask,weights)
     ! Bin 1D array of values into 1D regular histogram
 
     implicit none
@@ -754,7 +846,7 @@ contains
   end subroutine histogram2d_dp
 
 
-  pure subroutine swap_dp(array, i, j)
+  subroutine swap_dp(array, i, j)
     implicit none
     real(dp),intent(inout) :: array(:)
     integer,intent(in) :: i, j
@@ -764,7 +856,7 @@ contains
     array(i) = temp
   end subroutine swap_dp
 
-  pure subroutine partition_dp(array, left, right, pivot_index, store_index)
+  subroutine partition_dp(array, left, right, pivot_index, store_index)
     implicit none
     real(dp),intent(inout) :: array(:)
     integer,intent(in) :: left, right, pivot_index
@@ -783,7 +875,7 @@ contains
     call swap_dp(array, store_index, right)
   end subroutine partition_dp
 
-  recursive pure subroutine quicksort_dp(array, left, right)
+  recursive subroutine quicksort_dp(array, left, right)
     implicit none
     real(dp),intent(inout) :: array(:)
     integer,intent(in) :: left, right
@@ -796,13 +888,13 @@ contains
     end if
   end subroutine quicksort_dp
 
-  recursive pure subroutine quicksort_all_dp(array)
+  recursive subroutine quicksort_all_dp(array)
     implicit none
     real(dp),intent(inout) :: array(:)
     call quicksort_dp(array, 1, size(array))
   end subroutine quicksort_all_dp
 
-  pure subroutine swap_index_dp(array, index, i, j)
+  subroutine swap_index_dp(array, index, i, j)
     implicit none
     real(dp),intent(inout) :: array(:)
     integer,intent(inout) :: index(:)
@@ -817,7 +909,7 @@ contains
     index(i) = temp_i
   end subroutine swap_index_dp
 
-  pure subroutine partition_index_dp(array, index, left, right, pivot_index, store_index)
+  subroutine partition_index_dp(array, index, left, right, pivot_index, store_index)
     implicit none
     real(dp),intent(inout) :: array(:)
     integer,intent(inout) :: index(:)
@@ -837,7 +929,7 @@ contains
     call swap_index_dp(array, index, store_index, right)
   end subroutine partition_index_dp
 
-  recursive pure subroutine quicksort_index_dp(array, index, left, right)
+  recursive subroutine quicksort_index_dp(array, index, left, right)
     implicit none
     real(dp),intent(inout) :: array(:)
     integer,intent(inout) :: index(:)
@@ -851,7 +943,7 @@ contains
     end if
   end subroutine quicksort_index_dp
 
-  recursive pure subroutine quicksort_index_all_dp(array, index)
+  recursive subroutine quicksort_index_all_dp(array, index)
     implicit none
     real(dp),intent(inout) :: array(:)
     integer,intent(inout) :: index(:)
@@ -937,253 +1029,249 @@ contains
     x = 10._sp**x
   end subroutine logspace_sp
 
-  real(sp) function integral_all_sp(x,y)
+  real(sp) function integral_sp(x,y)
     ! Total integral of a function
     implicit none
     real(sp),intent(in) :: x(:),y(:)
-    real(sp)            :: x1,x2
-    x1 = minval(x,1)
-    x2 = maxval(x,1)
-    integral_all_sp = integral_sp(x,y,x1,x2)
-  end function integral_all_sp
-
-  real(sp) function integral_sp(x,y,x1,x2)
-    ! Integral of a function between two limits
-
-    implicit none
-
-    real(sp),intent(in) :: x(:),y(:),x1,x2
-    integer :: i1,i2
-    real(sp) :: f1,f2,sum
-    integer :: j
-
-    if(x1.gt.x(size(x)).or.x2.lt.x(1)) then
-       integral_sp=0._sp
-       return
-    end if
-
-    if(x1.gt.x(1)) then
-       i1=locate(x,x1)
-       f1 = interp1d(x,y,x1)
-    else 
-       i1=0
-    end if
-
-    if(x2.lt.x(size(x))) then
-       i2=locate(x,x2)
-       f2=interp1d(x,y,x2)
-    else
-       i2=size(x)
-    end if
-
-    sum=0.d0
-
-    if(i2.gt.i1) then
-
-       ! Add central part:
-       do j=i1+1,i2-1
-          sum=sum+0.5_sp*(y(j)+y(j+1))*(x(j+1)-x(j))
-       end do
-
-       ! Add extremities
-       if(x1.gt.x(1)) sum=sum+0.5_sp*(f1+y(i1+1))*(x(i1+1)-x1)
-       if(x2.lt.x(size(x))) sum=sum+0.5_sp*(f2+y(i2))*(x2-x(i2))
-
-       integral_sp=real(sum, sp)
-
-    else
-
-       integral_sp=0.5_sp*(f1+f2)*(x2-x1)
-
-    end if
-
+    integral_sp = integral_general_sp(x, y, trapezium_sp)
   end function integral_sp
 
+  real(sp) function integral_subset_sp(x,y,x1,x2)
+    ! Integral of a function between two limits
+    implicit none
+    real(sp),intent(in) :: x(:),y(:),x1,x2
+    integral_subset_sp = integral_general_subset_sp(x, y, x1, x2, interp1d_sp, trapezium_sp)
+  end function integral_subset_sp
 
-  real(sp) function integral_all_log10_sp(x,y)
+  real(sp) function integral_linlog_sp(x,y)
+    ! Total integral of a function
+    ! (uses linlog interpolation)
+    implicit none
+    real(sp),intent(in) :: x(:),y(:)
+    integral_linlog_sp = integral_general_sp(x, y, trapezium_linlog_sp)
+  end function integral_linlog_sp
+
+  real(sp) function integral_linlog_subset_sp(x,y,x1,x2)
+    ! Integral of a function between two limits
+    ! (uses linlog interpolation)
+    implicit none
+    real(sp),intent(in) :: x(:),y(:),x1,x2
+    integral_linlog_subset_sp = integral_general_subset_sp(x, y, x1, x2, interp1d_linlog_sp, trapezium_linlog_sp)
+  end function integral_linlog_subset_sp
+
+  real(sp) function integral_loglin_sp(x,y)
+    ! Total integral of a function
+    ! (uses loglin interpolation)
+    implicit none
+    real(sp),intent(in) :: x(:),y(:)
+    integral_loglin_sp = integral_general_sp(x, y, trapezium_loglin_sp)
+  end function integral_loglin_sp
+
+  real(sp) function integral_loglin_subset_sp(x,y,x1,x2)
+    ! Integral of a function between two limits
+    ! (uses loglin interpolation)
+    implicit none
+    real(sp),intent(in) :: x(:),y(:),x1,x2
+    integral_loglin_subset_sp = integral_general_subset_sp(x, y, x1, x2, interp1d_loglin_sp, trapezium_loglin_sp)
+  end function integral_loglin_subset_sp
+
+  real(sp) function integral_loglog_sp(x,y)
     ! Total integral of a function
     ! (uses log10 interpolation)
     implicit none
     real(sp),intent(in) :: x(:),y(:)
-    real(sp)            :: x1,x2
-    x1 = minval(x,1)
-    x2 = maxval(x,1)
-    integral_all_log10_sp = integral_log10_sp(x,y,x1,x2)
-  end function integral_all_log10_sp
+    integral_loglog_sp = integral_general_sp(x, y, trapezium_loglog_sp)
+  end function integral_loglog_sp
 
-
-  real(sp) function integral_log10_sp(x,y,x1,x2)
+  real(sp) function integral_loglog_subset_sp(x,y,x1,x2)
     ! Integral of a function between two limits
     ! (uses log10 interpolation)
+    implicit none
+    real(sp),intent(in) :: x(:),y(:),x1,x2
+    integral_loglog_subset_sp = integral_general_subset_sp(x, y, x1, x2, interp1d_loglog_sp, trapezium_loglog_sp)
+  end function integral_loglog_subset_sp
+
+  real(sp) function integral_general_sp(x,y,f_chunk) result(sum)
+    ! Total integral of a function
+    implicit none
+    real(sp),intent(in) :: x(:),y(:)
+    integer :: j
+    interface
+       real(sp) function f_chunk(x1,y1,x2,y2)
+         import :: sp
+         implicit none
+         real(sp),intent(in) :: x1,y1,x2,y2
+       end function f_chunk
+    end interface
+    sum = 0._sp
+    do j=1,size(x)-1
+       sum=sum+f_chunk(x(j),y(j),x(j+1),y(j+1))
+    end do
+  end function integral_general_sp
+
+  real(sp) function integral_general_subset_sp(x,y,x1,x2,f_interp,f_chunk) result(sum)
+    ! Integral of a function between two limits
 
     implicit none
 
     real(sp),intent(in) :: x(:),y(:),x1,x2
     integer :: i1,i2
-    real(sp) :: f1,f2,sum
-    integer :: j
-
-    if(x1.gt.x(size(x)).or.x2.lt.x(1)) then
-       integral_log10_sp=0._sp
-       return
-    end if
-
-    if(x1.gt.x(1)) then
-       i1=locate(x,x1)
-       f1 = interp1d_log10(x,y,x1)
-    else 
-       i1=0
-    end if
-
-    if(x2.lt.x(size(x))) then
-       i2=locate(x,x2)
-       f2=interp1d_log10(x,y,x2)
-    else
-       i2=size(x)
-    end if
-
-    sum=0.d0
-
-    if(i2.gt.i1) then
-
-       ! Add central part:
-       do j=i1+1,i2-1
-          sum=sum+trapezium_log10(x(j),y(j),x(j+1),y(j+1))
-       end do
-
-       ! Add extremities
-       if(x1.gt.x(1)) sum=sum+trapezium_log10(x1,f1,x(i1+1),y(i1+1))
-       if(x2.lt.x(size(x))) sum=sum+trapezium_log10(x(i2),y(i2),x2,f2)
-
-       integral_log10_sp=real(sum, sp)
-
-    else
-
-       integral_log10_sp=trapezium_log10(x1,f1,x2,f2)
-
-    end if
-
-  contains
-
-    real(sp) function trapezium_log10(x1,y1,x2,y2)
-      implicit none
-      real(sp),intent(in) :: x1,y1,x2,y2
-      real(sp) :: b
-      if(x1==x2) then
-         trapezium_log10 = 0.
-      else if(y1==0..or.y2==0.) then
-         trapezium_log10 = 0.
-      else
-         b = log10(y1/y2) / log10(x1/x2)
-         trapezium_log10 = y1 * (x2*(x2/x1)**b-x1) / (b+1)
-      end if
-    end function trapezium_log10
-
-  end function integral_log10_sp
-
-  function interp1d_array_log10_sp(x,y,xval,bounds_error,fill_value)
-    implicit none
-    real(sp),intent(in) :: x(:),y(:)
-    real(sp),intent(in) :: xval(:)
-    logical,intent(in),optional :: bounds_error
-    real(sp),intent(in),optional :: fill_value
-    real(sp) :: interp1d_array_log10_sp(size(xval))
-    integer :: i
-    do i=1,size(xval)
-       interp1d_array_log10_sp(i) = interp1d_log10_sp(x,y,xval(i),bounds_error,fill_value)
-    end do
-  end function interp1d_array_log10_sp
-
-  real(sp) function interp1d_log10_sp(x,y,xval,bounds_error,fill_value)
-    ! Interpolate y = f(x) at xval in log10 space
-    ! This is faster than using interp1d(log10(x),log10(y),log10(xval))
-    ! because we only take the log10() of 5 values instead of the
-    ! entire input arrays. But the results should be the same
-
-    implicit none
-
-    ! --- Input --- !
-
+    real(sp) :: f1,f2
     integer :: n
-    ! the size of the array
 
-    real(sp),dimension(:),intent(in) :: x,y
-    ! the x and y arrays
-
-    real(sp),intent(in) :: xval
-    ! the value at which to interpolate y
-
-    logical,intent(in),optional :: bounds_error
-    ! whether to raise an out of bounds error
-
-    real(sp),intent(in),optional :: fill_value
-    ! value for out of bounds if bounds_error is .false.
-
-    ! --- Local variables --- !
-
-    integer :: ipos
-    ! position of x value in x array
-
-    real(sp) :: frac
-    ! temporary fraction
-
-    real(sp) :: x1,x2,y1,y2
-
-    logical :: bounds_error_tmp
-    real(sp) :: fill_value_tmp
-
-    if(present(bounds_error)) then
-       bounds_error_tmp = bounds_error
-    else
-       bounds_error_tmp = .true.
-    end if
-
-    if(.not.bounds_error_tmp) then
-       if(present(fill_value)) then
-          fill_value_tmp = fill_value
-       else
-          fill_value_tmp = 0.
-       end if
-    end if
+    interface
+       real(sp) function f_interp(x, y, xval,bounds_error,fill_value)
+         import :: sp
+         implicit none
+         real(sp),dimension(:),intent(in) :: x,y
+         real(sp),intent(in) :: xval
+         logical,intent(in),optional :: bounds_error
+         real(sp),intent(in),optional :: fill_value
+       end function f_interp
+       real(sp) function f_chunk(x1,y1,x2,y2)
+         import :: sp
+         implicit none
+         real(sp),intent(in) :: x1,y1,x2,y2
+       end function f_chunk
+    end interface
 
     n = size(x)
 
-    ipos = locate(x,xval)
-
-    ! --- First some error checking --- !
-
-    if(ipos == -1) then
-       if(bounds_error_tmp) then
-          write(*,'("ERROR: Interpolation out of bounds : ",ES11.4," in [",ES11.4,":",ES11.4,"]")') xval,x(1),x(n)
-          stop
-       else
-          interp1d_log10_sp = fill_value_tmp
-          return
-       end if
+    if(x1.gt.x(n).or.x2.lt.x(1)) then
+       sum = 0._sp
+       return
     end if
 
-    if( ipos < n .and. ipos > 0) then
-       if(y(ipos)==0..or.y(ipos+1)==0.) then
-          interp1d_log10_sp = 0.
-       else
-          x1 = log10(x(ipos))
-          x2 = log10(x(ipos+1))
-          y1 = log10(y(ipos))
-          y2 = log10(y(ipos+1))
-          frac = ( log10(xval) - x1 ) / ( x2 - x1 )
-          interp1d_log10_sp = y1 + frac * ( y2 - y1 )
-          interp1d_log10_sp = 10._sp**(interp1d_log10_sp)
-       end if
-    else if(ipos == n) then
-       interp1d_log10_sp = y(n)
-    else if(ipos == 0) then
-       interp1d_log10_sp = y(1)
+    if(x1.gt.x(1)) then
+       i1 = locate(x,x1)
+       f1 = f_interp(x,y,x1)
+    else 
+       i1 = 0
+       f1 = 0._sp
+    end if
+
+    if(x2.lt.x(n)) then
+       i2 = locate(x,x2)
+       f2 = f_interp(x,y,x2)
     else
-       write(*,'("ERROR: Unexpected value of ipos : ",I0)') ipos
-       stop
+       i2 = n
+       f2 = 0._sp
     end if
 
-  end function interp1d_log10_sp
+    if(i2.gt.i1) then
+
+       ! Add main part
+       if(i2 > i1+1) then
+          sum = integral_general_sp(x(i1+1:i2), y(i1+1:i2), f_chunk)
+       else
+          sum = 0._sp
+       end if
+
+       ! Add extremities
+       sum = sum + f_chunk(x1,f1,x(i1+1),y(i1+1))
+       sum = sum + f_chunk(x(i2),y(i2),x2,f2)
+
+    else
+
+       sum = f_chunk(x1,f1,x2,f2)
+
+    end if
+
+  end function integral_general_subset_sp
+
+  real(sp) function trapezium_sp(x1,y1,x2,y2)
+    implicit none
+    real(sp),intent(in) :: x1,y1,x2,y2
+    trapezium_sp = 0.5_sp*(y1+y2)*(x2-x1)
+  end function trapezium_sp
+
+  real(sp) function trapezium_loglin_sp(x1,y1,x2,y2)
+    implicit none
+    real(sp),intent(in) :: x1,y1,x2,y2
+    real(sp) :: a,b
+    if(x1==x2) then
+       trapezium_loglin_sp = 0._sp
+    else
+       a = (y1-y2) / log10(x1/x2)
+       b = y1 - a * log10(x1)
+       trapezium_loglin_sp = a*(x2*log10(x2) - x1*log10(x1)) &
+            &                     + (b-a/log(10._sp)) * (x2 - x1)
+    end if
+  end function trapezium_loglin_sp
+
+  real(sp) function trapezium_linlog_sp(x1,y1,x2,y2)
+    implicit none
+    real(sp),intent(in) :: x1,y1,x2,y2
+    real(sp) :: a,b,c,d
+    if(x1==x2) then
+       trapezium_linlog_sp = 0._sp
+    else
+       a = log10(y1/y2) / (x1-x2)
+       b = log10(y1) - a * x1
+       c = 10._sp**b
+       d = 10._sp**a
+       trapezium_linlog_sp = c/log(d) * (d**x2 - d**x1)
+    end if
+  end function trapezium_linlog_sp
+
+  real(sp) function trapezium_loglog_sp(x1,y1,x2,y2)
+    implicit none
+    real(sp),intent(in) :: x1,y1,x2,y2
+    real(sp) :: b
+    if(x1==x2) then
+       trapezium_loglog_sp = 0._sp
+    else if(y1==0..or.y2==0.) then
+       trapezium_loglog_sp = 0._sp
+    else
+       b = log10(y1/y2) / log10(x1/x2)
+       trapezium_loglog_sp = y1 * (x2*(x2/x1)**b-x1) / (b+1)
+    end if
+  end function trapezium_loglog_sp
+
+  real(sp) function interp1d_single_sp(x1,y1,x2,y2,xval) result(yval)
+    real(sp),intent(in) :: x1,y1,x2,y2,xval
+    real(sp) :: frac
+    frac = ( xval - x1 ) / ( x2 - x1 )
+    yval = y1 + frac * ( y2 - y1 )
+  end function interp1d_single_sp
+
+  real(sp) function interp1d_single_linlog_sp(x1,y1,x2,y2,xval) result(yval)
+    real(sp),intent(in) :: x1,y1,x2,y2,xval
+    real(sp) :: frac
+    if(y1==0..or.y2==0.) then
+       yval = 0._sp
+    else
+       frac = ( xval - x1 ) / ( x2 - x1 )
+       yval = 10._sp**(log10(y1) + frac * ( log10(y2) - log10(y1) ))
+    end if
+  end function interp1d_single_linlog_sp
+
+  real(sp) function interp1d_single_loglin_sp(x1,y1,x2,y2,xval) result(yval)
+    real(sp),intent(in) :: x1,y1,x2,y2,xval
+    real(sp) :: frac
+    frac = ( log10(xval) - log10(x1) ) / ( log10(x2) - log10(x1) )
+    yval = y1 + frac * ( y2 - y1 )
+  end function interp1d_single_loglin_sp
+
+  real(sp) function interp1d_single_loglog_sp(x1,y1,x2,y2,xval) result(yval)
+    real(sp),intent(in) :: x1,y1,x2,y2,xval
+    real(sp) :: frac
+    if(y1==0..or.y2==0.) then
+       yval = 0._sp
+    else
+       frac = ( log10(xval) - log10(x1) ) / ( log10(x2) - log10(x1) )
+       yval = 10._sp**(log10(y1) + frac * ( log10(y2) - log10(y1) ))
+    end if
+  end function interp1d_single_loglog_sp
+
+  real(sp) function interp1d_sp(x,y,xval,bounds_error,fill_value) result(yval)
+    implicit none
+    real(sp),dimension(:),intent(in) :: x,y
+    real(sp),intent(in) :: xval
+    logical,intent(in),optional :: bounds_error
+    real(sp),intent(in),optional :: fill_value
+    yval = interp1d_general_sp(x,y,xval,interp1d_single_sp,bounds_error,fill_value)
+  end function interp1d_sp
 
   function interp1d_array_sp(x,y,xval,bounds_error,fill_value)
     implicit none
@@ -1198,12 +1286,75 @@ contains
     end do
   end function interp1d_array_sp
 
-  real(sp) function interp1d_sp(x,y,xval,bounds_error,fill_value)
-    ! Interpolate y = f(x) at xval
+  real(sp) function interp1d_linlog_sp(x,y,xval,bounds_error,fill_value) result(yval)
+    implicit none
+    real(sp),dimension(:),intent(in) :: x,y
+    real(sp),intent(in) :: xval
+    logical,intent(in),optional :: bounds_error
+    real(sp),intent(in),optional :: fill_value
+    yval = interp1d_general_sp(x,y,xval,interp1d_single_linlog_sp,bounds_error,fill_value)
+  end function interp1d_linlog_sp
+
+  function interp1d_array_linlog_sp(x,y,xval,bounds_error,fill_value)
+    implicit none
+    real(sp),intent(in) :: x(:),y(:)
+    real(sp),intent(in) :: xval(:)
+    logical,intent(in),optional :: bounds_error
+    real(sp),intent(in),optional :: fill_value
+    real(sp) :: interp1d_array_linlog_sp(size(xval))
+    integer :: i
+    do i=1,size(xval)
+       interp1d_array_linlog_sp(i) = interp1d_linlog_sp(x,y,xval(i),bounds_error,fill_value)
+    end do
+  end function interp1d_array_linlog_sp
+
+  real(sp) function interp1d_loglin_sp(x,y,xval,bounds_error,fill_value) result(yval)
+    implicit none
+    real(sp),dimension(:),intent(in) :: x,y
+    real(sp),intent(in) :: xval
+    logical,intent(in),optional :: bounds_error
+    real(sp),intent(in),optional :: fill_value
+    yval = interp1d_general_sp(x,y,xval,interp1d_single_loglin_sp,bounds_error,fill_value)
+  end function interp1d_loglin_sp
+
+  function interp1d_array_loglin_sp(x,y,xval,bounds_error,fill_value)
+    implicit none
+    real(sp),intent(in) :: x(:),y(:)
+    real(sp),intent(in) :: xval(:)
+    logical,intent(in),optional :: bounds_error
+    real(sp),intent(in),optional :: fill_value
+    real(sp) :: interp1d_array_loglin_sp(size(xval))
+    integer :: i
+    do i=1,size(xval)
+       interp1d_array_loglin_sp(i) = interp1d_loglin_sp(x,y,xval(i),bounds_error,fill_value)
+    end do
+  end function interp1d_array_loglin_sp
+
+  real(sp) function interp1d_loglog_sp(x,y,xval,bounds_error,fill_value) result(yval)
+    implicit none
+    real(sp),dimension(:),intent(in) :: x,y
+    real(sp),intent(in) :: xval
+    logical,intent(in),optional :: bounds_error
+    real(sp),intent(in),optional :: fill_value
+    yval = interp1d_general_sp(x,y,xval,interp1d_single_loglog_sp,bounds_error,fill_value)
+  end function interp1d_loglog_sp
+
+  function interp1d_array_loglog_sp(x,y,xval,bounds_error,fill_value)
+    implicit none
+    real(sp),intent(in) :: x(:),y(:)
+    real(sp),intent(in) :: xval(:)
+    logical,intent(in),optional :: bounds_error
+    real(sp),intent(in),optional :: fill_value
+    real(sp) :: interp1d_array_loglog_sp(size(xval))
+    integer :: i
+    do i=1,size(xval)
+       interp1d_array_loglog_sp(i) = interp1d_loglog_sp(x,y,xval(i),bounds_error,fill_value)
+    end do
+  end function interp1d_array_loglog_sp
+
+  real(sp) function interp1d_general_sp(x,y,xval,f_single,bounds_error,fill_value) result(yval)
 
     implicit none
-
-    ! --- Input --- !
 
     integer :: n
     ! the size of the array
@@ -1214,19 +1365,22 @@ contains
     real(sp),intent(in) :: xval
     ! the value at which to interpolate y
 
+    interface
+       real(sp) function f_single(x1,y1,x2,y2,xval)
+         import :: sp
+         implicit none
+         real(sp),intent(in) :: x1,y1,x2,y2,xval
+       end function f_single
+    end interface
+
     logical,intent(in),optional :: bounds_error
     ! whether to raise an out of bounds error
 
     real(sp),intent(in),optional :: fill_value
     ! value for out of bounds if bounds_error is .false.
 
-    ! --- Local variables --- !
-
     integer :: ipos
     ! position of x value in x array
-
-    real(sp) :: frac
-    ! temporary fraction
 
     logical :: bounds_error_tmp
     real(sp) :: fill_value_tmp
@@ -1241,7 +1395,7 @@ contains
        if(present(fill_value)) then
           fill_value_tmp = fill_value
        else
-          fill_value_tmp = 0.
+          fill_value_tmp = 0._sp
        end if
     end if
 
@@ -1256,25 +1410,23 @@ contains
           write(*,'("ERROR: Interpolation out of bounds : ",ES11.4," in [",ES11.4,":",ES11.4,"]")') xval,x(1),x(n)
           stop
        else
-          interp1d_sp = fill_value_tmp
+          yval = fill_value_tmp
           return
        end if
     end if
 
     if( ipos < n .and. ipos > 0) then
-       frac = ( xval - x(ipos) ) / ( x(ipos+1) - x(ipos) )
-       interp1d_sp = y(ipos) + frac * ( y(ipos+1) - y(ipos) )
+       yval = f_single(x(ipos), y(ipos), x(ipos+1), y(ipos+1), xval)
     else if(ipos == n) then
-       interp1d_sp = y(n)
+       yval = y(n)
     else if(ipos == 0) then
-       interp1d_sp = y(1)
+       yval = y(1)
     else
        write(*,'("ERROR: Unexpected value of ipos : ",I0)') ipos
        stop
     end if
 
-  end function interp1d_sp
-
+  end function interp1d_general_sp
 
   function interp2d_sp(x,y,array,x0,y0,bounds_error,fill_value) result(value)
     ! Bilinar interpolation of array = f(x,y) at (x0,y0)
@@ -1305,7 +1457,7 @@ contains
        if(present(fill_value)) then
           fill_value_tmp = fill_value
        else
-          fill_value_tmp = 0.
+          fill_value_tmp = 0._sp
        end if
     end if
 
@@ -1382,7 +1534,7 @@ contains
   end function locate_sp
 
 
-  integer pure function ipos_sp(xmin,xmax,x,nbin)
+  integer function ipos_sp(xmin,xmax,x,nbin)
     ! Find bin a value falls in for a regular histogram
 
     implicit none
@@ -1425,7 +1577,7 @@ contains
   end function ipos_sp
 
 
-  real(sp) pure function xval_sp(xmin,xmax,i,nbin)
+  real(sp) function xval_sp(xmin,xmax,i,nbin)
     ! Find central value of a bin for a regular histogram
 
     implicit none
@@ -1448,7 +1600,7 @@ contains
   end function xval_sp
 
 
-  pure subroutine histogram1d_sp(array,xmin,xmax,nbin,hist_x,hist_y,mask,weights)
+  subroutine histogram1d_sp(array,xmin,xmax,nbin,hist_x,hist_y,mask,weights)
     ! Bin 1D array of values into 1D regular histogram
 
     implicit none
@@ -1558,7 +1710,7 @@ contains
   end subroutine histogram2d_sp
 
 
-  pure subroutine swap_sp(array, i, j)
+  subroutine swap_sp(array, i, j)
     implicit none
     real(sp),intent(inout) :: array(:)
     integer,intent(in) :: i, j
@@ -1568,7 +1720,7 @@ contains
     array(i) = temp
   end subroutine swap_sp
 
-  pure subroutine partition_sp(array, left, right, pivot_index, store_index)
+  subroutine partition_sp(array, left, right, pivot_index, store_index)
     implicit none
     real(sp),intent(inout) :: array(:)
     integer,intent(in) :: left, right, pivot_index
@@ -1587,7 +1739,7 @@ contains
     call swap_sp(array, store_index, right)
   end subroutine partition_sp
 
-  recursive pure subroutine quicksort_sp(array, left, right)
+  recursive subroutine quicksort_sp(array, left, right)
     implicit none
     real(sp),intent(inout) :: array(:)
     integer,intent(in) :: left, right
@@ -1600,13 +1752,13 @@ contains
     end if
   end subroutine quicksort_sp
 
-  recursive pure subroutine quicksort_all_sp(array)
+  recursive subroutine quicksort_all_sp(array)
     implicit none
     real(sp),intent(inout) :: array(:)
     call quicksort_sp(array, 1, size(array))
   end subroutine quicksort_all_sp
 
-  pure subroutine swap_index_sp(array, index, i, j)
+  subroutine swap_index_sp(array, index, i, j)
     implicit none
     real(sp),intent(inout) :: array(:)
     integer,intent(inout) :: index(:)
@@ -1621,7 +1773,7 @@ contains
     index(i) = temp_i
   end subroutine swap_index_sp
 
-  pure subroutine partition_index_sp(array, index, left, right, pivot_index, store_index)
+  subroutine partition_index_sp(array, index, left, right, pivot_index, store_index)
     implicit none
     real(sp),intent(inout) :: array(:)
     integer,intent(inout) :: index(:)
@@ -1641,7 +1793,7 @@ contains
     call swap_index_sp(array, index, store_index, right)
   end subroutine partition_index_sp
 
-  recursive pure subroutine quicksort_index_sp(array, index, left, right)
+  recursive subroutine quicksort_index_sp(array, index, left, right)
     implicit none
     real(sp),intent(inout) :: array(:)
     integer,intent(inout) :: index(:)
@@ -1655,7 +1807,7 @@ contains
     end if
   end subroutine quicksort_index_sp
 
-  recursive pure subroutine quicksort_index_all_sp(array, index)
+  recursive subroutine quicksort_index_all_sp(array, index)
     implicit none
     real(sp),intent(inout) :: array(:)
     integer,intent(inout) :: index(:)
