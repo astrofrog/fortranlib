@@ -1,4 +1,4 @@
-! MD5 of template: 27628c81aa8db26662f4728cf61929a8
+! MD5 of template: 13d898d393c72120a6ae698fb3e19171
 ! Probability Distribution Function (PDF) related routines
 ! Thomas Robitaille (c) 2009
 
@@ -163,7 +163,7 @@ contains
     implicit none
     type(pdf_dp),intent(inout) :: p
     if(p%log) then
-       p%pdf = p%pdf / integral_log10(p%x, p%pdf)
+       p%pdf = p%pdf / integral_loglog(p%x, p%pdf)
     else
        p%pdf = p%pdf / integral(p%x, p%pdf)
     end if
@@ -237,7 +237,7 @@ contains
     p%cdf(1) = tiny(p%cdf)
     do i=2,p%n
        if(p%log) then
-          p%cdf(i) = p%cdf(i-1) + integral_log10(p%x,p%pdf,p%x(i-1),p%x(i))
+          p%cdf(i) = p%cdf(i-1) + integral_loglog(p%x,p%pdf,p%x(i-1),p%x(i))
        else
           p%cdf(i) = p%cdf(i-1) + integral(p%x,p%pdf,p%x(i-1),p%x(i))
        end if
@@ -288,9 +288,7 @@ contains
        sample_pdf_cont_dp = p%x(p%n)    
     else
        if(p%log) then
-          ! Log-linear interpolation
-          i = locate(p%cdf, xi)
-          sample_pdf_cont_dp = 10._dp**(log10(p%x(i)) + (xi - p%cdf(i))/(p%cdf(i+1) - p%cdf(i))*(log10(p%x(i+1))-log10(p%x(i))))
+          sample_pdf_cont_dp = interp1d_linlog(p%cdf(:),p%x(:),xi)
        else
           sample_pdf_cont_dp = interp1d(p%cdf(:),p%x(:),xi)
        end if
@@ -307,7 +305,7 @@ contains
     else
        call random(xi)
     end if
-    sample_pdf_cont_log_dp = interp1d_log10(p%cdf(:),p%x(:),xi)
+    sample_pdf_cont_log_dp = interp1d_loglog(p%cdf(:),p%x(:),xi)
   end function sample_pdf_cont_log_dp
 
   real(dp) function interpolate_pdf_cont_dp(p, x, bounds_error, fill_value) result(prob)
@@ -318,7 +316,7 @@ contains
     real(dp),intent(in),optional :: fill_value
     if(.not.p%normalized) stop "[interpolate_pdf] PDF is not normalized"
     if(p%log) then
-       prob = interp1d_log10(p%x, p%pdf, x, bounds_error, fill_value)
+       prob = interp1d_loglog(p%x, p%pdf, x, bounds_error, fill_value)
     else
        prob = interp1d(p%x, p%pdf, x, bounds_error, fill_value)
     end if
@@ -370,7 +368,7 @@ contains
     implicit none
     type(pdf_sp),intent(inout) :: p
     if(p%log) then
-       p%pdf = p%pdf / integral_log10(p%x, p%pdf)
+       p%pdf = p%pdf / integral_loglog(p%x, p%pdf)
     else
        p%pdf = p%pdf / integral(p%x, p%pdf)
     end if
@@ -444,7 +442,7 @@ contains
     p%cdf(1) = tiny(p%cdf)
     do i=2,p%n
        if(p%log) then
-          p%cdf(i) = p%cdf(i-1) + integral_log10(p%x,p%pdf,p%x(i-1),p%x(i))
+          p%cdf(i) = p%cdf(i-1) + integral_loglog(p%x,p%pdf,p%x(i-1),p%x(i))
        else
           p%cdf(i) = p%cdf(i-1) + integral(p%x,p%pdf,p%x(i-1),p%x(i))
        end if
@@ -495,9 +493,7 @@ contains
        sample_pdf_cont_sp = p%x(p%n)    
     else
        if(p%log) then
-          ! Log-linear interpolation
-          i = locate(p%cdf, xi)
-          sample_pdf_cont_sp = 10._sp**(log10(p%x(i)) + (xi - p%cdf(i))/(p%cdf(i+1) - p%cdf(i))*(log10(p%x(i+1))-log10(p%x(i))))
+          sample_pdf_cont_sp = interp1d_linlog(p%cdf(:),p%x(:),xi)
        else
           sample_pdf_cont_sp = interp1d(p%cdf(:),p%x(:),xi)
        end if
@@ -514,7 +510,7 @@ contains
     else
        call random(xi)
     end if
-    sample_pdf_cont_log_sp = interp1d_log10(p%cdf(:),p%x(:),xi)
+    sample_pdf_cont_log_sp = interp1d_loglog(p%cdf(:),p%x(:),xi)
   end function sample_pdf_cont_log_sp
 
   real(sp) function interpolate_pdf_cont_sp(p, x, bounds_error, fill_value) result(prob)
@@ -525,7 +521,7 @@ contains
     real(sp),intent(in),optional :: fill_value
     if(.not.p%normalized) stop "[interpolate_pdf] PDF is not normalized"
     if(p%log) then
-       prob = interp1d_log10(p%x, p%pdf, x, bounds_error, fill_value)
+       prob = interp1d_loglog(p%x, p%pdf, x, bounds_error, fill_value)
     else
        prob = interp1d(p%x, p%pdf, x, bounds_error, fill_value)
     end if
