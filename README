@@ -25,11 +25,15 @@ lib_array.f90 (no dependencies)
     - index_array_1d: find the order array elements should be in to be sorted
     - sort: sort one or two arrays
     - integral: trapezium integration
-    - integral_log10: trapezium integration with log10 interpolation
+    - integral_linlog: trapezium integration with linear-log interpolation
+    - integral_loglin: trapezium integration with log-linear interpolation
+    - integral_loglog: trapezium integration with log-log interpolation
     - locate: search for a value in a sorted array
     - interp1d: 1-D linear interpolation
     - interp2d: 2-D linear interpolation
-    - interp1d_log10: 1-D linear interpolation in log10 space
+    - interp1d_linlog: 1-D linear interpolation in linear-log space
+    - interp1d_loglin: 1-D linear interpolation in log-linear space
+    - interp1d_loglog: 1-D linear interpolation in log-log space
     - histogram1d: convert an array of values to a histogram
     - histogram2d: convert two arrays of values to a 2-D histogram
     - ipos: bin value for equally spaced bins
