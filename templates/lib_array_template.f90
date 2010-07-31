@@ -338,15 +338,14 @@ contains
   real(<T>) function trapezium_linlog_<T>(x1,y1,x2,y2)
     implicit none
     real(<T>),intent(in) :: x1,y1,x2,y2
-    real(<T>) :: a,b,c,d
+    real(<T>) :: a,b,c,d,dx
     if(x1==x2) then
        trapezium_linlog_<T> = 0._<T>
+    else if(y1==y2) then
+       trapezium_linlog_<T> = y1*(x2-x1)
     else
-       a = log10(y1/y2) / (x1-x2)
-       b = log10(y1) - a * x1
-       c = 10._<T>**b
-       d = 10._<T>**a
-       trapezium_linlog_<T> = c/log(d) * (d**x2 - d**x1)
+       dx = x2 - x1
+       trapezium_linlog_<T> = (y2-y1)*(x2-x1)/log(10._<T>)/log10(y2/y1)
     end if
   end function trapezium_linlog_<T>
 
