@@ -1,4 +1,4 @@
-! MD5 of template: 1fd18513655b0fd1389ad2095b6d5925
+! MD5 of template: cba1a28ca6370be8e63d17b3dd1b07fd
 ! Array related routines (Integration, Interpolation, etc.)
 ! Thomas Robitaille (c) 2009
 
@@ -338,7 +338,7 @@ contains
   real(dp) function trapezium_linlog_dp(x1,y1,x2,y2)
     implicit none
     real(dp),intent(in) :: x1,y1,x2,y2
-    real(dp) :: a,b,c,d,dx
+    real(dp) :: dx
     if(x1==x2) then
        trapezium_linlog_dp = 0._dp
     else if(y1==y2) then
@@ -359,7 +359,14 @@ contains
        trapezium_loglog_dp = 0._dp
     else
        b = log10(y1/y2) / log10(x1/x2)
-       trapezium_loglog_dp = y1 * (x2*(x2/x1)**b-x1) / (b+1)
+       write(88,*) b+1._dp
+       if(abs(b+1._dp) < 1e-10) then
+         write(88,*) log(x2/x1)
+         write(88,*) x1,x2
+         trapezium_loglog_dp = x1 * y1 * log(x2/x1)
+       else
+         trapezium_loglog_dp = y1 * (x2*(x2/x1)**b-x1) / (b+1)
+       end if
     end if
   end function trapezium_loglog_dp
 
@@ -1201,7 +1208,7 @@ contains
   real(sp) function trapezium_linlog_sp(x1,y1,x2,y2)
     implicit none
     real(sp),intent(in) :: x1,y1,x2,y2
-    real(sp) :: a,b,c,d,dx
+    real(sp) :: dx
     if(x1==x2) then
        trapezium_linlog_sp = 0._sp
     else if(y1==y2) then
@@ -1222,7 +1229,14 @@ contains
        trapezium_loglog_sp = 0._sp
     else
        b = log10(y1/y2) / log10(x1/x2)
-       trapezium_loglog_sp = y1 * (x2*(x2/x1)**b-x1) / (b+1)
+       write(88,*) b+1._dp
+       if(abs(b+1._dp) < 1e-10) then
+         write(88,*) log(x2/x1)
+         write(88,*) x1,x2
+         trapezium_loglog_sp = x1 * y1 * log(x2/x1)
+       else
+         trapezium_loglog_sp = y1 * (x2*(x2/x1)**b-x1) / (b+1)
+       end if
     end if
   end function trapezium_loglog_sp
 
