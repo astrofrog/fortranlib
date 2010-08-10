@@ -259,7 +259,6 @@ contains
     type(pdf_<T>),intent(in) :: p
     @T,optional,intent(in) :: xi_alt
     @T :: xi
-    integer :: i
     if(present(xi_alt)) then
        xi = xi_alt
     else

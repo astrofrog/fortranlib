@@ -1,4 +1,4 @@
-! MD5 of template: 13d898d393c72120a6ae698fb3e19171
+! MD5 of template: e8444fe4c256d935a98286fd3423044c
 ! Probability Distribution Function (PDF) related routines
 ! Thomas Robitaille (c) 2009
 
@@ -276,7 +276,6 @@ contains
     type(pdf_dp),intent(in) :: p
     real(dp),optional,intent(in) :: xi_alt
     real(dp) :: xi
-    integer :: i
     if(present(xi_alt)) then
        xi = xi_alt
     else
@@ -481,7 +480,6 @@ contains
     type(pdf_sp),intent(in) :: p
     real(sp),optional,intent(in) :: xi_alt
     real(sp) :: xi
-    integer :: i
     if(present(xi_alt)) then
        xi = xi_alt
     else
