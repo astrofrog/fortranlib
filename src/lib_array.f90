@@ -1,4 +1,4 @@
-! MD5 of template: cba1a28ca6370be8e63d17b3dd1b07fd
+! MD5 of template: 15ecc151c44b753eb7fea31ef3091084
 ! Array related routines (Integration, Interpolation, etc.)
 ! Thomas Robitaille (c) 2009
 
@@ -359,13 +359,10 @@ contains
        trapezium_loglog_dp = 0._dp
     else
        b = log10(y1/y2) / log10(x1/x2)
-       write(88,*) b+1._dp
        if(abs(b+1._dp) < 1e-10) then
-         write(88,*) log(x2/x1)
-         write(88,*) x1,x2
-         trapezium_loglog_dp = x1 * y1 * log(x2/x1)
+          trapezium_loglog_dp = x1 * y1 * log(x2/x1)
        else
-         trapezium_loglog_dp = y1 * (x2*(x2/x1)**b-x1) / (b+1)
+          trapezium_loglog_dp = y1 * (x2*(x2/x1)**b-x1) / (b+1)
        end if
     end if
   end function trapezium_loglog_dp
@@ -1229,13 +1226,10 @@ contains
        trapezium_loglog_sp = 0._sp
     else
        b = log10(y1/y2) / log10(x1/x2)
-       write(88,*) b+1._dp
        if(abs(b+1._dp) < 1e-10) then
-         write(88,*) log(x2/x1)
-         write(88,*) x1,x2
-         trapezium_loglog_sp = x1 * y1 * log(x2/x1)
+          trapezium_loglog_sp = x1 * y1 * log(x2/x1)
        else
-         trapezium_loglog_sp = y1 * (x2*(x2/x1)**b-x1) / (b+1)
+          trapezium_loglog_sp = y1 * (x2*(x2/x1)**b-x1) / (b+1)
        end if
     end if
   end function trapezium_loglog_sp
