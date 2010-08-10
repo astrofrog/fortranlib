@@ -1,4 +1,4 @@
-! MD5 of template: a44d5b24d58a4d0b70f5ca1077d13def
+! MD5 of template: df26704273c5d8143da2051cf889d432
 ! High level routines for HDF5
 ! Thomas Robitaille (c) 2010
 
@@ -2156,7 +2156,8 @@ contains
     allocate(info%field_names(info%n_cols))
     allocate(info%field_sizes(info%n_cols))
     allocate(info%field_offsets(info%n_cols))
-    call h5tbget_field_info_f(handle, path, info%n_cols, info%field_names, info%field_sizes, info%field_offsets, info%type_size, hdferr)
+    call h5tbget_field_info_f(handle, path, info%n_cols, info%field_names,&
+        & info%field_sizes, info%field_offsets, info%type_size, hdferr)
   end function hdf5_read_table_info
 
   integer function hdf5_table_column_number(info, col_name) result(col_id)

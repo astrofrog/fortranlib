@@ -989,7 +989,8 @@ contains
     allocate(info%field_names(info%n_cols))
     allocate(info%field_sizes(info%n_cols))
     allocate(info%field_offsets(info%n_cols))
-    call h5tbget_field_info_f(handle, path, info%n_cols, info%field_names, info%field_sizes, info%field_offsets, info%type_size, hdferr)
+    call h5tbget_field_info_f(handle, path, info%n_cols, info%field_names,&
+        & info%field_sizes, info%field_offsets, info%type_size, hdferr)
   end function hdf5_read_table_info
 
   integer function hdf5_table_column_number(info, col_name) result(col_id)
