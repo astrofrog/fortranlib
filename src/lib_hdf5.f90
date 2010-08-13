@@ -1,4 +1,4 @@
-! MD5 of template: df26704273c5d8143da2051cf889d432
+! MD5 of template: 936f79de2c9fa6f4d27164d8d922da25
 ! High level routines for HDF5
 ! Thomas Robitaille (c) 2010
 
@@ -21,6 +21,7 @@ module lib_hdf5
   public :: base_hdf5_verbose_disable
 
   ! open/close
+  public :: hdf5_set_compression
   public :: hdf5_exists
   public :: hdf5_open_new
   public :: hdf5_open_read
@@ -225,6 +226,8 @@ module lib_hdf5
      module procedure h5tbwrite_field_name_f_i64_1d
   end interface h5tbwrite_field_name_f
 
+  logical :: compress
+
 contains
 
   subroutine base_hdf5_verbose_enable
@@ -236,6 +239,12 @@ contains
     implicit none
     verbose = .false.
   end subroutine base_hdf5_verbose_disable
+
+  subroutine hdf5_set_compression(compression)
+    implicit none
+    logical,intent(in) :: compression
+    compress = compression
+  end subroutine hdf5_set_compression
 
   subroutine check_status(hdferr,origin)
     implicit none
@@ -1082,13 +1091,17 @@ contains
     character(len=*),intent(in) :: path
     real(dp),dimension(:,:) :: array
     integer(hsize_t) :: dims(2)
-    integer(hid_t) :: dspace_id, dset_id
+    integer(hid_t) :: dspace_id, dset_id, dprop_id
     integer :: hdferr
     dims = [size(array,1), size(array,2)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
-    call h5dcreate_f(handle, path, h5t_ieee_f64le, dspace_id, dset_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_ieee_f64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f64le, array, dims, hdferr)
     call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_2d_array_h5t_ieee_f64le
 
@@ -1098,13 +1111,17 @@ contains
     character(len=*),intent(in) :: path
     real(dp),dimension(:,:,:) :: array
     integer(hsize_t) :: dims(3)
-    integer(hid_t) :: dspace_id, dset_id
+    integer(hid_t) :: dspace_id, dset_id,dprop_id
     integer :: hdferr
     dims = [size(array,1), size(array,2), size(array,3)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
-    call h5dcreate_f(handle, path, h5t_ieee_f64le, dspace_id, dset_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_ieee_f64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f64le, array, dims, hdferr)
     call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_3d_array_h5t_ieee_f64le
 
@@ -1114,13 +1131,17 @@ contains
     character(len=*),intent(in) :: path
     real(dp),dimension(:,:,:,:) :: array
     integer(hsize_t) :: dims(4)
-    integer(hid_t) :: dspace_id, dset_id
+    integer(hid_t) :: dspace_id, dset_id,dprop_id
     integer :: hdferr
     dims = [size(array,1), size(array,2), size(array,3), size(array,4)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
-    call h5dcreate_f(handle, path, h5t_ieee_f64le, dspace_id, dset_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_ieee_f64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f64le, array, dims, hdferr)
     call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_4d_array_h5t_ieee_f64le
 
@@ -1130,13 +1151,17 @@ contains
     character(len=*),intent(in) :: path
     real(dp),dimension(:,:,:,:,:) :: array
     integer(hsize_t) :: dims(5)
-    integer(hid_t) :: dspace_id, dset_id
+    integer(hid_t) :: dspace_id, dset_id,dprop_id
     integer :: hdferr
     dims = [size(array,1), size(array,2), size(array,3), size(array,4), size(array,5)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
-    call h5dcreate_f(handle, path, h5t_ieee_f64le, dspace_id, dset_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_ieee_f64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f64le, array, dims, hdferr)
     call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_5d_array_h5t_ieee_f64le
 
@@ -1146,13 +1171,17 @@ contains
     character(len=*),intent(in) :: path
     real(dp),dimension(:,:,:,:,:,:) :: array
     integer(hsize_t) :: dims(6)
-    integer(hid_t) :: dspace_id, dset_id
+    integer(hid_t) :: dspace_id, dset_id,dprop_id
     integer :: hdferr
     dims = [size(array,1), size(array,2), size(array,3), size(array,4), size(array,5), size(array,6)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
-    call h5dcreate_f(handle, path, h5t_ieee_f64le, dspace_id, dset_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_ieee_f64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f64le, array, dims, hdferr)
     call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_6d_array_h5t_ieee_f64le
 
@@ -1338,13 +1367,17 @@ contains
     character(len=*),intent(in) :: path
     real(sp),dimension(:,:) :: array
     integer(hsize_t) :: dims(2)
-    integer(hid_t) :: dspace_id, dset_id
+    integer(hid_t) :: dspace_id, dset_id, dprop_id
     integer :: hdferr
     dims = [size(array,1), size(array,2)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
-    call h5dcreate_f(handle, path, h5t_ieee_f32le, dspace_id, dset_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_ieee_f32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f32le, array, dims, hdferr)
     call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_2d_array_h5t_ieee_f32le
 
@@ -1354,13 +1387,17 @@ contains
     character(len=*),intent(in) :: path
     real(sp),dimension(:,:,:) :: array
     integer(hsize_t) :: dims(3)
-    integer(hid_t) :: dspace_id, dset_id
+    integer(hid_t) :: dspace_id, dset_id,dprop_id
     integer :: hdferr
     dims = [size(array,1), size(array,2), size(array,3)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
-    call h5dcreate_f(handle, path, h5t_ieee_f32le, dspace_id, dset_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_ieee_f32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f32le, array, dims, hdferr)
     call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_3d_array_h5t_ieee_f32le
 
@@ -1370,13 +1407,17 @@ contains
     character(len=*),intent(in) :: path
     real(sp),dimension(:,:,:,:) :: array
     integer(hsize_t) :: dims(4)
-    integer(hid_t) :: dspace_id, dset_id
+    integer(hid_t) :: dspace_id, dset_id,dprop_id
     integer :: hdferr
     dims = [size(array,1), size(array,2), size(array,3), size(array,4)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
-    call h5dcreate_f(handle, path, h5t_ieee_f32le, dspace_id, dset_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_ieee_f32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f32le, array, dims, hdferr)
     call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_4d_array_h5t_ieee_f32le
 
@@ -1386,13 +1427,17 @@ contains
     character(len=*),intent(in) :: path
     real(sp),dimension(:,:,:,:,:) :: array
     integer(hsize_t) :: dims(5)
-    integer(hid_t) :: dspace_id, dset_id
+    integer(hid_t) :: dspace_id, dset_id,dprop_id
     integer :: hdferr
     dims = [size(array,1), size(array,2), size(array,3), size(array,4), size(array,5)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
-    call h5dcreate_f(handle, path, h5t_ieee_f32le, dspace_id, dset_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_ieee_f32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f32le, array, dims, hdferr)
     call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_5d_array_h5t_ieee_f32le
 
@@ -1402,13 +1447,17 @@ contains
     character(len=*),intent(in) :: path
     real(sp),dimension(:,:,:,:,:,:) :: array
     integer(hsize_t) :: dims(6)
-    integer(hid_t) :: dspace_id, dset_id
+    integer(hid_t) :: dspace_id, dset_id,dprop_id
     integer :: hdferr
     dims = [size(array,1), size(array,2), size(array,3), size(array,4), size(array,5), size(array,6)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
-    call h5dcreate_f(handle, path, h5t_ieee_f32le, dspace_id, dset_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_ieee_f32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f32le, array, dims, hdferr)
     call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_6d_array_h5t_ieee_f32le
 
@@ -1594,13 +1643,17 @@ contains
     character(len=*),intent(in) :: path
     integer(idp),dimension(:,:) :: array
     integer(hsize_t) :: dims(2)
-    integer(hid_t) :: dspace_id, dset_id
+    integer(hid_t) :: dspace_id, dset_id, dprop_id
     integer :: hdferr
     dims = [size(array,1), size(array,2)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
-    call h5dcreate_f(handle, path, h5t_std_i64le, dspace_id, dset_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_std_i64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i64le, array, dims, hdferr)
     call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_2d_array_h5t_std_i64le
 
@@ -1610,13 +1663,17 @@ contains
     character(len=*),intent(in) :: path
     integer(idp),dimension(:,:,:) :: array
     integer(hsize_t) :: dims(3)
-    integer(hid_t) :: dspace_id, dset_id
+    integer(hid_t) :: dspace_id, dset_id,dprop_id
     integer :: hdferr
     dims = [size(array,1), size(array,2), size(array,3)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
-    call h5dcreate_f(handle, path, h5t_std_i64le, dspace_id, dset_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_std_i64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i64le, array, dims, hdferr)
     call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_3d_array_h5t_std_i64le
 
@@ -1626,13 +1683,17 @@ contains
     character(len=*),intent(in) :: path
     integer(idp),dimension(:,:,:,:) :: array
     integer(hsize_t) :: dims(4)
-    integer(hid_t) :: dspace_id, dset_id
+    integer(hid_t) :: dspace_id, dset_id,dprop_id
     integer :: hdferr
     dims = [size(array,1), size(array,2), size(array,3), size(array,4)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
-    call h5dcreate_f(handle, path, h5t_std_i64le, dspace_id, dset_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_std_i64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i64le, array, dims, hdferr)
     call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_4d_array_h5t_std_i64le
 
@@ -1642,13 +1703,17 @@ contains
     character(len=*),intent(in) :: path
     integer(idp),dimension(:,:,:,:,:) :: array
     integer(hsize_t) :: dims(5)
-    integer(hid_t) :: dspace_id, dset_id
+    integer(hid_t) :: dspace_id, dset_id,dprop_id
     integer :: hdferr
     dims = [size(array,1), size(array,2), size(array,3), size(array,4), size(array,5)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
-    call h5dcreate_f(handle, path, h5t_std_i64le, dspace_id, dset_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_std_i64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i64le, array, dims, hdferr)
     call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_5d_array_h5t_std_i64le
 
@@ -1658,13 +1723,17 @@ contains
     character(len=*),intent(in) :: path
     integer(idp),dimension(:,:,:,:,:,:) :: array
     integer(hsize_t) :: dims(6)
-    integer(hid_t) :: dspace_id, dset_id
+    integer(hid_t) :: dspace_id, dset_id,dprop_id
     integer :: hdferr
     dims = [size(array,1), size(array,2), size(array,3), size(array,4), size(array,5), size(array,6)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
-    call h5dcreate_f(handle, path, h5t_std_i64le, dspace_id, dset_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_std_i64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i64le, array, dims, hdferr)
     call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_6d_array_h5t_std_i64le
 
@@ -1850,13 +1919,17 @@ contains
     character(len=*),intent(in) :: path
     integer,dimension(:,:) :: array
     integer(hsize_t) :: dims(2)
-    integer(hid_t) :: dspace_id, dset_id
+    integer(hid_t) :: dspace_id, dset_id, dprop_id
     integer :: hdferr
     dims = [size(array,1), size(array,2)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
-    call h5dcreate_f(handle, path, h5t_std_i32le, dspace_id, dset_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_std_i32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i32le, array, dims, hdferr)
     call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_2d_array_h5t_std_i32le
 
@@ -1866,13 +1939,17 @@ contains
     character(len=*),intent(in) :: path
     integer,dimension(:,:,:) :: array
     integer(hsize_t) :: dims(3)
-    integer(hid_t) :: dspace_id, dset_id
+    integer(hid_t) :: dspace_id, dset_id,dprop_id
     integer :: hdferr
     dims = [size(array,1), size(array,2), size(array,3)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
-    call h5dcreate_f(handle, path, h5t_std_i32le, dspace_id, dset_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_std_i32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i32le, array, dims, hdferr)
     call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_3d_array_h5t_std_i32le
 
@@ -1882,13 +1959,17 @@ contains
     character(len=*),intent(in) :: path
     integer,dimension(:,:,:,:) :: array
     integer(hsize_t) :: dims(4)
-    integer(hid_t) :: dspace_id, dset_id
+    integer(hid_t) :: dspace_id, dset_id,dprop_id
     integer :: hdferr
     dims = [size(array,1), size(array,2), size(array,3), size(array,4)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
-    call h5dcreate_f(handle, path, h5t_std_i32le, dspace_id, dset_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_std_i32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i32le, array, dims, hdferr)
     call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_4d_array_h5t_std_i32le
 
@@ -1898,13 +1979,17 @@ contains
     character(len=*),intent(in) :: path
     integer,dimension(:,:,:,:,:) :: array
     integer(hsize_t) :: dims(5)
-    integer(hid_t) :: dspace_id, dset_id
+    integer(hid_t) :: dspace_id, dset_id,dprop_id
     integer :: hdferr
     dims = [size(array,1), size(array,2), size(array,3), size(array,4), size(array,5)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
-    call h5dcreate_f(handle, path, h5t_std_i32le, dspace_id, dset_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_std_i32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i32le, array, dims, hdferr)
     call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_5d_array_h5t_std_i32le
 
@@ -1914,13 +1999,17 @@ contains
     character(len=*),intent(in) :: path
     integer,dimension(:,:,:,:,:,:) :: array
     integer(hsize_t) :: dims(6)
-    integer(hid_t) :: dspace_id, dset_id
+    integer(hid_t) :: dspace_id, dset_id,dprop_id
     integer :: hdferr
     dims = [size(array,1), size(array,2), size(array,3), size(array,4), size(array,5), size(array,6)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
-    call h5dcreate_f(handle, path, h5t_std_i32le, dspace_id, dset_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_std_i32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i32le, array, dims, hdferr)
     call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_6d_array_h5t_std_i32le
 
