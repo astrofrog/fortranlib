@@ -93,6 +93,30 @@ module lib_array
      module procedure interp1d_array_loglog_dp
   end interface interp1d_loglog
 
+  public :: rebin
+  interface rebin
+     module procedure rebin_sp
+     module procedure rebin_dp
+  end interface rebin
+
+  public :: rebin_linlog
+  interface rebin_linlog
+     module procedure rebin_linlog_sp
+     module procedure rebin_linlog_dp
+  end interface rebin_linlog
+
+  public :: rebin_loglin
+  interface rebin_loglin
+     module procedure rebin_loglin_sp
+     module procedure rebin_loglin_dp
+  end interface rebin_loglin
+
+  public :: rebin_loglog
+  interface rebin_loglog
+     module procedure rebin_loglog_sp
+     module procedure rebin_loglog_dp
+  end interface rebin_loglog
+
   public :: interp2d
   interface interp2d
      module procedure interp2d_sp
@@ -635,6 +659,74 @@ contains
 
   end function interp2d_<T>
 
+  real(<T>) function average_lin_<T>(a,b)
+    implicit none
+    real(<T>),intent(in) :: a,b
+    average_lin_<T> = 0.5_<T> * (a + b)
+  end function average_lin_<T>
+
+  real(<T>) function average_log_<T>(a,b)
+    implicit none
+    real(<T>),intent(in) :: a,b
+    average_log_<T> = sqrt(a*b)
+  end function average_log_<T>
+
+  subroutine rebin_<T>(x, y, xx, yy)
+    real(<T>),intent(in) :: x(:), y(:), xx(:)
+    real(<T>),intent(out) :: yy(:)
+    call rebin_general_<T>(x, y, xx, yy, average_lin_<T>, integral_subset_<T>)
+  end subroutine rebin_<T>
+
+  subroutine rebin_linlog_<T>(x, y, xx, yy)
+    real(<T>),intent(in) :: x(:), y(:), xx(:)
+    real(<T>),intent(out) :: yy(:)
+    call rebin_general_<T>(x, y, xx, yy, average_lin_<T>, integral_linlog_subset_<T>)
+  end subroutine rebin_linlog_<T>
+
+  subroutine rebin_loglin_<T>(x, y, xx, yy)
+    real(<T>),intent(in) :: x(:), y(:), xx(:)
+    real(<T>),intent(out) :: yy(:)
+    call rebin_general_<T>(x, y, xx, yy, average_log_<T>, integral_loglin_subset_<T>)
+  end subroutine rebin_loglin_<T>
+
+  subroutine rebin_loglog_<T>(x, y, xx, yy)
+    real(<T>),intent(in) :: x(:), y(:), xx(:)
+    real(<T>),intent(out) :: yy(:)
+    call rebin_general_<T>(x, y, xx, yy, average_log_<T>, integral_loglog_subset_<T>)
+  end subroutine rebin_loglog_<T>
+
+  subroutine rebin_general_<T>(x, y, xx, yy, f_average, f_integral)
+    implicit none
+    real(<T>),intent(in) :: x(:), y(:), xx(:)
+    real(<T>),intent(out) :: yy(:)
+    integer :: i
+    real(<T>) :: xmin, xmax
+    interface
+       real(<T>) function f_average(a,b)
+         import :: <T>
+         implicit none
+         real(<T>),intent(in) :: a,b
+       end function f_average
+       real(<T>) function f_integral(x,y,x1,x2)
+         import :: <T>
+         implicit none
+         real(<T>),intent(in) :: x(:),y(:),x1,x2
+       end function f_integral
+    end interface
+    do i=1,size(xx)
+       if(i==1) then
+          xmin = xx(1)
+       else
+          xmin = f_average(xx(i-1), xx(i))
+       end if
+       if(i==size(xx)) then
+          xmax = xx(size(xx))
+       else
+          xmax = f_average(xx(i), xx(i+1))
+       end if
+       yy(i) = f_integral(x, y, xmin, xmax) / (xmax - xmin)
+    end do
+  end subroutine rebin_general_<T>
 
   integer function locate_<T>(xx,x)
     ! Locate a value in a sorted array
