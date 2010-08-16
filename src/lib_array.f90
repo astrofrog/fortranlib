@@ -1,4 +1,4 @@
-! MD5 of template: 19a13172cee8d4d396bd8e3a39c6cb08
+! MD5 of template: de1baa4b78ae2b9da8efc3705a89c946
 ! Array related routines (Integration, Interpolation, etc.)
 ! Thomas Robitaille (c) 2009
 
@@ -99,14 +99,14 @@ module lib_array
      module procedure rebin_sp
      module procedure rebin_dp
   end interface rebin
-  
-    public :: rebin_linlog
+
+  public :: rebin_linlog
   interface rebin_linlog
      module procedure rebin_linlog_sp
      module procedure rebin_linlog_dp
   end interface rebin_linlog
-  
-    public :: rebin_loglin
+
+  public :: rebin_loglin
   interface rebin_loglin
      module procedure rebin_loglin_sp
      module procedure rebin_loglin_dp
@@ -659,49 +659,49 @@ contains
 
   end function interp2d_dp
 
-    real(dp) function average_lin_dp(a,b)
-        implicit none
-        real(dp),intent(in) :: a,b
-        average_lin_dp = 0.5_dp * (a + b)
-    end function average_lin_dp
+  real(dp) function average_lin_dp(a,b)
+    implicit none
+    real(dp),intent(in) :: a,b
+    average_lin_dp = 0.5_dp * (a + b)
+  end function average_lin_dp
 
-    real(dp) function average_log_dp(a,b)
-        implicit none
-        real(dp),intent(in) :: a,b
-        average_log_dp = sqrt(a*b)
-    end function average_log_dp
+  real(dp) function average_log_dp(a,b)
+    implicit none
+    real(dp),intent(in) :: a,b
+    average_log_dp = sqrt(a*b)
+  end function average_log_dp
 
-    subroutine rebin_dp(x, y, xx, yy)
+  subroutine rebin_dp(x, y, xx, yy)
     real(dp),intent(in) :: x(:), y(:), xx(:)
     real(dp),intent(out) :: yy(:)
     call rebin_general_dp(x, y, xx, yy, average_lin_dp, integral_subset_dp)
-    end subroutine rebin_dp
-    
-    subroutine rebin_linlog_dp(x, y, xx, yy)
+  end subroutine rebin_dp
+
+  subroutine rebin_linlog_dp(x, y, xx, yy)
     real(dp),intent(in) :: x(:), y(:), xx(:)
     real(dp),intent(out) :: yy(:)
     call rebin_general_dp(x, y, xx, yy, average_lin_dp, integral_linlog_subset_dp)
-    end subroutine rebin_linlog_dp
-    
-        subroutine rebin_loglin_dp(x, y, xx, yy)
+  end subroutine rebin_linlog_dp
+
+  subroutine rebin_loglin_dp(x, y, xx, yy)
     real(dp),intent(in) :: x(:), y(:), xx(:)
     real(dp),intent(out) :: yy(:)
     call rebin_general_dp(x, y, xx, yy, average_log_dp, integral_loglin_subset_dp)
-    end subroutine rebin_loglin_dp
-    
-    subroutine rebin_loglog_dp(x, y, xx, yy)
+  end subroutine rebin_loglin_dp
+
+  subroutine rebin_loglog_dp(x, y, xx, yy)
     real(dp),intent(in) :: x(:), y(:), xx(:)
     real(dp),intent(out) :: yy(:)
     call rebin_general_dp(x, y, xx, yy, average_log_dp, integral_loglog_subset_dp)
-    end subroutine rebin_loglog_dp
+  end subroutine rebin_loglog_dp
 
-     subroutine rebin_general_dp(x, y, xx, yy, f_average, f_integral)
+  subroutine rebin_general_dp(x, y, xx, yy, f_average, f_integral)
     implicit none
     real(dp),intent(in) :: x(:), y(:), xx(:)
     real(dp),intent(out) :: yy(:)
     integer :: i
     real(dp) :: xmin, xmax
-        interface
+    interface
        real(dp) function f_average(a,b)
          import :: dp
          implicit none
@@ -714,19 +714,19 @@ contains
        end function f_integral
     end interface
     do i=1,size(xx)
-    if(i==1) then
-    xmin = xx(1)
-    else
-    xmin = f_average(xx(i-1), xx(i))
-    end if
-    if(i==size(xx)) then
-    xmax = xx(size(xx))
-    else
-    xmax = f_average(xx(i), xx(i+1))
-    end if
-    yy(i) = f_integral(x, y, xmin, xmax) / (xmax - xmin)
+       if(i==1) then
+          xmin = xx(1)
+       else
+          xmin = f_average(xx(i-1), xx(i))
+       end if
+       if(i==size(xx)) then
+          xmax = xx(size(xx))
+       else
+          xmax = f_average(xx(i), xx(i+1))
+       end if
+       yy(i) = f_integral(x, y, xmin, xmax) / (xmax - xmin)
     end do
-    end subroutine rebin_general_dp
+  end subroutine rebin_general_dp
 
   integer function locate_dp(xx,x)
     ! Locate a value in a sorted array
@@ -1594,49 +1594,49 @@ contains
 
   end function interp2d_sp
 
-    real(sp) function average_lin_sp(a,b)
-        implicit none
-        real(sp),intent(in) :: a,b
-        average_lin_sp = 0.5_sp * (a + b)
-    end function average_lin_sp
+  real(sp) function average_lin_sp(a,b)
+    implicit none
+    real(sp),intent(in) :: a,b
+    average_lin_sp = 0.5_sp * (a + b)
+  end function average_lin_sp
 
-    real(sp) function average_log_sp(a,b)
-        implicit none
-        real(sp),intent(in) :: a,b
-        average_log_sp = sqrt(a*b)
-    end function average_log_sp
+  real(sp) function average_log_sp(a,b)
+    implicit none
+    real(sp),intent(in) :: a,b
+    average_log_sp = sqrt(a*b)
+  end function average_log_sp
 
-    subroutine rebin_sp(x, y, xx, yy)
+  subroutine rebin_sp(x, y, xx, yy)
     real(sp),intent(in) :: x(:), y(:), xx(:)
     real(sp),intent(out) :: yy(:)
     call rebin_general_sp(x, y, xx, yy, average_lin_sp, integral_subset_sp)
-    end subroutine rebin_sp
-    
-    subroutine rebin_linlog_sp(x, y, xx, yy)
+  end subroutine rebin_sp
+
+  subroutine rebin_linlog_sp(x, y, xx, yy)
     real(sp),intent(in) :: x(:), y(:), xx(:)
     real(sp),intent(out) :: yy(:)
     call rebin_general_sp(x, y, xx, yy, average_lin_sp, integral_linlog_subset_sp)
-    end subroutine rebin_linlog_sp
-    
-        subroutine rebin_loglin_sp(x, y, xx, yy)
+  end subroutine rebin_linlog_sp
+
+  subroutine rebin_loglin_sp(x, y, xx, yy)
     real(sp),intent(in) :: x(:), y(:), xx(:)
     real(sp),intent(out) :: yy(:)
     call rebin_general_sp(x, y, xx, yy, average_log_sp, integral_loglin_subset_sp)
-    end subroutine rebin_loglin_sp
-    
-    subroutine rebin_loglog_sp(x, y, xx, yy)
+  end subroutine rebin_loglin_sp
+
+  subroutine rebin_loglog_sp(x, y, xx, yy)
     real(sp),intent(in) :: x(:), y(:), xx(:)
     real(sp),intent(out) :: yy(:)
     call rebin_general_sp(x, y, xx, yy, average_log_sp, integral_loglog_subset_sp)
-    end subroutine rebin_loglog_sp
+  end subroutine rebin_loglog_sp
 
-     subroutine rebin_general_sp(x, y, xx, yy, f_average, f_integral)
+  subroutine rebin_general_sp(x, y, xx, yy, f_average, f_integral)
     implicit none
     real(sp),intent(in) :: x(:), y(:), xx(:)
     real(sp),intent(out) :: yy(:)
     integer :: i
     real(sp) :: xmin, xmax
-        interface
+    interface
        real(sp) function f_average(a,b)
          import :: sp
          implicit none
@@ -1649,19 +1649,19 @@ contains
        end function f_integral
     end interface
     do i=1,size(xx)
-    if(i==1) then
-    xmin = xx(1)
-    else
-    xmin = f_average(xx(i-1), xx(i))
-    end if
-    if(i==size(xx)) then
-    xmax = xx(size(xx))
-    else
-    xmax = f_average(xx(i), xx(i+1))
-    end if
-    yy(i) = f_integral(x, y, xmin, xmax) / (xmax - xmin)
+       if(i==1) then
+          xmin = xx(1)
+       else
+          xmin = f_average(xx(i-1), xx(i))
+       end if
+       if(i==size(xx)) then
+          xmax = xx(size(xx))
+       else
+          xmax = f_average(xx(i), xx(i+1))
+       end if
+       yy(i) = f_integral(x, y, xmin, xmax) / (xmax - xmin)
     end do
-    end subroutine rebin_general_sp
+  end subroutine rebin_general_sp
 
   integer function locate_sp(xx,x)
     ! Locate a value in a sorted array
