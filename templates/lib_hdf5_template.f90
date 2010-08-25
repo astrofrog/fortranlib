@@ -503,6 +503,7 @@ contains
     info = hdf5_read_table_info(handle, path)
     col_id = hdf5_table_column_number(info, col_name)
     call h5tbread_field_name_f(handle, path, col_name, start, info%n_rows, info%field_sizes(col_id), values, hdferr)
+    values = clean_string(values)
     call check_status(hdferr,'read_table_column_1d_h5t_native_character')
   end subroutine read_table_column_1d_h5t_native_character
 
@@ -570,11 +571,7 @@ contains
     type(table_info) :: info
     info = hdf5_read_table_info(handle, path)
     col_id = hdf5_table_column_number(info, col_name)
-    if(<T>==h5t_native_character) then
-       allocate(values(1, info%n_rows))
-    else
-       allocate(values(info%field_sizes(col_id)/sizeof(<T>), info%n_rows))
-    end if
+    allocate(values(info%field_sizes(col_id)/sizeof(<T>), info%n_rows))
     call read_table_column_2d_<T>(handle, path, col_name, values)
   end subroutine read_table_column_2d_alloc_<T>
 
@@ -1252,5 +1249,19 @@ contains
     buf_real = real(buf, dp)
     call h5tbwrite_field_name_f(loc_id, dset_name, field_name, start, nrecords, type_size, buf_real, errcode) 
   end subroutine h5tbwrite_field_name_f_i64_1d
+
+  elemental function clean_string(string)
+    implicit none
+    character(len=*),intent(in) :: string
+    character(len=len(string)) :: clean_string
+    integer :: i
+    do i=1,len(string)
+       if(iachar(string(i:i)) >= 32) then
+          clean_string(i:i) = string(i:i)
+       else
+          clean_string(i:i) = " "
+       end if
+    end do
+  end function clean_string
 
 end module lib_hdf5

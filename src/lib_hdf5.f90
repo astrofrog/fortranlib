@@ -1,4 +1,4 @@
-! MD5 of template: 936f79de2c9fa6f4d27164d8d922da25
+! MD5 of template: bfc78043c59b4445f5874a2afc4a6b71
 ! High level routines for HDF5
 ! Thomas Robitaille (c) 2010
 
@@ -504,6 +504,7 @@ contains
     info = hdf5_read_table_info(handle, path)
     col_id = hdf5_table_column_number(info, col_name)
     call h5tbread_field_name_f(handle, path, col_name, start, info%n_rows, info%field_sizes(col_id), values, hdferr)
+    values = clean_string(values)
     call check_status(hdferr,'read_table_column_1d_h5t_native_character')
   end subroutine read_table_column_1d_h5t_native_character
 
@@ -570,11 +571,7 @@ contains
     type(table_info) :: info
     info = hdf5_read_table_info(handle, path)
     col_id = hdf5_table_column_number(info, col_name)
-    if(h5t_ieee_f64le==h5t_native_character) then
-       allocate(values(1, info%n_rows))
-    else
-       allocate(values(info%field_sizes(col_id)/sizeof(h5t_ieee_f64le), info%n_rows))
-    end if
+    allocate(values(info%field_sizes(col_id)/sizeof(h5t_ieee_f64le), info%n_rows))
     call read_table_column_2d_h5t_ieee_f64le(handle, path, col_name, values)
   end subroutine read_table_column_2d_alloc_h5t_ieee_f64le
 
@@ -628,11 +625,7 @@ contains
     type(table_info) :: info
     info = hdf5_read_table_info(handle, path)
     col_id = hdf5_table_column_number(info, col_name)
-    if(h5t_ieee_f32le==h5t_native_character) then
-       allocate(values(1, info%n_rows))
-    else
-       allocate(values(info%field_sizes(col_id)/sizeof(h5t_ieee_f32le), info%n_rows))
-    end if
+    allocate(values(info%field_sizes(col_id)/sizeof(h5t_ieee_f32le), info%n_rows))
     call read_table_column_2d_h5t_ieee_f32le(handle, path, col_name, values)
   end subroutine read_table_column_2d_alloc_h5t_ieee_f32le
 
@@ -686,11 +679,7 @@ contains
     type(table_info) :: info
     info = hdf5_read_table_info(handle, path)
     col_id = hdf5_table_column_number(info, col_name)
-    if(h5t_std_i64le==h5t_native_character) then
-       allocate(values(1, info%n_rows))
-    else
-       allocate(values(info%field_sizes(col_id)/sizeof(h5t_std_i64le), info%n_rows))
-    end if
+    allocate(values(info%field_sizes(col_id)/sizeof(h5t_std_i64le), info%n_rows))
     call read_table_column_2d_h5t_std_i64le(handle, path, col_name, values)
   end subroutine read_table_column_2d_alloc_h5t_std_i64le
 
@@ -744,11 +733,7 @@ contains
     type(table_info) :: info
     info = hdf5_read_table_info(handle, path)
     col_id = hdf5_table_column_number(info, col_name)
-    if(h5t_std_i32le==h5t_native_character) then
-       allocate(values(1, info%n_rows))
-    else
-       allocate(values(info%field_sizes(col_id)/sizeof(h5t_std_i32le), info%n_rows))
-    end if
+    allocate(values(info%field_sizes(col_id)/sizeof(h5t_std_i32le), info%n_rows))
     call read_table_column_2d_h5t_std_i32le(handle, path, col_name, values)
   end subroutine read_table_column_2d_alloc_h5t_std_i32le
 
@@ -2246,7 +2231,7 @@ contains
     allocate(info%field_sizes(info%n_cols))
     allocate(info%field_offsets(info%n_cols))
     call h5tbget_field_info_f(handle, path, info%n_cols, info%field_names,&
-        & info%field_sizes, info%field_offsets, info%type_size, hdferr)
+         & info%field_sizes, info%field_offsets, info%type_size, hdferr)
   end function hdf5_read_table_info
 
   integer function hdf5_table_column_number(info, col_name) result(col_id)
@@ -2479,5 +2464,19 @@ contains
     buf_real = real(buf, dp)
     call h5tbwrite_field_name_f(loc_id, dset_name, field_name, start, nrecords, type_size, buf_real, errcode) 
   end subroutine h5tbwrite_field_name_f_i64_1d
+
+  elemental function clean_string(string)
+    implicit none
+    character(len=*),intent(in) :: string
+    character(len=len(string)) :: clean_string
+    integer :: i
+    do i=1,len(string)
+       if(iachar(string(i:i)) >= 32) then
+          clean_string(i:i) = string(i:i)
+       else
+          clean_string(i:i) = " "
+       end if
+    end do
+  end function clean_string
 
 end module lib_hdf5
