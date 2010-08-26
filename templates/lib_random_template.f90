@@ -61,11 +61,11 @@ module lib_random
      module procedure random_poisson_dp
   end interface random_poisson
 
-  public :: random_plank_frequency
-  interface random_plank_frequency
-     module procedure random_plank_frequency_sp
-     module procedure random_plank_frequency_dp
-  end interface random_plank_frequency
+  public :: random_planck_frequency
+  interface random_planck_frequency
+     module procedure random_planck_frequency_sp
+     module procedure random_planck_frequency_dp
+  end interface random_planck_frequency
 
 contains
 
@@ -261,12 +261,12 @@ contains
     xi = em
   end subroutine random_poisson_<T>
 
-  subroutine random_plank_frequency_<T>(nu,T)
+  subroutine random_planck_frequency_<T>(nu,T)
 
-    ! Random frequency sampled from a plank function with temperature T
+    ! Random frequency sampled from a planck function with temperature T
 
     ! The algorithm is taken from 'Sampling a random variable distributed
-    ! according to Plank's law' by Barnett and Canfield
+    ! according to planck's law' by Barnett and Canfield
 
     implicit none
 
@@ -311,7 +311,7 @@ contains
 
     nu = x * k * T / h
 
-  end subroutine random_plank_frequency_<T>
+  end subroutine random_planck_frequency_<T>
 
   real(<T>) function gammln_<T>(xx)
 

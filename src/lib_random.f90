@@ -1,4 +1,4 @@
-! MD5 of template: 88c99f37fa2d2acfd4de19e4ab2e5979
+! MD5 of template: d747341e9c0cd132363f5182cd5ebb17
 ! Random number generation related routines
 ! Thomas Robitaille (c) 2009
 
@@ -62,11 +62,11 @@ module lib_random
      module procedure random_poisson_dp
   end interface random_poisson
 
-  public :: random_plank_frequency
-  interface random_plank_frequency
-     module procedure random_plank_frequency_sp
-     module procedure random_plank_frequency_dp
-  end interface random_plank_frequency
+  public :: random_planck_frequency
+  interface random_planck_frequency
+     module procedure random_planck_frequency_sp
+     module procedure random_planck_frequency_dp
+  end interface random_planck_frequency
 
 contains
 
@@ -261,12 +261,12 @@ contains
     xi = em
   end subroutine random_poisson_dp
 
-  subroutine random_plank_frequency_dp(nu,T)
+  subroutine random_planck_frequency_dp(nu,T)
 
-    ! Random frequency sampled from a plank function with temperature T
+    ! Random frequency sampled from a planck function with temperature T
 
     ! The algorithm is taken from 'Sampling a random variable distributed
-    ! according to Plank's law' by Barnett and Canfield
+    ! according to planck's law' by Barnett and Canfield
 
     implicit none
 
@@ -311,7 +311,7 @@ contains
 
     nu = x * k * T / h
 
-  end subroutine random_plank_frequency_dp
+  end subroutine random_planck_frequency_dp
 
   real(dp) function gammln_dp(xx)
 
@@ -441,12 +441,12 @@ contains
     xi = em
   end subroutine random_poisson_sp
 
-  subroutine random_plank_frequency_sp(nu,T)
+  subroutine random_planck_frequency_sp(nu,T)
 
-    ! Random frequency sampled from a plank function with temperature T
+    ! Random frequency sampled from a planck function with temperature T
 
     ! The algorithm is taken from 'Sampling a random variable distributed
-    ! according to Plank's law' by Barnett and Canfield
+    ! according to planck's law' by Barnett and Canfield
 
     implicit none
 
@@ -491,7 +491,7 @@ contains
 
     nu = x * k * T / h
 
-  end subroutine random_plank_frequency_sp
+  end subroutine random_planck_frequency_sp
 
   real(sp) function gammln_sp(xx)
 
