@@ -900,12 +900,23 @@ contains
     call h5aexists_by_name_f(handle, path, name, hdf5_exists_keyword, hdferr)
   end function hdf5_exists_keyword
 
+  subroutine hdf5_check_exists_keyword(handle, path, name)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path, name
+    if(.not.hdf5_exists_keyword(handle, path, name)) then
+        print *, "ERROR: attribute "//trim(name)//" does not exist in HDF5 file" 
+        stop
+    end if
+  end subroutine hdf5_check_exists_keyword
+    
   subroutine hdf5_read_k_logical(handle,path,name,value)
     implicit none
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path, name
     logical,intent(out) :: value
     character(len=3) :: string_value
+    call hdf5_check_exists_keyword(handle, path, name)
     call hdf5_read_k_string(handle, path, name, string_value)
     select case(trim(string_value))
     case('yes','y','Yes','YES','1','T')
@@ -926,6 +937,7 @@ contains
     character(len=*),intent(out) :: value
     integer :: hdferr
     INTEGER(HID_T) :: atype_id
+    call hdf5_check_exists_keyword(handle, path, name)
     CALL h5tcopy_f(H5T_NATIVE_CHARACTER, atype_id, hdferr)
     call check_status(hdferr,'hdf5_read_k_string [1]')
     CALL h5tset_size_f(atype_id, int(len(value),size_t), hdferr)
@@ -976,6 +988,7 @@ contains
     integer(hid_t) :: attr_id
     @T,intent(out) :: value
     integer :: hdferr
+    call hdf5_check_exists_keyword(handle, path, name)
     call h5aopen_by_name_f(handle, path, name, attr_id, hdferr)
     call check_status(hdferr,'hdf5_read_k_<T> [1]')
     call h5aread_f(attr_id, <T>, value, (/1_hsize_t/), hdferr)
