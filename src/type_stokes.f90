@@ -1,4 +1,4 @@
-! MD5 of template: c9b1da11e62afeaaac5b4eb6193f1121
+! MD5 of template: 3c854e37290fe7d8a7dab7774ffad0d6
 ! Stokes vector related routines
 ! Thomas Robitaille (c) 2009
 
@@ -36,8 +36,8 @@ module type_stokes
 
   public :: operator(*)
   interface operator(*)
-     module procedure scalar_stokes_mult_sp,stokes_scalar_mult_sp
-     module procedure scalar_stokes_mult_dp,stokes_scalar_mult_dp
+     module procedure scalar_stokes_mult_sp,stokes_scalar_mult_sp,stokes_stokes_mult_sp
+     module procedure scalar_stokes_mult_dp,stokes_scalar_mult_dp,stokes_stokes_mult_dp
   end interface operator(*)
 
   public :: operator(/)
@@ -45,6 +45,12 @@ module type_stokes
      module procedure scalar_stokes_div_sp,stokes_scalar_div_sp
      module procedure scalar_stokes_div_dp,stokes_scalar_div_dp
   end interface operator(/)
+  
+  public :: operator(**)
+  interface operator(**)
+     module procedure pow_stokes_sp
+     module procedure pow_stokes_dp
+  end interface operator(**)
 
 contains
 
@@ -114,6 +120,19 @@ contains
     s%V = a%V * b
 
   end function stokes_scalar_mult_dp
+  
+    type(stokes_dp) function stokes_stokes_mult_dp(a,b) result(s)
+
+    implicit none
+
+    type(stokes_dp),intent(in) :: a, b
+
+    s%I = a%I * b%I
+    s%Q = a%Q * b%Q
+    s%U = a%U * b%U
+    s%V = a%V * b%V
+
+  end function stokes_stokes_mult_dp
 
   !**********************************************************************!
   ! Scalar / Stokes
@@ -146,6 +165,24 @@ contains
     s%V = a%V / b
 
   end function stokes_scalar_div_dp
+
+  !**********************************************************************!
+  ! Stokes power
+  !**********************************************************************!
+
+  type(stokes_dp) function pow_stokes_dp(a,power) result(s)
+
+    implicit none
+
+    type(stokes_dp),intent(in) :: a
+    real(dp),intent(in) :: power
+
+    s%I = a%I ** power
+    s%Q = a%Q ** power
+    s%U = a%U ** power
+    s%V = a%V ** power
+
+  end function pow_stokes_dp
 
 
   !**********************************************************************!
@@ -213,6 +250,19 @@ contains
     s%V = a%V * b
 
   end function stokes_scalar_mult_sp
+  
+    type(stokes_sp) function stokes_stokes_mult_sp(a,b) result(s)
+
+    implicit none
+
+    type(stokes_sp),intent(in) :: a, b
+
+    s%I = a%I * b%I
+    s%Q = a%Q * b%Q
+    s%U = a%U * b%U
+    s%V = a%V * b%V
+
+  end function stokes_stokes_mult_sp
 
   !**********************************************************************!
   ! Scalar / Stokes
@@ -245,6 +295,24 @@ contains
     s%V = a%V / b
 
   end function stokes_scalar_div_sp
+
+  !**********************************************************************!
+  ! Stokes power
+  !**********************************************************************!
+
+  type(stokes_sp) function pow_stokes_sp(a,power) result(s)
+
+    implicit none
+
+    type(stokes_sp),intent(in) :: a
+    real(sp),intent(in) :: power
+
+    s%I = a%I ** power
+    s%Q = a%Q ** power
+    s%U = a%U ** power
+    s%V = a%V ** power
+
+  end function pow_stokes_sp
 
 
 end module type_stokes
