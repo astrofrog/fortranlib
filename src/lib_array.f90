@@ -1,4 +1,4 @@
-! MD5 of template: de1baa4b78ae2b9da8efc3705a89c946
+! MD5 of template: 186299114dfe73356bdcedc61216aa97
 ! Array related routines (Integration, Interpolation, etc.)
 ! Thomas Robitaille (c) 2009
 
@@ -167,7 +167,22 @@ module lib_array
   public :: test_quicksort_sp
   public :: test_quicksort_dp
 
+  public :: int
+  interface int
+     module procedure logical2int
+  end interface int
+
 contains
+
+  elemental integer function logical2int(a) result(b)
+    implicit none
+    logical,intent(in) :: a
+    if(a) then
+       b = 1
+    else
+       b = 0
+    end if
+  end function logical2int
 
 
   subroutine linspace_dp(xmin,xmax,x)

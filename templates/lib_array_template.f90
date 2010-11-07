@@ -166,7 +166,22 @@ module lib_array
   public :: test_quicksort_sp
   public :: test_quicksort_dp
 
+  public :: int
+  interface int
+     module procedure logical2int
+  end interface int
+
 contains
+
+  elemental integer function logical2int(a) result(b)
+    implicit none
+    logical,intent(in) :: a
+    if(a) then
+       b = 1
+    else
+       b = 0
+    end if
+  end function logical2int
 
   !!@FOR real(sp):sp real(dp):dp
 
