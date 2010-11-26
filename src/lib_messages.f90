@@ -5,7 +5,7 @@ module lib_messages
 
   implicit none
   save
-  
+
   private
   public :: message_section
   public :: error
@@ -13,25 +13,26 @@ module lib_messages
   public :: delimit
   public :: message
   public :: set_verbose_level
+  public :: now
 
   integer,parameter :: sp = selected_real_kind(p=6,r=37)
   integer,parameter :: dp = selected_real_kind(p=15,r=307)
 
   integer :: verbose_level = 0
-  
+
   public :: message_number
   interface message_number
      module procedure message_number_dp,message_number_int
-  end interface
+  end interface message_number
 
 contains
-  
+
   subroutine set_verbose_level(level)
     implicit none
     integer,intent(in) :: level
     verbose_level = level
   end subroutine set_verbose_level
-  
+
   subroutine message(level,text)
     implicit none
     integer,intent(in)          :: level
@@ -40,7 +41,7 @@ contains
     write(fmt,'("(",I0,"A)")') len(text)
     if(level <= verbose_level) write(*,fmt) text
   end subroutine message
-  
+
   subroutine message_number_dp(level,text,number,format,units)
     implicit none
     integer,intent(in)          :: level
@@ -51,7 +52,7 @@ contains
     write(char_number,format) number
     if(level <= verbose_level) write(*,*) trim(text)//' '//trim(adjustl(char_number))//' '//trim(units)
   end subroutine message_number_dp
-  
+
   subroutine message_number_int(level,text,number,format,units)
     implicit none
     integer,intent(in)          :: level
@@ -81,13 +82,23 @@ contains
     write(*,*) "WHERE   : ",trim(location)
     call delimit
   end subroutine warning
-  
+
   subroutine warn(location, text)
     implicit none
     character(len=*),intent(in) :: location,text
-    write(*,'("WARNING: ",A," [",A,"]")') text,location
+    write(*,'(" WARNING: ",A," [",A,"]")') text,location
   end subroutine warn
-  
+
+  character(len=30) function now()
+    implicit none
+    character(len=8) :: date
+    character(len=10) :: time
+    integer :: m
+    call date_and_time(date,time)
+    read(date(5:6),*) m
+    now = date(7:8)//" "//trim(month(m))//" "//trim(date(1:4))//" at "//time(1:2)//":"//time(3:4)//":"//time(5:6)
+  end function now
+
   subroutine error(location,text)
 
     implicit none
