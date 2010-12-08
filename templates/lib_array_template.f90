@@ -8,8 +8,17 @@ module lib_array
 
   private
 
+  integer,parameter :: idp = selected_int_kind(13)
   integer,parameter :: sp = selected_real_kind(p=6,r=37)
   integer,parameter :: dp = selected_real_kind(p=15,r=307)
+
+  public :: is_nan
+  interface is_nan
+    module procedure is_nan_int
+    module procedure is_nan_int8
+    module procedure is_nan_sp
+    module procedure is_nan_dp
+  end interface is_nan
 
   public :: linspace
   interface linspace
@@ -182,6 +191,15 @@ contains
        b = 0
     end if
   end function logical2int
+
+!!@FOR real(sp):sp real(dp):dp integer:int integer(idp):int8
+
+logical elemental function is_nan_<T>(value) result(nan)
+  @T,intent(in) :: value
+  nan = value .ne. value
+end function is_nan_<T>
+
+!!@END FOR
 
   !!@FOR real(sp):sp real(dp):dp
 

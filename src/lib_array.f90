@@ -1,4 +1,4 @@
-! MD5 of template: 186299114dfe73356bdcedc61216aa97
+! MD5 of template: 6eb76d216a84ec7b8e0768e4bf293b92
 ! Array related routines (Integration, Interpolation, etc.)
 ! Thomas Robitaille (c) 2009
 
@@ -9,8 +9,17 @@ module lib_array
 
   private
 
+  integer,parameter :: idp = selected_int_kind(13)
   integer,parameter :: sp = selected_real_kind(p=6,r=37)
   integer,parameter :: dp = selected_real_kind(p=15,r=307)
+
+  public :: is_nan
+  interface is_nan
+    module procedure is_nan_int
+    module procedure is_nan_int8
+    module procedure is_nan_sp
+    module procedure is_nan_dp
+  end interface is_nan
 
   public :: linspace
   interface linspace
@@ -183,6 +192,31 @@ contains
        b = 0
     end if
   end function logical2int
+
+
+logical elemental function is_nan_int8(value) result(nan)
+  integer(idp),intent(in) :: value
+  nan = value .ne. value
+end function is_nan_int8
+
+
+logical elemental function is_nan_int(value) result(nan)
+  integer,intent(in) :: value
+  nan = value .ne. value
+end function is_nan_int
+
+
+logical elemental function is_nan_dp(value) result(nan)
+  real(dp),intent(in) :: value
+  nan = value .ne. value
+end function is_nan_dp
+
+
+logical elemental function is_nan_sp(value) result(nan)
+  real(sp),intent(in) :: value
+  nan = value .ne. value
+end function is_nan_sp
+
 
 
   subroutine linspace_dp(xmin,xmax,x)
