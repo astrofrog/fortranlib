@@ -138,7 +138,10 @@ contains
   subroutine normalize_pdf_discrete_<T>(p)
     implicit none
     type(pdf_discrete_<T>),intent(inout) :: p
-    p%pdf = p%pdf / sum(p%pdf)
+    @T :: norm
+    norm = sum(p%pdf)
+    if(norm==0._<T>) stop "[normalize_pdf_discrete] all PDF elements are zero"
+    p%pdf = p%pdf / norm
     p%normalized = .true.
   end subroutine normalize_pdf_discrete_<T>
 

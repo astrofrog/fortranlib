@@ -1,4 +1,4 @@
-! MD5 of template: e8444fe4c256d935a98286fd3423044c
+! MD5 of template: 3b949a3d2435ba80a41d09e01aec3437
 ! Probability Distribution Function (PDF) related routines
 ! Thomas Robitaille (c) 2009
 
@@ -155,7 +155,10 @@ contains
   subroutine normalize_pdf_discrete_dp(p)
     implicit none
     type(pdf_discrete_dp),intent(inout) :: p
-    p%pdf = p%pdf / sum(p%pdf)
+    real(dp) :: norm
+    norm = sum(p%pdf)
+    if(norm==0._dp) stop "[normalize_pdf_discrete] all PDF elements are zero"
+    p%pdf = p%pdf / norm
     p%normalized = .true.
   end subroutine normalize_pdf_discrete_dp
 
@@ -359,7 +362,10 @@ contains
   subroutine normalize_pdf_discrete_sp(p)
     implicit none
     type(pdf_discrete_sp),intent(inout) :: p
-    p%pdf = p%pdf / sum(p%pdf)
+    real(sp) :: norm
+    norm = sum(p%pdf)
+    if(norm==0._sp) stop "[normalize_pdf_discrete] all PDF elements are zero"
+    p%pdf = p%pdf / norm
     p%normalized = .true.
   end subroutine normalize_pdf_discrete_sp
 
