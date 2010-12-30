@@ -1,4 +1,4 @@
-! MD5 of template: 3fd1526ecf0aa6423c17aeae57fdd37e
+! MD5 of template: bc148207acd8b111bbf88819791fe7b9
 ! High level routines for HDF5
 ! Thomas Robitaille (c) 2010
 
@@ -506,7 +506,7 @@ contains
     info = hdf5_read_table_info(handle, path)
     col_id = hdf5_table_column_number(info, col_name)
     call h5tbread_field_name_f(handle, path, col_name, start, info%n_rows, info%field_sizes(col_id), values, hdferr)
-    values = clean_string(values)
+    call clean_string(values)
     call check_status(hdferr,'read_table_column_1d_h5t_native_character')
   end subroutine read_table_column_1d_h5t_native_character
 
@@ -2533,18 +2533,13 @@ contains
     call h5tbwrite_field_name_f(loc_id, dset_name, field_name, start, nrecords, type_size, buf_real, errcode) 
   end subroutine h5tbwrite_field_name_f_i64_1d
 
-  elemental function clean_string(string)
+  elemental subroutine clean_string(string)
     implicit none
-    character(len=*),intent(in) :: string
-    character(len=len(string)) :: clean_string
+    character(len=*),intent(inout) :: string
     integer :: i
     do i=1,len(string)
-       if(iachar(string(i:i)) >= 32) then
-          clean_string(i:i) = string(i:i)
-       else
-          clean_string(i:i) = " "
-       end if
+       if(iachar(string(i:i)) < 32) string(i:i) = " "
     end do
-  end function clean_string
+  end subroutine clean_string
 
 end module lib_hdf5
