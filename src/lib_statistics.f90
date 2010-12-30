@@ -1,4 +1,4 @@
-! MD5 of template: 79d5c4d3192f188c34022e9d8889a8eb
+! MD5 of template: 5fa2ca2fceb833cfe598728816477332
 ! Statistics
 ! Thomas Robitaille (c) 2010
 
@@ -73,15 +73,23 @@ contains
     end if
   end function median_dp
 
-  real(dp) function quantile_dp(x, fraction)
+  real(dp) function quantile_dp(x, percent, mask)
     implicit none
-    real(dp),intent(in) :: x(:), fraction
-    real(dp),dimension(size(x)) :: x_sorted
+    real(dp),intent(in) :: x(:), percent
+    logical,intent(in),optional :: mask(:)
+    real(dp),allocatable :: x_sorted(:)
     integer :: n, ipos
-    n = size(x)
-    x_sorted = x
+    if(present(mask)) then
+      n = count(mask)
+      allocate(x_sorted(n))
+      x_sorted = pack(x, mask)
+    else
+      n = size(x)
+      allocate(x_sorted(n))
+      x_sorted = x
+    end if
     call quicksort(x_sorted)
-    ipos=nint(fraction*real(n-1))+1
+    ipos=nint(percent/100._dp*real(n-1))+1
     quantile_dp=x_sorted(ipos)
   end function quantile_dp
 
@@ -137,15 +145,23 @@ contains
     end if
   end function median_sp
 
-  real(sp) function quantile_sp(x, fraction)
+  real(sp) function quantile_sp(x, percent, mask)
     implicit none
-    real(sp),intent(in) :: x(:), fraction
-    real(sp),dimension(size(x)) :: x_sorted
+    real(sp),intent(in) :: x(:), percent
+    logical,intent(in),optional :: mask(:)
+    real(sp),allocatable :: x_sorted(:)
     integer :: n, ipos
-    n = size(x)
-    x_sorted = x
+    if(present(mask)) then
+      n = count(mask)
+      allocate(x_sorted(n))
+      x_sorted = pack(x, mask)
+    else
+      n = size(x)
+      allocate(x_sorted(n))
+      x_sorted = x
+    end if
     call quicksort(x_sorted)
-    ipos=nint(fraction*real(n-1))+1
+    ipos=nint(percent/100._sp*real(n-1))+1
     quantile_sp=x_sorted(ipos)
   end function quantile_sp
 

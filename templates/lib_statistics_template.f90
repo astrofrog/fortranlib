@@ -73,15 +73,23 @@ contains
     end if
   end function median_<T>
 
-  @T function quantile_<T>(x, fraction)
+  @T function quantile_<T>(x, percent, mask)
     implicit none
-    @T,intent(in) :: x(:), fraction
-    @T,dimension(size(x)) :: x_sorted
+    @T,intent(in) :: x(:), percent
+    logical,intent(in),optional :: mask(:)
+    @T,allocatable :: x_sorted(:)
     integer :: n, ipos
-    n = size(x)
-    x_sorted = x
+    if(present(mask)) then
+      n = count(mask)
+      allocate(x_sorted(n))
+      x_sorted = pack(x, mask)
+    else
+      n = size(x)
+      allocate(x_sorted(n))
+      x_sorted = x
+    end if
     call quicksort(x_sorted)
-    ipos=nint(fraction*real(n-1))+1
+    ipos=nint(percent/100._<T>*real(n-1))+1
     quantile_<T>=x_sorted(ipos)
   end function quantile_<T>
 
