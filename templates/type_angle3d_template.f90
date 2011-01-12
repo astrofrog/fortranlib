@@ -189,14 +189,32 @@ contains
     ! --- Solve the spherical triangle --- !
 
     cos_c     = cos_a * cos_b + sin_a * sin_b * cos_big_c
-    sin_c     = sqrt( 1._<T> - cos_c * cos_c )
+
+    if(cos_c * cos_c <= 1._<T>) then
+       sin_c = sqrt( 1._<T> - cos_c * cos_c )
+    else
+       if(cos_c > 0._<T>) then
+          cos_c = 1._<T>
+       else
+          cos_c = -1._<T>
+       end if
+       sin_c = 0._<T>
+    end if
 
     ! Special case - if local and coord theta are the same and C=0, return vertical vector
     if(abs(sin_c) < tol) then
        if(cos_c > 0._<T>) then
           a_final = angle3d_deg(0._<T>,0._<T>)
+          if(present(cos_big_a).and.present(sin_big_a)) then
+             cos_big_a = 0._<T>
+             sin_big_a = 1._<T>
+          end if
        else
           a_final = angle3d_deg(180._<T>,0._<T>)
+          if(present(cos_big_a).and.present(sin_big_a)) then
+             cos_big_a = 0._<T>
+             sin_big_a = -1._<T>
+          end if
        end if
        return
     end if

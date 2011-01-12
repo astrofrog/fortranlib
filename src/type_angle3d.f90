@@ -1,4 +1,4 @@
-! MD5 of template: 2e0ef642a249db067c2de391ec594d41
+! MD5 of template: 12867f8986388d48163656f3d1797828
 ! 3D angle related routines
 ! Thomas Robitaille (c) 2009
 
@@ -189,14 +189,32 @@ contains
     ! --- Solve the spherical triangle --- !
 
     cos_c     = cos_a * cos_b + sin_a * sin_b * cos_big_c
-    sin_c     = sqrt( 1._dp - cos_c * cos_c )
+
+    if(cos_c * cos_c <= 1._dp) then
+       sin_c = sqrt( 1._dp - cos_c * cos_c )
+    else
+       if(cos_c > 0._dp) then
+          cos_c = 1._dp
+       else
+          cos_c = -1._dp
+       end if
+       sin_c = 0._dp
+    end if
 
     ! Special case - if local and coord theta are the same and C=0, return vertical vector
     if(abs(sin_c) < tol) then
        if(cos_c > 0._dp) then
           a_final = angle3d_deg(0._dp,0._dp)
+          if(present(cos_big_a).and.present(sin_big_a)) then
+             cos_big_a = 0._dp
+             sin_big_a = 1._dp
+          end if
        else
           a_final = angle3d_deg(180._dp,0._dp)
+          if(present(cos_big_a).and.present(sin_big_a)) then
+             cos_big_a = 0._dp
+             sin_big_a = -1._dp
+          end if
        end if
        return
     end if
@@ -456,14 +474,32 @@ contains
     ! --- Solve the spherical triangle --- !
 
     cos_c     = cos_a * cos_b + sin_a * sin_b * cos_big_c
-    sin_c     = sqrt( 1._sp - cos_c * cos_c )
+
+    if(cos_c * cos_c <= 1._sp) then
+       sin_c = sqrt( 1._sp - cos_c * cos_c )
+    else
+       if(cos_c > 0._sp) then
+          cos_c = 1._sp
+       else
+          cos_c = -1._sp
+       end if
+       sin_c = 0._sp
+    end if
 
     ! Special case - if local and coord theta are the same and C=0, return vertical vector
     if(abs(sin_c) < tol) then
        if(cos_c > 0._sp) then
           a_final = angle3d_deg(0._sp,0._sp)
+          if(present(cos_big_a).and.present(sin_big_a)) then
+             cos_big_a = 0._sp
+             sin_big_a = 1._sp
+          end if
        else
           a_final = angle3d_deg(180._sp,0._sp)
+          if(present(cos_big_a).and.present(sin_big_a)) then
+             cos_big_a = 0._sp
+             sin_big_a = -1._sp
+          end if
        end if
        return
     end if
