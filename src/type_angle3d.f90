@@ -1,4 +1,4 @@
-! MD5 of template: 12867f8986388d48163656f3d1797828
+! MD5 of template: 562bdb12b479a6a571ffa6cc4dca2d47
 ! 3D angle related routines
 ! Thomas Robitaille (c) 2009
 
@@ -70,6 +70,16 @@ module type_angle3d
      module procedure minus_angle_dp
   end interface operator(-)
 
+  interface sin2cos
+     module procedure sin2cos_sp
+     module procedure sin2cos_dp
+  end interface sin2cos
+
+  interface cos2sin
+     module procedure sin2cos_sp
+     module procedure sin2cos_dp
+  end interface cos2sin
+
 contains
 
 
@@ -107,7 +117,7 @@ contains
   end function dot_product_dp
 
 
-  subroutine rotate_angle3d_dp(a_local,a_coord,a_final,cos_big_a,sin_big_a)
+  subroutine rotate_angle3d_dp(a_local,a_coord,a_final)
 
     ! This subroutine is used to add a local angle, such as as
     ! photon emission angle on the surface of a star, or a photon
@@ -127,10 +137,6 @@ contains
     ! B = new phi - old phi
     ! C = local phi angle (scattering or emission angle)
 
-    ! In some circumstances, it might be useful to know the angle A,
-    ! for example when finding the changes in polarization. Therefore
-    ! we add cos_A and sin_A as optional arguments to the routine
-
     implicit none
 
     type(angle3d_dp),intent(in) :: a_local
@@ -141,11 +147,26 @@ contains
     real(dp) :: cos_b,sin_b
     real(dp) :: cos_c,sin_c
 
-    real(dp),intent(out),optional :: cos_big_a,sin_big_a
     real(dp) :: cos_big_b,sin_big_b
     real(dp) :: cos_big_c,sin_big_c
 
-    real(dp),parameter :: tol = 1.e-5_dp
+    real(dp) :: delta
+    logical :: same_sign
+
+    ! Special case - if coord%theta is 0, then final = local
+    if(abs(a_coord%sint) < 1.e-10_dp) then
+       if(a_coord%cost > 0._dp) then
+          a_final = a_local
+          a_final%cosp = + a_local%cosp * a_coord%cosp + a_local%sinp * a_coord%sinp
+          a_final%sinp = + a_local%cosp * a_coord%sinp - a_local%sinp * a_coord%cosp 
+       else
+          a_final = a_local
+          a_final%cost = - a_local%cost
+          a_final%cosp = + a_local%cosp * a_coord%cosp - a_local%sinp * a_coord%sinp
+          a_final%sinp = + a_local%cosp * a_coord%sinp + a_local%sinp * a_coord%cosp 
+       end if
+       return
+    end if
 
     ! --- Assign spherical triangle angles values --- !
 
@@ -157,74 +178,56 @@ contains
     cos_b = a_local%cost
     sin_b = a_local%sint
 
-    ! Special case - if coord%theta is 0, then final = local
-    if(abs(abs(cos_a)-1._dp) < tol .and. abs(sin_a) < tol) then
-       if(cos_a > 0._dp) then
-          a_final = a_local
-       else
-          a_final = a_local
-          a_final%cost = -a_local%cost
-          a_final%cosp = -a_local%cosp
-          a_final%sinp = -a_local%sinp
-       end if
-       return
-    end if
-
-    if(a_local%sinp < 0._dp) then
-
-       ! the angle in the triangle is then actually 2*pi - local phi
-
+    if(a_local%sinp < 0._dp) then ! the angle in the triangle is then actually 2*pi - local phi
        cos_big_C = + a_local%cosp
        sin_big_C = - a_local%sinp
-
-    else
-
-       ! the angle is local phi
-
+    else ! the angle is local phi
        cos_big_C = + a_local%cosp
        sin_big_C = + a_local%sinp
-
     end if
 
     ! --- Solve the spherical triangle --- !
 
-    cos_c     = cos_a * cos_b + sin_a * sin_b * cos_big_c
-
-    if(cos_c * cos_c <= 1._dp) then
-       sin_c = sqrt( 1._dp - cos_c * cos_c )
+    if (abs(sin_a) > abs(cos_a)) then
+       same_sign = sin_a > 0._dp .eqv. sin_b > 0._dp
+       delta = cos_b - cos_a
     else
-       if(cos_c > 0._dp) then
-          cos_c = 1._dp
-       else
-          cos_c = -1._dp
-       end if
-       sin_c = 0._dp
+       same_sign = cos_a > 0._dp .eqv. cos_b > 0._dp
+       delta = sin_b - sin_a
     end if
 
-    ! Special case - if local and coord theta are the same and C=0, return vertical vector
-    if(abs(sin_c) < tol) then
+    if(same_sign .and. abs(delta) < 1.e-5_dp .and. sin_big_C < 1.e-5_dp .and. cos_big_c > 0._dp) then
+       if (abs(sin_a) > abs(cos_a)) then
+          sin_c = sqrt(delta * delta * (1._dp + (cos_a/sin_a)**2) + sin_a * sin_b * sin_big_C * sin_big_C)
+       else
+          sin_c = sqrt(delta * delta * (1._dp + (sin_a/cos_a)**2) + sin_a * sin_b * sin_big_C * sin_big_C)
+       end if
+       cos_c = sin2cos(sin_c)
+    else
+       cos_c = cos_a * cos_b + sin_a * sin_b * cos_big_c
+       sin_c = cos2sin(cos_c)
+    end if
+
+    ! Special case - if local and coord theta are the same and C = 0, return
+    ! vertical vector. We can't do better than that because we are limited by
+    ! numerical precision, in particular for delta (above) which will be limited
+    ! in precision
+    if(abs(sin_c) < 1.e-10_dp) then
+       write(*,'(" WARNING: final angle is vertical, and phi is undetermined (set to 0) [rotate_angle3d]")')
        if(cos_c > 0._dp) then
           a_final = angle3d_deg(0._dp,0._dp)
-          if(present(cos_big_a).and.present(sin_big_a)) then
-             cos_big_a = 0._dp
-             sin_big_a = 1._dp
-          end if
        else
           a_final = angle3d_deg(180._dp,0._dp)
-          if(present(cos_big_a).and.present(sin_big_a)) then
-             cos_big_a = 0._dp
-             sin_big_a = -1._dp
-          end if
        end if
        return
     end if
 
-    cos_big_b = ( cos_b - cos_a * cos_c ) / ( sin_a * sin_c )
-    sin_big_b = + sin_big_c * sin_b / sin_c
-
-    if(present(cos_big_a).and.present(sin_big_a)) then
-       cos_big_a = - cos_big_b * cos_big_c + sin_big_b * sin_big_c * cos_a
-       sin_big_a = + sin_big_c * sin_a / sin_c
+    if(sin_a > 0._dp) then
+       cos_big_b = ( cos_b - cos_a * cos_c ) / ( sin_a * sin_c )
+       sin_big_b = + sin_big_c * sin_b / sin_c
+    else
+       cos_big_b = + sin_b * cos_big_C / sin_c
+       sin_big_b = - sin_big_c
     end if
 
     ! --- Find final theta and phi values --- !
@@ -232,20 +235,12 @@ contains
     a_final%cost = cos_c
     a_final%sint = sin_c
 
-    if(a_local%sinp < 0._dp) then
-
-       ! the top angle is old phi - new phi
-
+    if(a_local%sinp < 0._dp) then ! the top angle is old phi - new phi
        a_final%cosp = + cos_big_b * a_coord%cosp + sin_big_b * a_coord%sinp
        a_final%sinp = + cos_big_b * a_coord%sinp - sin_big_b * a_coord%cosp       
-
-    else
-
-       ! the top angle is new phi - old phi
-
+    else ! the top angle is new phi - old phi
        a_final%cosp = + cos_big_b * a_coord%cosp - sin_big_b * a_coord%sinp
        a_final%sinp = + cos_big_b * a_coord%sinp + sin_big_b * a_coord%cosp
-
     end if
 
   end subroutine rotate_angle3d_dp
@@ -284,6 +279,23 @@ contains
     real(dp) :: cos_big_b,sin_big_b
     real(dp) :: cos_big_c,sin_big_c
 
+    real(dp) :: delta
+
+    ! Special case - if coord%theta is 0, then final = local
+    if(abs(a_coord%sint) < 1.e-10_dp) then
+       if(a_coord%cost > 0._dp) then
+          a_local = a_final
+          a_local%cosp = + a_coord%cosp * a_final%cosp + a_coord%sinp * a_final%sinp
+          a_local%sinp = - a_coord%cosp * a_final%sinp + a_coord%sinp * a_final%cosp 
+       else
+          a_local = a_final
+          a_local%cost = - a_local%cost
+          a_local%cosp = + a_coord%cosp * a_final%cosp + a_coord%sinp * a_final%sinp
+          a_local%sinp = + a_coord%cosp * a_final%sinp - a_coord%sinp * a_final%cosp 
+       end if
+       return
+    end if
+
     ! --- Assign spherical triangle angles values --- !
 
     ! The angles in the spherical triangle are as follows:
@@ -297,29 +309,43 @@ contains
     cos_big_B = a_coord%cosp * a_final%cosp + a_coord%sinp * a_final%sinp
     sin_big_B = a_coord%sinp * a_final%cosp - a_coord%cosp * a_final%sinp
 
-    ! Special case - if coord%theta is 0, then final = local
-    ! if(cos_a==1..and.sin_a==0.) then
-    !   a_final = a_local
-    !   return
-    ! end if
-
     ! --- Solve the spherical triangle --- !
 
     cos_b = cos_a * cos_c + sin_a * sin_c * cos_big_B
-    sin_b = sqrt( 1._dp - cos_b * cos_b )
+    sin_b = cos2sin(cos_b)
 
-    ! Special case - if local and coord theta are the same and C=0, return vertical vector
-    ! if(sin_c == 0._dp) then
-    !   if(cos_c > 0._dp) then
-    !     a_final = angle3d_deg(0._dp,0._dp)
-    !   else
-    !     a_final = angle3d_deg(180._dp,0._dp)
-    !   end if
-    !   return
-    ! end if
+    delta = cos_b - cos_a
+    if(abs(delta) < 1.e-5_dp .and. sin_c < 1.e-5_dp) then
+       if(sin_c > 0._dp) delta = -sin_a * sin_c * cos_big_b ! no rounding errors
+       if(sin_a > 0._dp) then
+          sin_big_c = sqrt((sin_c * sin_c - delta * delta * (1._dp + (cos_a / sin_a)**2))/(sin_a * sin_b))
+       else
+          sin_big_c = + abs(sin_big_b)
+       end if
+       if(cos_c > 0._dp) then
+          cos_big_c = sin2cos(sin_big_c)
+       else
+          cos_big_c = - sin2cos(sin_big_c)
+       end if
+    else
+       if(sin_a > 0._dp) then
+          sin_big_c = + abs(sin_big_b) * sin_c / sin_b
+          cos_big_c = ( cos_c - cos_a * cos_b ) / ( sin_a * sin_b )
+       else
+          sin_big_c = + abs(sin_big_b)
+          if(cos_c < cos_a * cos_b) then
+             cos_big_c = - sin2cos(sin_big_c)
+          else
+             cos_big_c = sin2cos(sin_big_c)
+          end if
+       end if
 
-    cos_big_c = ( cos_c - cos_a * cos_b ) / ( sin_a * sin_b )
-    sin_big_c = + abs(sin_big_b) * sin_c / sin_b
+    end if
+
+    ! If sin_big_c is zero, this can cause issues in other routines, so we
+    ! make it the next floating point, which should have no effect on
+    ! calculations but prevents issues.
+    if(sin_big_c == 0._dp) sin_big_c = tiny(1._dp)
 
     ! --- Find final theta and phi values --- !
 
@@ -339,6 +365,16 @@ contains
     end if
 
   end subroutine difference_angle3d_dp
+
+  real(dp) function sin2cos_dp(x) result(y)
+    implicit none
+    real(dp), intent(in) :: x
+    if(x * x < 1._dp) then
+       y = sqrt(1._dp - x * x)
+    else
+       y = 0._dp
+    end if
+  end function sin2cos_dp
 
   subroutine random_sphere_angle3d_dp(a)
     ! Random position on a unit sphere
@@ -392,7 +428,7 @@ contains
   end function dot_product_sp
 
 
-  subroutine rotate_angle3d_sp(a_local,a_coord,a_final,cos_big_a,sin_big_a)
+  subroutine rotate_angle3d_sp(a_local,a_coord,a_final)
 
     ! This subroutine is used to add a local angle, such as as
     ! photon emission angle on the surface of a star, or a photon
@@ -412,10 +448,6 @@ contains
     ! B = new phi - old phi
     ! C = local phi angle (scattering or emission angle)
 
-    ! In some circumstances, it might be useful to know the angle A,
-    ! for example when finding the changes in polarization. Therefore
-    ! we add cos_A and sin_A as optional arguments to the routine
-
     implicit none
 
     type(angle3d_sp),intent(in) :: a_local
@@ -426,11 +458,26 @@ contains
     real(sp) :: cos_b,sin_b
     real(sp) :: cos_c,sin_c
 
-    real(sp),intent(out),optional :: cos_big_a,sin_big_a
     real(sp) :: cos_big_b,sin_big_b
     real(sp) :: cos_big_c,sin_big_c
 
-    real(sp),parameter :: tol = 1.e-5_sp
+    real(sp) :: delta
+    logical :: same_sign
+
+    ! Special case - if coord%theta is 0, then final = local
+    if(abs(a_coord%sint) < 1.e-10_sp) then
+       if(a_coord%cost > 0._sp) then
+          a_final = a_local
+          a_final%cosp = + a_local%cosp * a_coord%cosp + a_local%sinp * a_coord%sinp
+          a_final%sinp = + a_local%cosp * a_coord%sinp - a_local%sinp * a_coord%cosp 
+       else
+          a_final = a_local
+          a_final%cost = - a_local%cost
+          a_final%cosp = + a_local%cosp * a_coord%cosp - a_local%sinp * a_coord%sinp
+          a_final%sinp = + a_local%cosp * a_coord%sinp + a_local%sinp * a_coord%cosp 
+       end if
+       return
+    end if
 
     ! --- Assign spherical triangle angles values --- !
 
@@ -442,74 +489,56 @@ contains
     cos_b = a_local%cost
     sin_b = a_local%sint
 
-    ! Special case - if coord%theta is 0, then final = local
-    if(abs(abs(cos_a)-1._sp) < tol .and. abs(sin_a) < tol) then
-       if(cos_a > 0._sp) then
-          a_final = a_local
-       else
-          a_final = a_local
-          a_final%cost = -a_local%cost
-          a_final%cosp = -a_local%cosp
-          a_final%sinp = -a_local%sinp
-       end if
-       return
-    end if
-
-    if(a_local%sinp < 0._sp) then
-
-       ! the angle in the triangle is then actually 2*pi - local phi
-
+    if(a_local%sinp < 0._sp) then ! the angle in the triangle is then actually 2*pi - local phi
        cos_big_C = + a_local%cosp
        sin_big_C = - a_local%sinp
-
-    else
-
-       ! the angle is local phi
-
+    else ! the angle is local phi
        cos_big_C = + a_local%cosp
        sin_big_C = + a_local%sinp
-
     end if
 
     ! --- Solve the spherical triangle --- !
 
-    cos_c     = cos_a * cos_b + sin_a * sin_b * cos_big_c
-
-    if(cos_c * cos_c <= 1._sp) then
-       sin_c = sqrt( 1._sp - cos_c * cos_c )
+    if (abs(sin_a) > abs(cos_a)) then
+       same_sign = sin_a > 0._sp .eqv. sin_b > 0._sp
+       delta = cos_b - cos_a
     else
-       if(cos_c > 0._sp) then
-          cos_c = 1._sp
-       else
-          cos_c = -1._sp
-       end if
-       sin_c = 0._sp
+       same_sign = cos_a > 0._sp .eqv. cos_b > 0._sp
+       delta = sin_b - sin_a
     end if
 
-    ! Special case - if local and coord theta are the same and C=0, return vertical vector
-    if(abs(sin_c) < tol) then
+    if(same_sign .and. abs(delta) < 1.e-5_sp .and. sin_big_C < 1.e-5_sp .and. cos_big_c > 0._sp) then
+       if (abs(sin_a) > abs(cos_a)) then
+          sin_c = sqrt(delta * delta * (1._sp + (cos_a/sin_a)**2) + sin_a * sin_b * sin_big_C * sin_big_C)
+       else
+          sin_c = sqrt(delta * delta * (1._sp + (sin_a/cos_a)**2) + sin_a * sin_b * sin_big_C * sin_big_C)
+       end if
+       cos_c = sin2cos(sin_c)
+    else
+       cos_c = cos_a * cos_b + sin_a * sin_b * cos_big_c
+       sin_c = cos2sin(cos_c)
+    end if
+
+    ! Special case - if local and coord theta are the same and C = 0, return
+    ! vertical vector. We can't do better than that because we are limited by
+    ! numerical precision, in particular for delta (above) which will be limited
+    ! in precision
+    if(abs(sin_c) < 1.e-10_sp) then
+       write(*,'(" WARNING: final angle is vertical, and phi is undetermined (set to 0) [rotate_angle3d]")')
        if(cos_c > 0._sp) then
           a_final = angle3d_deg(0._sp,0._sp)
-          if(present(cos_big_a).and.present(sin_big_a)) then
-             cos_big_a = 0._sp
-             sin_big_a = 1._sp
-          end if
        else
           a_final = angle3d_deg(180._sp,0._sp)
-          if(present(cos_big_a).and.present(sin_big_a)) then
-             cos_big_a = 0._sp
-             sin_big_a = -1._sp
-          end if
        end if
        return
     end if
 
-    cos_big_b = ( cos_b - cos_a * cos_c ) / ( sin_a * sin_c )
-    sin_big_b = + sin_big_c * sin_b / sin_c
-
-    if(present(cos_big_a).and.present(sin_big_a)) then
-       cos_big_a = - cos_big_b * cos_big_c + sin_big_b * sin_big_c * cos_a
-       sin_big_a = + sin_big_c * sin_a / sin_c
+    if(sin_a > 0._sp) then
+       cos_big_b = ( cos_b - cos_a * cos_c ) / ( sin_a * sin_c )
+       sin_big_b = + sin_big_c * sin_b / sin_c
+    else
+       cos_big_b = + sin_b * cos_big_C / sin_c
+       sin_big_b = - sin_big_c
     end if
 
     ! --- Find final theta and phi values --- !
@@ -517,20 +546,12 @@ contains
     a_final%cost = cos_c
     a_final%sint = sin_c
 
-    if(a_local%sinp < 0._sp) then
-
-       ! the top angle is old phi - new phi
-
+    if(a_local%sinp < 0._sp) then ! the top angle is old phi - new phi
        a_final%cosp = + cos_big_b * a_coord%cosp + sin_big_b * a_coord%sinp
        a_final%sinp = + cos_big_b * a_coord%sinp - sin_big_b * a_coord%cosp       
-
-    else
-
-       ! the top angle is new phi - old phi
-
+    else ! the top angle is new phi - old phi
        a_final%cosp = + cos_big_b * a_coord%cosp - sin_big_b * a_coord%sinp
        a_final%sinp = + cos_big_b * a_coord%sinp + sin_big_b * a_coord%cosp
-
     end if
 
   end subroutine rotate_angle3d_sp
@@ -569,6 +590,23 @@ contains
     real(sp) :: cos_big_b,sin_big_b
     real(sp) :: cos_big_c,sin_big_c
 
+    real(dp) :: delta
+
+    ! Special case - if coord%theta is 0, then final = local
+    if(abs(a_coord%sint) < 1.e-10_sp) then
+       if(a_coord%cost > 0._sp) then
+          a_local = a_final
+          a_local%cosp = + a_coord%cosp * a_final%cosp + a_coord%sinp * a_final%sinp
+          a_local%sinp = - a_coord%cosp * a_final%sinp + a_coord%sinp * a_final%cosp 
+       else
+          a_local = a_final
+          a_local%cost = - a_local%cost
+          a_local%cosp = + a_coord%cosp * a_final%cosp + a_coord%sinp * a_final%sinp
+          a_local%sinp = + a_coord%cosp * a_final%sinp - a_coord%sinp * a_final%cosp 
+       end if
+       return
+    end if
+
     ! --- Assign spherical triangle angles values --- !
 
     ! The angles in the spherical triangle are as follows:
@@ -582,29 +620,43 @@ contains
     cos_big_B = a_coord%cosp * a_final%cosp + a_coord%sinp * a_final%sinp
     sin_big_B = a_coord%sinp * a_final%cosp - a_coord%cosp * a_final%sinp
 
-    ! Special case - if coord%theta is 0, then final = local
-    ! if(cos_a==1..and.sin_a==0.) then
-    !   a_final = a_local
-    !   return
-    ! end if
-
     ! --- Solve the spherical triangle --- !
 
     cos_b = cos_a * cos_c + sin_a * sin_c * cos_big_B
-    sin_b = sqrt( 1._sp - cos_b * cos_b )
+    sin_b = cos2sin(cos_b)
 
-    ! Special case - if local and coord theta are the same and C=0, return vertical vector
-    ! if(sin_c == 0._sp) then
-    !   if(cos_c > 0._sp) then
-    !     a_final = angle3d_deg(0._sp,0._sp)
-    !   else
-    !     a_final = angle3d_deg(180._sp,0._sp)
-    !   end if
-    !   return
-    ! end if
+    delta = cos_b - cos_a
+    if(abs(delta) < 1.e-5_sp .and. sin_c < 1.e-5_sp) then
+       if(sin_c > 0._sp) delta = -sin_a * sin_c * cos_big_b ! no rounding errors
+       if(sin_a > 0._sp) then
+          sin_big_c = sqrt((sin_c * sin_c - delta * delta * (1._sp + (cos_a / sin_a)**2))/(sin_a * sin_b))
+       else
+          sin_big_c = + abs(sin_big_b)
+       end if
+       if(cos_c > 0._sp) then
+          cos_big_c = sin2cos(sin_big_c)
+       else
+          cos_big_c = - sin2cos(sin_big_c)
+       end if
+    else
+       if(sin_a > 0._sp) then
+          sin_big_c = + abs(sin_big_b) * sin_c / sin_b
+          cos_big_c = ( cos_c - cos_a * cos_b ) / ( sin_a * sin_b )
+       else
+          sin_big_c = + abs(sin_big_b)
+          if(cos_c < cos_a * cos_b) then
+             cos_big_c = - sin2cos(sin_big_c)
+          else
+             cos_big_c = sin2cos(sin_big_c)
+          end if
+       end if
 
-    cos_big_c = ( cos_c - cos_a * cos_b ) / ( sin_a * sin_b )
-    sin_big_c = + abs(sin_big_b) * sin_c / sin_b
+    end if
+
+    ! If sin_big_c is zero, this can cause issues in other routines, so we
+    ! make it the next floating point, which should have no effect on
+    ! calculations but prevents issues.
+    if(sin_big_c == 0._sp) sin_big_c = tiny(1._sp)
 
     ! --- Find final theta and phi values --- !
 
@@ -624,6 +676,16 @@ contains
     end if
 
   end subroutine difference_angle3d_sp
+
+  real(sp) function sin2cos_sp(x) result(y)
+    implicit none
+    real(sp), intent(in) :: x
+    if(x * x < 1._sp) then
+       y = sqrt(1._sp - x * x)
+    else
+       y = 0._sp
+    end if
+  end function sin2cos_sp
 
   subroutine random_sphere_angle3d_sp(a)
     ! Random position on a unit sphere
