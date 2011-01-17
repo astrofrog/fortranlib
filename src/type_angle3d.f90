@@ -1,4 +1,4 @@
-! MD5 of template: 6e4bf3276550c82165ae7c06ee1b6a37
+! MD5 of template: bfe18f753e8eae74e5fffee772559dc4
 ! 3D angle related routines
 ! Thomas Robitaille (c) 2009
 
@@ -310,11 +310,10 @@ contains
     cos_b = cos_a * cos_c + sin_a * sin_c * cos_big_B
     sin_b = cos2sin(cos_b)
 
+    same_sign = cos_a > 0._dp .eqv. cos_b > 0._dp .and. sin_a > 0._dp .eqv. sin_b > 0._dp
     if(abs(sin_a) > abs(cos_a)) then
-       same_sign = sin_a > 0._dp .eqv. sin_b > 0._dp
        delta = cos_b - cos_a
     else
-       same_sign = cos_a > 0._dp .eqv. cos_b > 0._dp
        delta = sin_b - sin_a
     end if
 
@@ -616,11 +615,10 @@ contains
     cos_b = cos_a * cos_c + sin_a * sin_c * cos_big_B
     sin_b = cos2sin(cos_b)
 
+    same_sign = cos_a > 0._sp .eqv. cos_b > 0._sp .and. sin_a > 0._sp .eqv. sin_b > 0._sp
     if(abs(sin_a) > abs(cos_a)) then
-       same_sign = sin_a > 0._sp .eqv. sin_b > 0._sp
        delta = cos_b - cos_a
     else
-       same_sign = cos_a > 0._sp .eqv. cos_b > 0._sp
        delta = sin_b - sin_a
     end if
 

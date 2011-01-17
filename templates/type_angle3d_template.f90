@@ -310,11 +310,10 @@ contains
     cos_b = cos_a * cos_c + sin_a * sin_c * cos_big_B
     sin_b = cos2sin(cos_b)
 
+    same_sign = cos_a > 0._<T> .eqv. cos_b > 0._<T> .and. sin_a > 0._<T> .eqv. sin_b > 0._<T>
     if(abs(sin_a) > abs(cos_a)) then
-       same_sign = sin_a > 0._<T> .eqv. sin_b > 0._<T>
        delta = cos_b - cos_a
     else
-       same_sign = cos_a > 0._<T> .eqv. cos_b > 0._<T>
        delta = sin_b - sin_a
     end if
 
