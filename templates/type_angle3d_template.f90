@@ -222,13 +222,8 @@ contains
        return
     end if
 
-    if(sin_a > 0._<T>) then
-       cos_big_b = ( cos_b - cos_a * cos_c ) / ( sin_a * sin_c )
-       sin_big_b = + sin_big_c * sin_b / sin_c
-    else
-       cos_big_b = + sin_b * cos_big_C / sin_c
-       sin_big_b = - sin_big_c
-    end if
+    cos_big_b = ( cos_b - cos_a * cos_c ) / ( sin_a * sin_c )
+    sin_big_b = + sin_big_c * sin_b / sin_c
 
     ! --- Find final theta and phi values --- !
 
@@ -280,6 +275,7 @@ contains
     real(<T>) :: cos_big_c,sin_big_c
 
     real(dp) :: delta
+    logical :: same_sign
 
     ! Special case - if coord%theta is 0, then final = local
     if(abs(a_coord%sint) < 1.e-10_<T>) then
@@ -314,32 +310,31 @@ contains
     cos_b = cos_a * cos_c + sin_a * sin_c * cos_big_B
     sin_b = cos2sin(cos_b)
 
-    delta = cos_b - cos_a
-    if(abs(delta) < 1.e-5_<T> .and. sin_c < 1.e-5_<T>) then
-       if(sin_c > 0._<T>) delta = -sin_a * sin_c * cos_big_b ! no rounding errors
-       if(sin_a > 0._<T>) then
+    if(abs(sin_a) > abs(cos_a)) then
+       same_sign = sin_a > 0._<T> .eqv. sin_b > 0._<T>
+       delta = cos_b - cos_a
+    else
+       same_sign = cos_a > 0._<T> .eqv. cos_b > 0._<T>
+       delta = sin_b - sin_a
+    end if
+
+    if(same_sign .and. abs(delta) < 1.e-5_<T> .and. sin_c < 1.e-5_<T>) then
+
+       if (abs(sin_a) > abs(cos_a)) then
           sin_big_c = sqrt((sin_c * sin_c - delta * delta * (1._<T> + (cos_a / sin_a)**2))/(sin_a * sin_b))
        else
-          sin_big_c = + abs(sin_big_b)
+          sin_big_c = sqrt((sin_c * sin_c - delta * delta * (1._<T> + (sin_a / cos_a)**2))/(sin_a * sin_b))
        end if
+
        if(cos_c > 0._<T>) then
           cos_big_c = sin2cos(sin_big_c)
        else
           cos_big_c = - sin2cos(sin_big_c)
        end if
-    else
-       if(sin_a > 0._<T>) then
-          sin_big_c = + abs(sin_big_b) * sin_c / sin_b
-          cos_big_c = ( cos_c - cos_a * cos_b ) / ( sin_a * sin_b )
-       else
-          sin_big_c = + abs(sin_big_b)
-          if(cos_c < cos_a * cos_b) then
-             cos_big_c = - sin2cos(sin_big_c)
-          else
-             cos_big_c = sin2cos(sin_big_c)
-          end if
-       end if
 
+    else
+       sin_big_c = + abs(sin_big_b) * sin_c / sin_b
+       cos_big_c = ( cos_c - cos_a * cos_b ) / ( sin_a * sin_b )
     end if
 
     ! If sin_big_c is zero, this can cause issues in other routines, so we
