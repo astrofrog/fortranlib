@@ -274,7 +274,7 @@ contains
     real(<T>) :: cos_big_b,sin_big_b
     real(<T>) :: cos_big_c,sin_big_c
 
-    real(dp) :: delta
+    real(dp) :: delta,diff
     logical :: same_sign
 
     ! Special case - if coord%theta is 0, then final = local
@@ -320,9 +320,15 @@ contains
     if(same_sign .and. abs(delta) < 1.e-5_<T> .and. sin_c < 1.e-5_<T>) then
 
        if (abs(sin_a) > abs(cos_a)) then
-          sin_big_c = sqrt((sin_c * sin_c - delta * delta * (1._<T> + (cos_a / sin_a)**2))/(sin_a * sin_b))
+          diff = (sin_c * sin_c - delta * delta * (1._<T> + (cos_a / sin_a)**2)) / (sin_a * sin_b)
        else
-          sin_big_c = sqrt((sin_c * sin_c - delta * delta * (1._<T> + (sin_a / cos_a)**2))/(sin_a * sin_b))
+          diff = (sin_c * sin_c - delta * delta * (1._<T> + (sin_a / cos_a)**2)) / (sin_a * sin_b)
+       end if
+
+       if(diff >= 0._<T>) then
+          sin_big_c = sqrt(diff)
+       else
+          sin_big_c = 0._<T>
        end if
 
        if(cos_c > 0._<T>) then

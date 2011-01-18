@@ -1,4 +1,4 @@
-! MD5 of template: bfe18f753e8eae74e5fffee772559dc4
+! MD5 of template: 6d3115c990b15ab4d0723f0f9f9d5987
 ! 3D angle related routines
 ! Thomas Robitaille (c) 2009
 
@@ -274,7 +274,7 @@ contains
     real(dp) :: cos_big_b,sin_big_b
     real(dp) :: cos_big_c,sin_big_c
 
-    real(dp) :: delta
+    real(dp) :: delta,diff
     logical :: same_sign
 
     ! Special case - if coord%theta is 0, then final = local
@@ -320,9 +320,15 @@ contains
     if(same_sign .and. abs(delta) < 1.e-5_dp .and. sin_c < 1.e-5_dp) then
 
        if (abs(sin_a) > abs(cos_a)) then
-          sin_big_c = sqrt((sin_c * sin_c - delta * delta * (1._dp + (cos_a / sin_a)**2))/(sin_a * sin_b))
+          diff = (sin_c * sin_c - delta * delta * (1._dp + (cos_a / sin_a)**2)) / (sin_a * sin_b)
        else
-          sin_big_c = sqrt((sin_c * sin_c - delta * delta * (1._dp + (sin_a / cos_a)**2))/(sin_a * sin_b))
+          diff = (sin_c * sin_c - delta * delta * (1._dp + (sin_a / cos_a)**2)) / (sin_a * sin_b)
+       end if
+
+       if(diff >= 0._dp) then
+          sin_big_c = sqrt(diff)
+       else
+          sin_big_c = 0._dp
        end if
 
        if(cos_c > 0._dp) then
@@ -579,7 +585,7 @@ contains
     real(sp) :: cos_big_b,sin_big_b
     real(sp) :: cos_big_c,sin_big_c
 
-    real(dp) :: delta
+    real(dp) :: delta,diff
     logical :: same_sign
 
     ! Special case - if coord%theta is 0, then final = local
@@ -625,9 +631,15 @@ contains
     if(same_sign .and. abs(delta) < 1.e-5_sp .and. sin_c < 1.e-5_sp) then
 
        if (abs(sin_a) > abs(cos_a)) then
-          sin_big_c = sqrt((sin_c * sin_c - delta * delta * (1._sp + (cos_a / sin_a)**2))/(sin_a * sin_b))
+          diff = (sin_c * sin_c - delta * delta * (1._sp + (cos_a / sin_a)**2)) / (sin_a * sin_b)
        else
-          sin_big_c = sqrt((sin_c * sin_c - delta * delta * (1._sp + (sin_a / cos_a)**2))/(sin_a * sin_b))
+          diff = (sin_c * sin_c - delta * delta * (1._sp + (sin_a / cos_a)**2)) / (sin_a * sin_b)
+       end if
+
+       if(diff >= 0._sp) then
+          sin_big_c = sqrt(diff)
+       else
+          sin_big_c = 0._sp
        end if
 
        if(cos_c > 0._sp) then
