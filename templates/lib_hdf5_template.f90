@@ -134,6 +134,7 @@ module lib_hdf5
   end interface hdf5_read_keyword
 
   interface hdf5_write_keyword
+     module procedure hdf5_write_k_logical
      module procedure hdf5_write_k_h5t_std_i32le
      module procedure hdf5_write_k_h5t_std_i64le
      module procedure hdf5_write_k_h5t_ieee_f32le
@@ -949,6 +950,19 @@ contains
     call h5aclose_f(attr_id, hdferr)
     call check_status(hdferr,'hdf5_read_k_string [5]')
   end subroutine hdf5_read_k_string
+
+  subroutine hdf5_write_k_logical(handle,path,name,value)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path, name
+    logical,intent(in) :: value
+    character(len=3) :: string_value
+    if (value) then
+       call hdf5_write_k_string(handle, path, name, 'yes')
+    else
+       call hdf5_write_k_string(handle, path, name, 'no')
+    end if
+  end subroutine hdf5_write_k_logical
 
   subroutine hdf5_write_k_string(handle,path,name,value)
     implicit none
