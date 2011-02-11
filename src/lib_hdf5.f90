@@ -1,4 +1,4 @@
-! MD5 of template: bc148207acd8b111bbf88819791fe7b9
+! MD5 of template: aa0deae8d9a2ef62111d07ae47e58c1c
 ! High level routines for HDF5
 ! Thomas Robitaille (c) 2010
 
@@ -118,7 +118,7 @@ module lib_hdf5
      module procedure hdf5_read_5d_array_alloc_h5t_std_i32le
      module procedure hdf5_read_5d_array_alloc_h5t_std_i64le
      module procedure hdf5_read_5d_array_alloc_h5t_ieee_f32le
-     module procedure hdf5_read_5d_array_alloc_h5t_ieee_f64le 
+     module procedure hdf5_read_5d_array_alloc_h5t_ieee_f64le
      module procedure hdf5_read_6d_array_alloc_h5t_std_i32le
      module procedure hdf5_read_6d_array_alloc_h5t_std_i64le
      module procedure hdf5_read_6d_array_alloc_h5t_ieee_f32le
@@ -135,6 +135,7 @@ module lib_hdf5
   end interface hdf5_read_keyword
 
   interface hdf5_write_keyword
+     module procedure hdf5_write_k_logical
      module procedure hdf5_write_k_h5t_std_i32le
      module procedure hdf5_write_k_h5t_std_i64le
      module procedure hdf5_write_k_h5t_ieee_f32le
@@ -308,9 +309,9 @@ contains
           write(*,*)
           write(*,'(" WARNING: File exists: ")',advance='no')
           write(*,*) trim(filename)
-          write(*,'(" The following command will be run: ")',advance='no') 
-          write(*,*) trim(command)     
-          do 
+          write(*,'(" The following command will be run: ")',advance='no')
+          write(*,*) trim(command)
+          do
              write(*,'(" Do you wish to continue? (y/n) ")',advance='no')
              read *,rep
              if(rep=="y".or.rep=="n") exit
@@ -2014,11 +2015,11 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path, name
     if(.not.hdf5_exists_keyword(handle, path, name)) then
-        print *, "ERROR: attribute "//trim(name)//" does not exist in HDF5 file" 
-        stop
+       print *, "ERROR: attribute "//trim(name)//" does not exist in HDF5 file"
+       stop
     end if
   end subroutine hdf5_check_exists_keyword
-    
+
   subroutine hdf5_read_k_logical(handle,path,name,value)
     implicit none
     integer(hid_t),intent(in) :: handle
@@ -2045,11 +2046,11 @@ contains
     integer(hid_t) :: attr_id
     character(len=*),intent(out) :: value
     integer :: hdferr
-    INTEGER(HID_T) :: atype_id
+    integer(hid_t) :: atype_id
     call hdf5_check_exists_keyword(handle, path, name)
-    CALL h5tcopy_f(H5T_NATIVE_CHARACTER, atype_id, hdferr)
+    call h5tcopy_f(h5t_native_character, atype_id, hdferr)
     call check_status(hdferr,'hdf5_read_k_string [1]')
-    CALL h5tset_size_f(atype_id, int(len(value),size_t), hdferr)
+    call h5tset_size_f(atype_id, int(len(value),size_t), hdferr)
     call check_status(hdferr,'hdf5_read_k_string [2]')
     call h5aopen_by_name_f(handle, path, name, attr_id, hdferr)
     call check_status(hdferr,'hdf5_read_k_string [3]')
@@ -2059,6 +2060,19 @@ contains
     call check_status(hdferr,'hdf5_read_k_string [5]')
   end subroutine hdf5_read_k_string
 
+  subroutine hdf5_write_k_logical(handle,path,name,value)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path, name
+    logical,intent(in) :: value
+    character(len=3) :: string_value
+    if (value) then
+       call hdf5_write_k_string(handle, path, name, 'yes')
+    else
+       call hdf5_write_k_string(handle, path, name, 'no')
+    end if
+  end subroutine hdf5_write_k_logical
+
   subroutine hdf5_write_k_string(handle,path,name,value)
     implicit none
     integer(hid_t),intent(in) :: handle
@@ -2066,26 +2080,26 @@ contains
     character(len=*),intent(in) :: value
     integer(hid_t) :: dspace_id, attr_id
     integer :: hdferr
-    INTEGER(HID_T) :: atype_id
-    CALL h5tcopy_f(H5T_NATIVE_CHARACTER, atype_id, hdferr)
-    call check_status(hdferr,'hdf5_read_k_string [1]')
-    CALL h5tset_size_f(atype_id, int(len(value),size_t), hdferr)
-    call check_status(hdferr,'hdf5_read_k_string [2]')
+    integer(hid_t) :: atype_id
+    call h5tcopy_f(h5t_native_character, atype_id, hdferr)
+    call check_status(hdferr,'hdf5_write_k_string [1]')
+    call h5tset_size_f(atype_id, int(len(value),size_t), hdferr)
+    call check_status(hdferr,'hdf5_write_k_string [2]')
     if(hdf5_exists_keyword(handle, path, name)) then
        call h5aopen_by_name_f(handle, path, name, attr_id, hdferr)
-       call check_status(hdferr,'hdf5_read_k_string [3]')
+       call check_status(hdferr,'hdf5_write_k_string [3]')
     else
        call h5screate_f(h5s_scalar_f, dspace_id, hdferr)
-       call check_status(hdferr,'hdf5_read_k_string [4]')
+       call check_status(hdferr,'hdf5_write_k_string [4]')
        call h5acreate_by_name_f(handle, path, name, atype_id, dspace_id, attr_id, hdferr)
-       call check_status(hdferr,'hdf5_read_k_string [5]')
+       call check_status(hdferr,'hdf5_write_k_string [5]')
        call h5sclose_f(dspace_id, hdferr)
-       call check_status(hdferr,'hdf5_read_k_string [6]')
+       call check_status(hdferr,'hdf5_write_k_string [6]')
     end if
     call h5awrite_f(attr_id, atype_id, value, (/1_hsize_t/), hdferr)
-    call check_status(hdferr,'hdf5_read_k_string [7]')
+    call check_status(hdferr,'hdf5_write_k_string [7]')
     call h5aclose_f(attr_id, hdferr)
-    call check_status(hdferr,'hdf5_read_k_string [8]')
+    call check_status(hdferr,'hdf5_write_k_string [8]')
   end subroutine hdf5_write_k_string
 
 
@@ -2114,19 +2128,19 @@ contains
     integer :: hdferr
     if(hdf5_exists_keyword(handle, path, name)) then
        call h5aopen_by_name_f(handle, path, name, attr_id, hdferr)
-       call check_status(hdferr,'hdf5_write_k_h5t_ieee_f64le [1]')     
+       call check_status(hdferr,'hdf5_write_k_h5t_ieee_f64le [1]')
     else
        call h5screate_f(h5s_scalar_f, dspace_id, hdferr)
-       call check_status(hdferr,'hdf5_write_k_h5t_ieee_f64le [1]')     
+       call check_status(hdferr,'hdf5_write_k_h5t_ieee_f64le [1]')
        call h5acreate_by_name_f(handle, path, name, h5t_ieee_f64le, dspace_id, attr_id, hdferr)
-       call check_status(hdferr,'hdf5_write_k_h5t_ieee_f64le [2]')     
+       call check_status(hdferr,'hdf5_write_k_h5t_ieee_f64le [2]')
        call h5sclose_f(dspace_id, hdferr)
-       call check_status(hdferr,'hdf5_write_k_h5t_ieee_f64le [3]')     
+       call check_status(hdferr,'hdf5_write_k_h5t_ieee_f64le [3]')
     end if
     call h5awrite_f(attr_id, h5t_ieee_f64le, value, (/1_hsize_t/), hdferr)
-    call check_status(hdferr,'hdf5_write_k_h5t_ieee_f64le [4]')     
+    call check_status(hdferr,'hdf5_write_k_h5t_ieee_f64le [4]')
     call h5aclose_f(attr_id, hdferr)
-    call check_status(hdferr,'hdf5_write_k_h5t_ieee_f64le [5]')     
+    call check_status(hdferr,'hdf5_write_k_h5t_ieee_f64le [5]')
   end subroutine hdf5_write_k_h5t_ieee_f64le
 
 
@@ -2155,19 +2169,19 @@ contains
     integer :: hdferr
     if(hdf5_exists_keyword(handle, path, name)) then
        call h5aopen_by_name_f(handle, path, name, attr_id, hdferr)
-       call check_status(hdferr,'hdf5_write_k_h5t_ieee_f32le [1]')     
+       call check_status(hdferr,'hdf5_write_k_h5t_ieee_f32le [1]')
     else
        call h5screate_f(h5s_scalar_f, dspace_id, hdferr)
-       call check_status(hdferr,'hdf5_write_k_h5t_ieee_f32le [1]')     
+       call check_status(hdferr,'hdf5_write_k_h5t_ieee_f32le [1]')
        call h5acreate_by_name_f(handle, path, name, h5t_ieee_f32le, dspace_id, attr_id, hdferr)
-       call check_status(hdferr,'hdf5_write_k_h5t_ieee_f32le [2]')     
+       call check_status(hdferr,'hdf5_write_k_h5t_ieee_f32le [2]')
        call h5sclose_f(dspace_id, hdferr)
-       call check_status(hdferr,'hdf5_write_k_h5t_ieee_f32le [3]')     
+       call check_status(hdferr,'hdf5_write_k_h5t_ieee_f32le [3]')
     end if
     call h5awrite_f(attr_id, h5t_ieee_f32le, value, (/1_hsize_t/), hdferr)
-    call check_status(hdferr,'hdf5_write_k_h5t_ieee_f32le [4]')     
+    call check_status(hdferr,'hdf5_write_k_h5t_ieee_f32le [4]')
     call h5aclose_f(attr_id, hdferr)
-    call check_status(hdferr,'hdf5_write_k_h5t_ieee_f32le [5]')     
+    call check_status(hdferr,'hdf5_write_k_h5t_ieee_f32le [5]')
   end subroutine hdf5_write_k_h5t_ieee_f32le
 
 
@@ -2196,19 +2210,19 @@ contains
     integer :: hdferr
     if(hdf5_exists_keyword(handle, path, name)) then
        call h5aopen_by_name_f(handle, path, name, attr_id, hdferr)
-       call check_status(hdferr,'hdf5_write_k_h5t_std_i64le [1]')     
+       call check_status(hdferr,'hdf5_write_k_h5t_std_i64le [1]')
     else
        call h5screate_f(h5s_scalar_f, dspace_id, hdferr)
-       call check_status(hdferr,'hdf5_write_k_h5t_std_i64le [1]')     
+       call check_status(hdferr,'hdf5_write_k_h5t_std_i64le [1]')
        call h5acreate_by_name_f(handle, path, name, h5t_std_i64le, dspace_id, attr_id, hdferr)
-       call check_status(hdferr,'hdf5_write_k_h5t_std_i64le [2]')     
+       call check_status(hdferr,'hdf5_write_k_h5t_std_i64le [2]')
        call h5sclose_f(dspace_id, hdferr)
-       call check_status(hdferr,'hdf5_write_k_h5t_std_i64le [3]')     
+       call check_status(hdferr,'hdf5_write_k_h5t_std_i64le [3]')
     end if
     call h5awrite_f(attr_id, h5t_std_i64le, value, (/1_hsize_t/), hdferr)
-    call check_status(hdferr,'hdf5_write_k_h5t_std_i64le [4]')     
+    call check_status(hdferr,'hdf5_write_k_h5t_std_i64le [4]')
     call h5aclose_f(attr_id, hdferr)
-    call check_status(hdferr,'hdf5_write_k_h5t_std_i64le [5]')     
+    call check_status(hdferr,'hdf5_write_k_h5t_std_i64le [5]')
   end subroutine hdf5_write_k_h5t_std_i64le
 
 
@@ -2237,19 +2251,19 @@ contains
     integer :: hdferr
     if(hdf5_exists_keyword(handle, path, name)) then
        call h5aopen_by_name_f(handle, path, name, attr_id, hdferr)
-       call check_status(hdferr,'hdf5_write_k_h5t_std_i32le [1]')     
+       call check_status(hdferr,'hdf5_write_k_h5t_std_i32le [1]')
     else
        call h5screate_f(h5s_scalar_f, dspace_id, hdferr)
-       call check_status(hdferr,'hdf5_write_k_h5t_std_i32le [1]')     
+       call check_status(hdferr,'hdf5_write_k_h5t_std_i32le [1]')
        call h5acreate_by_name_f(handle, path, name, h5t_std_i32le, dspace_id, attr_id, hdferr)
-       call check_status(hdferr,'hdf5_write_k_h5t_std_i32le [2]')     
+       call check_status(hdferr,'hdf5_write_k_h5t_std_i32le [2]')
        call h5sclose_f(dspace_id, hdferr)
-       call check_status(hdferr,'hdf5_write_k_h5t_std_i32le [3]')     
+       call check_status(hdferr,'hdf5_write_k_h5t_std_i32le [3]')
     end if
     call h5awrite_f(attr_id, h5t_std_i32le, value, (/1_hsize_t/), hdferr)
-    call check_status(hdferr,'hdf5_write_k_h5t_std_i32le [4]')     
+    call check_status(hdferr,'hdf5_write_k_h5t_std_i32le [4]')
     call h5aclose_f(attr_id, hdferr)
-    call check_status(hdferr,'hdf5_write_k_h5t_std_i32le [5]')     
+    call check_status(hdferr,'hdf5_write_k_h5t_std_i32le [5]')
   end subroutine hdf5_write_k_h5t_std_i32le
 
 
@@ -2503,34 +2517,34 @@ contains
     call h5dwrite_f(dset_id, h5t_ieee_f64le, buf_real, dims, hdferr)
   end subroutine h5dwrite_f_i64_6d
 
-  subroutine h5tbread_field_name_f_i64_1d(loc_id, dset_name, field_name, start, nrecords, type_size, buf, errcode) 
+  subroutine h5tbread_field_name_f_i64_1d(loc_id, dset_name, field_name, start, nrecords, type_size, buf, errcode)
     implicit none
-    integer(hid_t), intent(in) :: loc_id           ! file or group identifier 
-    character(len=*), intent(in) :: dset_name      ! name of the dataset 
+    integer(hid_t), intent(in) :: loc_id           ! file or group identifier
+    character(len=*), intent(in) :: dset_name      ! name of the dataset
     character(len=*), intent(in) :: field_name     ! name of the field
-    integer(hsize_t), intent(in) :: start          ! start record 
+    integer(hsize_t), intent(in) :: start          ! start record
     integer(hsize_t), intent(in) :: nrecords       ! records
-    integer(size_t), intent(in) :: type_size       ! type size 
-    integer(idp), intent(out) :: buf(:)             ! data buffer 
-    integer :: errcode                             ! error code 
+    integer(size_t), intent(in) :: type_size       ! type size
+    integer(idp), intent(out) :: buf(:)             ! data buffer
+    integer :: errcode                             ! error code
     real(dp) :: buf_real(size(buf, 1))
-    call h5tbread_field_name_f(loc_id, dset_name, field_name, start, nrecords, type_size, buf_real, errcode) 
+    call h5tbread_field_name_f(loc_id, dset_name, field_name, start, nrecords, type_size, buf_real, errcode)
     buf = int(buf_real, idp)
   end subroutine h5tbread_field_name_f_i64_1d
 
-  subroutine h5tbwrite_field_name_f_i64_1d(loc_id, dset_name, field_name, start, nrecords, type_size, buf, errcode) 
+  subroutine h5tbwrite_field_name_f_i64_1d(loc_id, dset_name, field_name, start, nrecords, type_size, buf, errcode)
     implicit none
-    integer(hid_t), intent(in) :: loc_id           ! file or group identifier 
-    character(len=*), intent(in) :: dset_name      ! name of the dataset 
+    integer(hid_t), intent(in) :: loc_id           ! file or group identifier
+    character(len=*), intent(in) :: dset_name      ! name of the dataset
     character(len=*), intent(in) :: field_name     ! name of the field
-    integer(hsize_t), intent(in) :: start          ! start record 
+    integer(hsize_t), intent(in) :: start          ! start record
     integer(hsize_t), intent(in) :: nrecords       ! records
     integer(size_t), intent(in) :: type_size       ! type size
-    integer(idp), intent(in) :: buf(:)             ! data buffer 
+    integer(idp), intent(in) :: buf(:)             ! data buffer
     integer :: errcode                             ! error code
     real(dp) :: buf_real(size(buf, 1))
     buf_real = real(buf, dp)
-    call h5tbwrite_field_name_f(loc_id, dset_name, field_name, start, nrecords, type_size, buf_real, errcode) 
+    call h5tbwrite_field_name_f(loc_id, dset_name, field_name, start, nrecords, type_size, buf_real, errcode)
   end subroutine h5tbwrite_field_name_f_i64_1d
 
   elemental subroutine clean_string(string)
