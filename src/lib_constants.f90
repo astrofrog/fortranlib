@@ -68,4 +68,20 @@ module lib_constants
 
   real(dp),parameter :: stef_boltz = 5.670400e-5_dp
 
+contains
+
+  real(sp) function infinity_sp()
+    implicit none
+    real(sp) :: x
+    x = huge(1._sp)
+    infinity_sp = x + x
+  end function infinity_sp
+
+  real(dp) function infinity_dp()
+    implicit none
+    real(dp) :: x
+    x = huge(1._dp)
+    infinity_dp = x + x
+  end function infinity_dp
+
 end module lib_constants
