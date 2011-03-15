@@ -1,4 +1,4 @@
-! MD5 of template: 6d3115c990b15ab4d0723f0f9f9d5987
+! MD5 of template: 3f0843158b944c64520d675f0c988321
 ! 3D angle related routines
 ! Thomas Robitaille (c) 2009
 
@@ -310,6 +310,18 @@ contains
     cos_b = cos_a * cos_c + sin_a * sin_c * cos_big_B
     sin_b = cos2sin(cos_b)
 
+    ! If cos_b is -1, then the angles are opposite and phi is undefined
+    if(abs(cos_b + 1._dp) < 1.e-10_dp) then
+       a_local = angle3d_deg(180._dp,0._dp)
+       return
+    end if
+
+    ! If cos_b is +1, then the angles are the same and phi is undefined
+    if(abs(cos_b - 1._dp) < 1.e-10_dp) then
+       a_local = angle3d_deg(0._dp,0._dp)
+       return
+    end if
+
     same_sign = cos_a > 0._dp .eqv. cos_b > 0._dp .and. sin_a > 0._dp .eqv. sin_b > 0._dp
     if(abs(sin_a) > abs(cos_a)) then
        delta = cos_b - cos_a
@@ -620,6 +632,18 @@ contains
 
     cos_b = cos_a * cos_c + sin_a * sin_c * cos_big_B
     sin_b = cos2sin(cos_b)
+
+    ! If cos_b is -1, then the angles are opposite and phi is undefined
+    if(abs(cos_b + 1._sp) < 1.e-10_sp) then
+       a_local = angle3d_deg(180._sp,0._sp)
+       return
+    end if
+
+    ! If cos_b is +1, then the angles are the same and phi is undefined
+    if(abs(cos_b - 1._sp) < 1.e-10_sp) then
+       a_local = angle3d_deg(0._sp,0._sp)
+       return
+    end if
 
     same_sign = cos_a > 0._sp .eqv. cos_b > 0._sp .and. sin_a > 0._sp .eqv. sin_b > 0._sp
     if(abs(sin_a) > abs(cos_a)) then

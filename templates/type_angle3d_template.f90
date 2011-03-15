@@ -310,6 +310,18 @@ contains
     cos_b = cos_a * cos_c + sin_a * sin_c * cos_big_B
     sin_b = cos2sin(cos_b)
 
+    ! If cos_b is -1, then the angles are opposite and phi is undefined
+    if(abs(cos_b + 1._<T>) < 1.e-10_<T>) then
+       a_local = angle3d_deg(180._<T>,0._<T>)
+       return
+    end if
+
+    ! If cos_b is +1, then the angles are the same and phi is undefined
+    if(abs(cos_b - 1._<T>) < 1.e-10_<T>) then
+       a_local = angle3d_deg(0._<T>,0._<T>)
+       return
+    end if
+
     same_sign = cos_a > 0._<T> .eqv. cos_b > 0._<T> .and. sin_a > 0._<T> .eqv. sin_b > 0._<T>
     if(abs(sin_a) > abs(cos_a)) then
        delta = cos_b - cos_a
