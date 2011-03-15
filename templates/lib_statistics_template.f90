@@ -80,16 +80,22 @@ contains
     @T,allocatable :: x_sorted(:)
     integer :: n, ipos
     if(present(mask)) then
-      n = count(mask)
-      allocate(x_sorted(n))
-      x_sorted = pack(x, mask)
+       n = count(mask)
+       allocate(x_sorted(n))
+       x_sorted = pack(x, mask)
     else
-      n = size(x)
-      allocate(x_sorted(n))
-      x_sorted = x
+       n = size(x)
+       allocate(x_sorted(n))
+       x_sorted = x
     end if
     call quicksort(x_sorted)
-    ipos=nint(percent/100._<T>*real(n-1))+1
+    if(percent >= 100._<T>) then
+       ipos = n
+    else if(percent <= 0._<T>) then
+       ipos = 1
+    else
+       ipos=nint(percent/100._<T>*real(n-1, <T>))+1
+    end if
     quantile_<T>=x_sorted(ipos)
   end function quantile_<T>
 

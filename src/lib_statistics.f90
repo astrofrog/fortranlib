@@ -1,4 +1,4 @@
-! MD5 of template: 5fa2ca2fceb833cfe598728816477332
+! MD5 of template: c1ad43ed9e5862b91b0d659b2ae0bfb1
 ! Statistics
 ! Thomas Robitaille (c) 2010
 
@@ -80,16 +80,22 @@ contains
     real(dp),allocatable :: x_sorted(:)
     integer :: n, ipos
     if(present(mask)) then
-      n = count(mask)
-      allocate(x_sorted(n))
-      x_sorted = pack(x, mask)
+       n = count(mask)
+       allocate(x_sorted(n))
+       x_sorted = pack(x, mask)
     else
-      n = size(x)
-      allocate(x_sorted(n))
-      x_sorted = x
+       n = size(x)
+       allocate(x_sorted(n))
+       x_sorted = x
     end if
     call quicksort(x_sorted)
-    ipos=nint(percent/100._dp*real(n-1))+1
+    if(percent >= 100._dp) then
+       ipos = n
+    else if(percent <= 0._dp) then
+       ipos = 1
+    else
+       ipos=nint(percent/100._dp*real(n-1, dp))+1
+    end if
     quantile_dp=x_sorted(ipos)
   end function quantile_dp
 
@@ -152,16 +158,22 @@ contains
     real(sp),allocatable :: x_sorted(:)
     integer :: n, ipos
     if(present(mask)) then
-      n = count(mask)
-      allocate(x_sorted(n))
-      x_sorted = pack(x, mask)
+       n = count(mask)
+       allocate(x_sorted(n))
+       x_sorted = pack(x, mask)
     else
-      n = size(x)
-      allocate(x_sorted(n))
-      x_sorted = x
+       n = size(x)
+       allocate(x_sorted(n))
+       x_sorted = x
     end if
     call quicksort(x_sorted)
-    ipos=nint(percent/100._sp*real(n-1))+1
+    if(percent >= 100._sp) then
+       ipos = n
+    else if(percent <= 0._sp) then
+       ipos = 1
+    else
+       ipos=nint(percent/100._sp*real(n-1, sp))+1
+    end if
     quantile_sp=x_sorted(ipos)
   end function quantile_sp
 
