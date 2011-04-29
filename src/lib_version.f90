@@ -53,7 +53,6 @@ contains
   logical function greater(a, b)
     implicit none
     type(version),intent(in) :: a, b
-    character(len=10) :: string
     integer :: p1a, p2a, p1b, p2b, ia, ib
 
     p1a = 1
