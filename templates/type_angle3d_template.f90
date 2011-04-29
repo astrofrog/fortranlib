@@ -27,6 +27,12 @@ module type_angle3d
      real(dp) :: cost,sint,cosp,sinp
   end type angle3d_dp
 
+  public :: operator(.eq.)
+  interface operator(.eq.)
+     module procedure equal_sp
+     module procedure equal_dp
+  end interface operator(.eq.)
+
   public :: angle3d_deg
   interface angle3d_deg
      module procedure angle3d_deg_sp
@@ -83,6 +89,16 @@ contains
 
 
   !!@FOR real(sp):sp real(<T>):dp
+
+  logical function equal_<T>(a, b) result(e)
+
+    implicit none
+
+    type(angle3d_<T>),intent(in) :: a, b
+
+    e = a%cost == b%cost .and. a%sint == b%sint .and. a%cosp == b%cosp .and. a%sinp == b%sinp
+
+  end function equal_<T>
 
   type(angle3d_<T>) function angle3d_deg_<T>(theta,phi) result(a)
 

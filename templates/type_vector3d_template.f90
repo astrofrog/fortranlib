@@ -23,6 +23,12 @@ module type_vector3d
      real(dp) :: x,y,z
   end type vector3d_dp
 
+  public :: operator(.eq.)
+  interface operator(.eq.)
+     module procedure equal_sp
+     module procedure equal_dp
+  end interface operator(.eq.)
+
   public :: operator(+)
   interface operator(+)
      module procedure add_vector3d_sp
@@ -84,6 +90,20 @@ module type_vector3d
 contains
 
   !!@FOR real(sp):sp real(dp):dp
+
+  !**********************************************************************!
+  ! Test equality
+  !**********************************************************************!
+
+  logical function equal_<T>(a, b) result(e)
+
+    implicit none
+
+    type(vector3d_<T>),intent(in) :: a, b
+
+    e = a%x == b%x .and. a%y == b%y .and. a%z == b%z
+
+  end function equal_<T>
 
   !**********************************************************************!
   ! Vector addition

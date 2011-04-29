@@ -1,4 +1,4 @@
-! MD5 of template: 3085b3fb56e87da7acada999db37b322
+! MD5 of template: 38164525887db1ab9fbf50e1f20c6beb
 ! 3D vector related routines
 ! Thomas Robitaille (c) 2009
 
@@ -23,6 +23,12 @@ module type_vector3d
   type vector3d_dp
      real(dp) :: x,y,z
   end type vector3d_dp
+
+  public :: operator(.eq.)
+  interface operator(.eq.)
+     module procedure equal_sp
+     module procedure equal_dp
+  end interface operator(.eq.)
 
   public :: operator(+)
   interface operator(+)
@@ -84,6 +90,20 @@ module type_vector3d
 
 contains
 
+
+  !**********************************************************************!
+  ! Test equality
+  !**********************************************************************!
+
+  logical function equal_dp(a, b) result(e)
+
+    implicit none
+
+    type(vector3d_dp),intent(in) :: a, b
+
+    e = a%x == b%x .and. a%y == b%y .and. a%z == b%z
+
+  end function equal_dp
 
   !**********************************************************************!
   ! Vector addition
@@ -270,6 +290,20 @@ contains
     v%z = mu
   end subroutine random_sphere_vector3d_dp
 
+
+  !**********************************************************************!
+  ! Test equality
+  !**********************************************************************!
+
+  logical function equal_sp(a, b) result(e)
+
+    implicit none
+
+    type(vector3d_sp),intent(in) :: a, b
+
+    e = a%x == b%x .and. a%y == b%y .and. a%z == b%z
+
+  end function equal_sp
 
   !**********************************************************************!
   ! Vector addition

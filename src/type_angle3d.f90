@@ -1,4 +1,4 @@
-! MD5 of template: 3f0843158b944c64520d675f0c988321
+! MD5 of template: 24726e865f3b5de2e8eb62fc9aec754e
 ! 3D angle related routines
 ! Thomas Robitaille (c) 2009
 
@@ -27,6 +27,12 @@ module type_angle3d
   type angle3d_dp
      real(dp) :: cost,sint,cosp,sinp
   end type angle3d_dp
+
+  public :: operator(.eq.)
+  interface operator(.eq.)
+     module procedure equal_sp
+     module procedure equal_dp
+  end interface operator(.eq.)
 
   public :: angle3d_deg
   interface angle3d_deg
@@ -83,6 +89,16 @@ module type_angle3d
 contains
 
 
+
+  logical function equal_dp(a, b) result(e)
+
+    implicit none
+
+    type(angle3d_dp),intent(in) :: a, b
+
+    e = a%cost == b%cost .and. a%sint == b%sint .and. a%cosp == b%cosp .and. a%sinp == b%sinp
+
+  end function equal_dp
 
   type(angle3d_dp) function angle3d_deg_dp(theta,phi) result(a)
 
@@ -406,6 +422,16 @@ contains
     b = angle3d_dp(a%cost, -a%sint, a%cosp, -a%sinp)
   end function minus_angle_dp
 
+
+  logical function equal_sp(a, b) result(e)
+
+    implicit none
+
+    type(angle3d_sp),intent(in) :: a, b
+
+    e = a%cost == b%cost .and. a%sint == b%sint .and. a%cosp == b%cosp .and. a%sinp == b%sinp
+
+  end function equal_sp
 
   type(angle3d_sp) function angle3d_deg_sp(theta,phi) result(a)
 
