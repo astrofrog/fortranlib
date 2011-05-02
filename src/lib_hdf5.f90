@@ -1,4 +1,4 @@
-! MD5 of template: aa0deae8d9a2ef62111d07ae47e58c1c
+! MD5 of template: 998458e71319a0116565ffaef8d0ff6f
 ! High level routines for HDF5
 ! Thomas Robitaille (c) 2010
 
@@ -57,6 +57,10 @@ module lib_hdf5
   integer,parameter :: dp = selected_real_kind(p=15,r=307)
 
   interface hdf5_write_array
+     module procedure hdf5_write_1d_array_h5t_std_i32le
+     module procedure hdf5_write_1d_array_h5t_std_i64le
+     module procedure hdf5_write_1d_array_h5t_ieee_f32le
+     module procedure hdf5_write_1d_array_h5t_ieee_f64le
      module procedure hdf5_write_2d_array_h5t_std_i32le
      module procedure hdf5_write_2d_array_h5t_std_i64le
      module procedure hdf5_write_2d_array_h5t_ieee_f32le
@@ -80,6 +84,10 @@ module lib_hdf5
   end interface hdf5_write_array
 
   interface hdf5_read_array
+     module procedure hdf5_read_1d_array_h5t_std_i32le
+     module procedure hdf5_read_1d_array_h5t_std_i64le
+     module procedure hdf5_read_1d_array_h5t_ieee_f32le
+     module procedure hdf5_read_1d_array_h5t_ieee_f64le
      module procedure hdf5_read_2d_array_h5t_std_i32le
      module procedure hdf5_read_2d_array_h5t_std_i64le
      module procedure hdf5_read_2d_array_h5t_ieee_f32le
@@ -103,6 +111,10 @@ module lib_hdf5
   end interface hdf5_read_array
 
   interface hdf5_read_array_auto
+     module procedure hdf5_read_1d_array_alloc_h5t_std_i32le
+     module procedure hdf5_read_1d_array_alloc_h5t_std_i64le
+     module procedure hdf5_read_1d_array_alloc_h5t_ieee_f32le
+     module procedure hdf5_read_1d_array_alloc_h5t_ieee_f64le
      module procedure hdf5_read_2d_array_alloc_h5t_std_i32le
      module procedure hdf5_read_2d_array_alloc_h5t_std_i64le
      module procedure hdf5_read_2d_array_alloc_h5t_ieee_f32le
@@ -898,6 +910,23 @@ contains
 
 
 
+  subroutine hdf5_read_1d_array_h5t_ieee_f64le(handle, path, array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    real(dp),dimension(:) :: array
+    integer(hsize_t) :: dims(1)
+    integer(hid_t) :: dset_id
+    integer :: hdferr
+    dims = [size(array,1)]
+    call h5dopen_f(handle, path, dset_id, hdferr)
+    call check_status(hdferr,'hdf5_read_1d_array_h5t_ieee_f64le [1]')
+    call h5dread_f(dset_id, h5t_ieee_f64le, array, dims, hdferr)
+    call check_status(hdferr,'hdf5_read_1d_array_h5t_ieee_f64le [2]')
+    call h5dclose_f(dset_id, hdferr)
+    call check_status(hdferr,'hdf5_read_1d_array_h5t_ieee_f64le [3]')
+  end subroutine hdf5_read_1d_array_h5t_ieee_f64le
+
   subroutine hdf5_read_2d_array_h5t_ieee_f64le(handle, path, array)
     implicit none
     integer(hid_t),intent(in) :: handle
@@ -982,6 +1011,24 @@ contains
     call h5dclose_f(dset_id, hdferr)
     call check_status(hdferr,'hdf5_read_6d_array_h5t_ieee_f64le [3]')
   end subroutine hdf5_read_6d_array_h5t_ieee_f64le
+
+  subroutine hdf5_read_1d_array_alloc_h5t_ieee_f64le(handle, path, array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    real(dp),allocatable, dimension(:),intent(out) :: array
+    integer(hsize_t),dimension(1) :: dims, maxdims
+    integer(hid_t) :: dspace_id, dset_id
+    integer :: rank, hdferr
+    call h5dopen_f(handle, path, dset_id, hdferr)
+    call h5dget_space_f(dset_id, dspace_id, hdferr)
+    call h5sget_simple_extent_ndims_f(dspace_id, rank, hdferr)
+    if(rank.ne.1) stop "rank of array is not 1"
+    call h5sget_simple_extent_dims_f(dspace_id, dims, maxdims, hdferr)
+    call h5dclose_f(dset_id, hdferr)
+    allocate(array(dims(1)))
+    call hdf5_read_1d_array_h5t_ieee_f64le(handle, path, array)
+  end subroutine hdf5_read_1d_array_alloc_h5t_ieee_f64le
 
   subroutine hdf5_read_2d_array_alloc_h5t_ieee_f64le(handle, path, array)
     implicit none
@@ -1072,6 +1119,26 @@ contains
     allocate(array(dims(1), dims(2), dims(3), dims(4), dims(5), dims(6)))
     call hdf5_read_6d_array_h5t_ieee_f64le(handle, path, array)
   end subroutine hdf5_read_6d_array_alloc_h5t_ieee_f64le
+
+  subroutine hdf5_write_1d_array_h5t_ieee_f64le(handle, path, array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    real(dp),dimension(:) :: array
+    integer(hsize_t) :: dims(1)
+    integer(hid_t) :: dspace_id, dset_id, dprop_id
+    integer :: hdferr
+    dims = [size(array,1)]
+    call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_ieee_f64le, dspace_id, dset_id, hdferr, dprop_id)
+    call h5dwrite_f(dset_id, h5t_ieee_f64le, array, dims, hdferr)
+    call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
+    call h5sclose_f(dspace_id, hdferr)
+  end subroutine hdf5_write_1d_array_h5t_ieee_f64le
 
   subroutine hdf5_write_2d_array_h5t_ieee_f64le(handle, path, array)
     implicit none
@@ -1174,6 +1241,23 @@ contains
   end subroutine hdf5_write_6d_array_h5t_ieee_f64le
 
 
+  subroutine hdf5_read_1d_array_h5t_ieee_f32le(handle, path, array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    real(sp),dimension(:) :: array
+    integer(hsize_t) :: dims(1)
+    integer(hid_t) :: dset_id
+    integer :: hdferr
+    dims = [size(array,1)]
+    call h5dopen_f(handle, path, dset_id, hdferr)
+    call check_status(hdferr,'hdf5_read_1d_array_h5t_ieee_f32le [1]')
+    call h5dread_f(dset_id, h5t_ieee_f32le, array, dims, hdferr)
+    call check_status(hdferr,'hdf5_read_1d_array_h5t_ieee_f32le [2]')
+    call h5dclose_f(dset_id, hdferr)
+    call check_status(hdferr,'hdf5_read_1d_array_h5t_ieee_f32le [3]')
+  end subroutine hdf5_read_1d_array_h5t_ieee_f32le
+
   subroutine hdf5_read_2d_array_h5t_ieee_f32le(handle, path, array)
     implicit none
     integer(hid_t),intent(in) :: handle
@@ -1258,6 +1342,24 @@ contains
     call h5dclose_f(dset_id, hdferr)
     call check_status(hdferr,'hdf5_read_6d_array_h5t_ieee_f32le [3]')
   end subroutine hdf5_read_6d_array_h5t_ieee_f32le
+
+  subroutine hdf5_read_1d_array_alloc_h5t_ieee_f32le(handle, path, array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    real(sp),allocatable, dimension(:),intent(out) :: array
+    integer(hsize_t),dimension(1) :: dims, maxdims
+    integer(hid_t) :: dspace_id, dset_id
+    integer :: rank, hdferr
+    call h5dopen_f(handle, path, dset_id, hdferr)
+    call h5dget_space_f(dset_id, dspace_id, hdferr)
+    call h5sget_simple_extent_ndims_f(dspace_id, rank, hdferr)
+    if(rank.ne.1) stop "rank of array is not 1"
+    call h5sget_simple_extent_dims_f(dspace_id, dims, maxdims, hdferr)
+    call h5dclose_f(dset_id, hdferr)
+    allocate(array(dims(1)))
+    call hdf5_read_1d_array_h5t_ieee_f32le(handle, path, array)
+  end subroutine hdf5_read_1d_array_alloc_h5t_ieee_f32le
 
   subroutine hdf5_read_2d_array_alloc_h5t_ieee_f32le(handle, path, array)
     implicit none
@@ -1348,6 +1450,26 @@ contains
     allocate(array(dims(1), dims(2), dims(3), dims(4), dims(5), dims(6)))
     call hdf5_read_6d_array_h5t_ieee_f32le(handle, path, array)
   end subroutine hdf5_read_6d_array_alloc_h5t_ieee_f32le
+
+  subroutine hdf5_write_1d_array_h5t_ieee_f32le(handle, path, array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    real(sp),dimension(:) :: array
+    integer(hsize_t) :: dims(1)
+    integer(hid_t) :: dspace_id, dset_id, dprop_id
+    integer :: hdferr
+    dims = [size(array,1)]
+    call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_ieee_f32le, dspace_id, dset_id, hdferr, dprop_id)
+    call h5dwrite_f(dset_id, h5t_ieee_f32le, array, dims, hdferr)
+    call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
+    call h5sclose_f(dspace_id, hdferr)
+  end subroutine hdf5_write_1d_array_h5t_ieee_f32le
 
   subroutine hdf5_write_2d_array_h5t_ieee_f32le(handle, path, array)
     implicit none
@@ -1450,6 +1572,23 @@ contains
   end subroutine hdf5_write_6d_array_h5t_ieee_f32le
 
 
+  subroutine hdf5_read_1d_array_h5t_std_i64le(handle, path, array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer(idp),dimension(:) :: array
+    integer(hsize_t) :: dims(1)
+    integer(hid_t) :: dset_id
+    integer :: hdferr
+    dims = [size(array,1)]
+    call h5dopen_f(handle, path, dset_id, hdferr)
+    call check_status(hdferr,'hdf5_read_1d_array_h5t_std_i64le [1]')
+    call h5dread_f(dset_id, h5t_std_i64le, array, dims, hdferr)
+    call check_status(hdferr,'hdf5_read_1d_array_h5t_std_i64le [2]')
+    call h5dclose_f(dset_id, hdferr)
+    call check_status(hdferr,'hdf5_read_1d_array_h5t_std_i64le [3]')
+  end subroutine hdf5_read_1d_array_h5t_std_i64le
+
   subroutine hdf5_read_2d_array_h5t_std_i64le(handle, path, array)
     implicit none
     integer(hid_t),intent(in) :: handle
@@ -1534,6 +1673,24 @@ contains
     call h5dclose_f(dset_id, hdferr)
     call check_status(hdferr,'hdf5_read_6d_array_h5t_std_i64le [3]')
   end subroutine hdf5_read_6d_array_h5t_std_i64le
+
+  subroutine hdf5_read_1d_array_alloc_h5t_std_i64le(handle, path, array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer(idp),allocatable, dimension(:),intent(out) :: array
+    integer(hsize_t),dimension(1) :: dims, maxdims
+    integer(hid_t) :: dspace_id, dset_id
+    integer :: rank, hdferr
+    call h5dopen_f(handle, path, dset_id, hdferr)
+    call h5dget_space_f(dset_id, dspace_id, hdferr)
+    call h5sget_simple_extent_ndims_f(dspace_id, rank, hdferr)
+    if(rank.ne.1) stop "rank of array is not 1"
+    call h5sget_simple_extent_dims_f(dspace_id, dims, maxdims, hdferr)
+    call h5dclose_f(dset_id, hdferr)
+    allocate(array(dims(1)))
+    call hdf5_read_1d_array_h5t_std_i64le(handle, path, array)
+  end subroutine hdf5_read_1d_array_alloc_h5t_std_i64le
 
   subroutine hdf5_read_2d_array_alloc_h5t_std_i64le(handle, path, array)
     implicit none
@@ -1624,6 +1781,26 @@ contains
     allocate(array(dims(1), dims(2), dims(3), dims(4), dims(5), dims(6)))
     call hdf5_read_6d_array_h5t_std_i64le(handle, path, array)
   end subroutine hdf5_read_6d_array_alloc_h5t_std_i64le
+
+  subroutine hdf5_write_1d_array_h5t_std_i64le(handle, path, array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer(idp),dimension(:) :: array
+    integer(hsize_t) :: dims(1)
+    integer(hid_t) :: dspace_id, dset_id, dprop_id
+    integer :: hdferr
+    dims = [size(array,1)]
+    call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_std_i64le, dspace_id, dset_id, hdferr, dprop_id)
+    call h5dwrite_f(dset_id, h5t_std_i64le, array, dims, hdferr)
+    call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
+    call h5sclose_f(dspace_id, hdferr)
+  end subroutine hdf5_write_1d_array_h5t_std_i64le
 
   subroutine hdf5_write_2d_array_h5t_std_i64le(handle, path, array)
     implicit none
@@ -1726,6 +1903,23 @@ contains
   end subroutine hdf5_write_6d_array_h5t_std_i64le
 
 
+  subroutine hdf5_read_1d_array_h5t_std_i32le(handle, path, array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer,dimension(:) :: array
+    integer(hsize_t) :: dims(1)
+    integer(hid_t) :: dset_id
+    integer :: hdferr
+    dims = [size(array,1)]
+    call h5dopen_f(handle, path, dset_id, hdferr)
+    call check_status(hdferr,'hdf5_read_1d_array_h5t_std_i32le [1]')
+    call h5dread_f(dset_id, h5t_std_i32le, array, dims, hdferr)
+    call check_status(hdferr,'hdf5_read_1d_array_h5t_std_i32le [2]')
+    call h5dclose_f(dset_id, hdferr)
+    call check_status(hdferr,'hdf5_read_1d_array_h5t_std_i32le [3]')
+  end subroutine hdf5_read_1d_array_h5t_std_i32le
+
   subroutine hdf5_read_2d_array_h5t_std_i32le(handle, path, array)
     implicit none
     integer(hid_t),intent(in) :: handle
@@ -1810,6 +2004,24 @@ contains
     call h5dclose_f(dset_id, hdferr)
     call check_status(hdferr,'hdf5_read_6d_array_h5t_std_i32le [3]')
   end subroutine hdf5_read_6d_array_h5t_std_i32le
+
+  subroutine hdf5_read_1d_array_alloc_h5t_std_i32le(handle, path, array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer,allocatable, dimension(:),intent(out) :: array
+    integer(hsize_t),dimension(1) :: dims, maxdims
+    integer(hid_t) :: dspace_id, dset_id
+    integer :: rank, hdferr
+    call h5dopen_f(handle, path, dset_id, hdferr)
+    call h5dget_space_f(dset_id, dspace_id, hdferr)
+    call h5sget_simple_extent_ndims_f(dspace_id, rank, hdferr)
+    if(rank.ne.1) stop "rank of array is not 1"
+    call h5sget_simple_extent_dims_f(dspace_id, dims, maxdims, hdferr)
+    call h5dclose_f(dset_id, hdferr)
+    allocate(array(dims(1)))
+    call hdf5_read_1d_array_h5t_std_i32le(handle, path, array)
+  end subroutine hdf5_read_1d_array_alloc_h5t_std_i32le
 
   subroutine hdf5_read_2d_array_alloc_h5t_std_i32le(handle, path, array)
     implicit none
@@ -1900,6 +2112,26 @@ contains
     allocate(array(dims(1), dims(2), dims(3), dims(4), dims(5), dims(6)))
     call hdf5_read_6d_array_h5t_std_i32le(handle, path, array)
   end subroutine hdf5_read_6d_array_alloc_h5t_std_i32le
+
+  subroutine hdf5_write_1d_array_h5t_std_i32le(handle, path, array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer,dimension(:) :: array
+    integer(hsize_t) :: dims(1)
+    integer(hid_t) :: dspace_id, dset_id, dprop_id
+    integer :: hdferr
+    dims = [size(array,1)]
+    call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle, path, h5t_std_i32le, dspace_id, dset_id, hdferr, dprop_id)
+    call h5dwrite_f(dset_id, h5t_std_i32le, array, dims, hdferr)
+    call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
+    call h5sclose_f(dspace_id, hdferr)
+  end subroutine hdf5_write_1d_array_h5t_std_i32le
 
   subroutine hdf5_write_2d_array_h5t_std_i32le(handle, path, array)
     implicit none
