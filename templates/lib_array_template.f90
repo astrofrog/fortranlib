@@ -14,10 +14,10 @@ module lib_array
 
   public :: is_nan
   interface is_nan
-    module procedure is_nan_int
-    module procedure is_nan_int8
-    module procedure is_nan_sp
-    module procedure is_nan_dp
+     module procedure is_nan_int
+     module procedure is_nan_int8
+     module procedure is_nan_sp
+     module procedure is_nan_dp
   end interface is_nan
 
   public :: linspace
@@ -192,14 +192,14 @@ contains
     end if
   end function logical2int
 
-!!@FOR real(sp):sp real(dp):dp integer:int integer(idp):int8
+  !!@FOR real(sp):sp real(dp):dp integer:int integer(idp):int8
 
-logical elemental function is_nan_<T>(value) result(nan)
-  @T,intent(in) :: value
-  nan = value .ne. value
-end function is_nan_<T>
+  logical elemental function is_nan_<T>(value) result(nan)
+    @T,intent(in) :: value
+    nan = value .ne. value
+  end function is_nan_<T>
 
-!!@END FOR
+  !!@END FOR
 
   !!@FOR real(sp):sp real(dp):dp
 
