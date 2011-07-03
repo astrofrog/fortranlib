@@ -209,15 +209,28 @@ contains
     @T,intent(out) :: x(:)
     integer :: i,n
     n = size(x)
-    do i=1,n
-       x(i) = (xmax-xmin) * real(i-1,<T>) / real(n-1,<T>) + xmin
-    end do
+    if (n == 1) then
+       if(xmin /= xmax) then
+          write(*,'("ERROR: Cannot call linspace with n=1 and xmin /= xmax")')
+          stop
+       else
+          x = xmin
+       end if
+    else
+       do i=1,n
+          x(i) = (xmax-xmin) * real(i-1,<T>) / real(n-1,<T>) + xmin
+       end do
+    end if
   end subroutine linspace_<T>
 
   subroutine logspace_<T>(xmin,xmax,x)
     implicit none
     @T,intent(in) :: xmin,xmax
     @T,intent(out) :: x(:)
+    if (size(x) == 1 .and. xmin /= xmax) then
+       write(*,'("ERROR: Cannot call logspace with n=1 and xmin /= xmax")')
+       stop
+    end if
     call linspace(log10(xmin),log10(xmax),x)
     x = 10._<T>**x
   end subroutine logspace_<T>

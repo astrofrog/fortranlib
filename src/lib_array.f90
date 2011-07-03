@@ -1,4 +1,4 @@
-! MD5 of template: 6eb76d216a84ec7b8e0768e4bf293b92
+! MD5 of template: 06d051392497e0579c76618b6e661d1f
 ! Array related routines (Integration, Interpolation, etc.)
 ! Thomas Robitaille (c) 2009
 
@@ -225,15 +225,28 @@ contains
     real(dp),intent(out) :: x(:)
     integer :: i,n
     n = size(x)
-    do i=1,n
-       x(i) = (xmax-xmin) * real(i-1,dp) / real(n-1,dp) + xmin
-    end do
+    if (n == 1) then
+       if(xmin /= xmax) then
+          write(*,'("ERROR: Cannot call linspace with n=1 and xmin /= xmax")')
+          stop
+       else
+          x = xmin
+       end if
+    else
+       do i=1,n
+          x(i) = (xmax-xmin) * real(i-1,dp) / real(n-1,dp) + xmin
+       end do
+    end if
   end subroutine linspace_dp
 
   subroutine logspace_dp(xmin,xmax,x)
     implicit none
     real(dp),intent(in) :: xmin,xmax
     real(dp),intent(out) :: x(:)
+    if (size(x) == 1 .and. xmin /= xmax) then
+       write(*,'("ERROR: Cannot call logspace with n=1 and xmin /= xmax")')
+       stop
+    end if
     call linspace(log10(xmin),log10(xmax),x)
     x = 10._dp**x
   end subroutine logspace_dp
@@ -1160,15 +1173,28 @@ contains
     real(sp),intent(out) :: x(:)
     integer :: i,n
     n = size(x)
-    do i=1,n
-       x(i) = (xmax-xmin) * real(i-1,sp) / real(n-1,sp) + xmin
-    end do
+    if (n == 1) then
+       if(xmin /= xmax) then
+          write(*,'("ERROR: Cannot call linspace with n=1 and xmin /= xmax")')
+          stop
+       else
+          x = xmin
+       end if
+    else
+       do i=1,n
+          x(i) = (xmax-xmin) * real(i-1,sp) / real(n-1,sp) + xmin
+       end do
+    end if
   end subroutine linspace_sp
 
   subroutine logspace_sp(xmin,xmax,x)
     implicit none
     real(sp),intent(in) :: xmin,xmax
     real(sp),intent(out) :: x(:)
+    if (size(x) == 1 .and. xmin /= xmax) then
+       write(*,'("ERROR: Cannot call logspace with n=1 and xmin /= xmax")')
+       stop
+    end if
     call linspace(log10(xmin),log10(xmax),x)
     x = 10._sp**x
   end subroutine logspace_sp
