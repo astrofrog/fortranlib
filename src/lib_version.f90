@@ -61,7 +61,7 @@ contains
     do
 
        p2a = index(a%string(p1a:), '.')
-       p2b = index(b%string(p1a:), '.')
+       p2b = index(b%string(p1b:), '.')
 
        if(p2a == 0 .neqv. p2b == 0) then
           stop "ERROR: version strings need to have the same precision"
@@ -71,8 +71,8 @@ contains
           read(a%string(p1a:), *) ia
           read(b%string(p1b:), *) ib
        else
-          read(a%string(p1a:p1a + p2a - 1), *) ia
-          read(b%string(p1b:p1b + p2b - 1), *) ib
+          read(a%string(p1a:p1a + p2a - 2), *) ia
+          read(b%string(p1b:p1b + p2b - 2), *) ib
        end if
 
        if(ia > ib) then
