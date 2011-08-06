@@ -25,6 +25,16 @@ module type_pdf
      @T,allocatable :: cdf(:)
      logical :: log = .false.
      logical :: normalized = .false.
+
+     ! Simple mode means that the interpolation in the CDF is done in an
+     ! approximate way, and does not take into account that computing a CDF from
+     ! a linear function gives a non-linear CDF. The correct calculation is done
+     ! by default, and actually ends up being faster because there are fewer calls
+     ! to functions. The 'correct' way required 3 or 4 additional arrays to be
+     ! pre-computed to make it faster, so it is more RAM intensive.
+     logical :: simple = .false.
+     @T,allocatable :: c1(:),c2(:),a(:),b(:)
+
   end type pdf_<T>
 
   public :: pdf_discrete_<T>
@@ -167,11 +177,11 @@ contains
     call check_pdf(p)
   end subroutine set_pdf_discrete_<T>
 
-  subroutine set_pdf_cont_<T>(p,x,y,log)
+  subroutine set_pdf_cont_<T>(p,x,y,log,simple)
     implicit none
     type(pdf_<T>),intent(out) :: p
     @T,intent(in) :: x(:),y(:)
-    logical,intent(in),optional :: log
+    logical,intent(in),optional :: log,simple
     if(size(x).ne.size(y)) stop "[set_pdf] x and y array sizes differ"
     call allocate_pdf(p,size(y))
     p%x   = x
@@ -180,9 +190,10 @@ contains
        p%log = log
        where(p%pdf==0.) p%pdf=tiny(p%pdf)
     end if
+    if(present(simple)) p%simple = simple
     call normalize_pdf(p)
     call find_cdf(p)
-    call check_pdf(p)    
+    call check_pdf(p)
   end subroutine set_pdf_cont_<T>
 
   subroutine check_pdf_discrete_<T>(p)
@@ -229,6 +240,29 @@ contains
        end if
     end do
     p%cdf = p%cdf / p%cdf(p%n)
+    if(.not.p%simple) then
+       if(p%log) then
+          allocate(p%b(p%n-1))
+          allocate(p%c1(p%n-1))
+          allocate(p%c2(p%n-1))
+          do i=1,p%n-1
+             p%b(i) = log10(p%pdf(i) / p%pdf(i+1)) / log10(p%x(i) / p%x(i+1))
+             p%c1(i) = p%x(i) ** (p%b(i) + 1._dp)
+             p%c2(i) = p%x(i+1) ** (p%b(i) + 1._dp)
+          end do
+       else
+          allocate(p%a(p%n-1))
+          allocate(p%b(p%n-1))
+          allocate(p%c1(p%n-1))
+          allocate(p%c2(p%n-1))
+          do i=1,p%n-1
+             p%a(i) = (p%pdf(i) - p%pdf(i+1)) / (p%x(i) - p%x(i+1))
+             p%b(i) = p%pdf(i) - p%a(i) * p%x(i)
+             p%c1(i) = p%a(i) * p%x(i) * p%x(i) * 0.5_8 - p%b(i) * p%x(i)
+             p%c2(i) = p%a(i) * p%x(i+1) * p%x(i+1) * 0.5_8 - p%b(i) * p%x(i+1)
+          end do
+       end if
+    end if
   end subroutine find_cdf_cont_<T>
 
   integer function sample_pdf_discrete_<T>(p)
@@ -240,7 +274,7 @@ contains
     if(xi <= p%cdf(1)) then
        sample_pdf_discrete_<T> = 1
     else if(xi >= p%cdf(p%n)) then
-       sample_pdf_discrete_<T> = p%n      
+       sample_pdf_discrete_<T> = p%n
     else
        jmin = 1
        jmax = p%n
@@ -262,6 +296,7 @@ contains
     type(pdf_<T>),intent(in) :: p
     @T,optional,intent(in) :: xi_alt
     @T :: xi
+    integer :: i
     if(present(xi_alt)) then
        xi = xi_alt
     else
@@ -270,12 +305,26 @@ contains
     if(xi <= p%cdf(1)) then
        sample_pdf_cont_<T> = p%x(1)
     else if(xi >= p%cdf(p%n)) then
-       sample_pdf_cont_<T> = p%x(p%n)    
+       sample_pdf_cont_<T> = p%x(p%n)
     else
-       if(p%log) then
-          sample_pdf_cont_<T> = interp1d_linlog(p%cdf(:),p%x(:),xi)
+       if(p%simple) then
+          if(p%log) then
+             sample_pdf_cont_<T> = interp1d_linlog(p%cdf(:), p%x(:), xi)
+          else
+             sample_pdf_cont_<T> = interp1d(p%cdf(:), p%x(:), xi)
+          end if
        else
-          sample_pdf_cont_<T> = interp1d(p%cdf(:),p%x(:),xi)
+          i = locate(p%cdf, xi)
+          xi = (xi - p%cdf(i)) / (p%cdf(i+1) - p%cdf(i))
+          if(p%log) then
+             sample_pdf_cont_<T> = (xi * (p%c2(i) - p%c1(i)) + p%c1(i)) ** (1._dp / (p%b(i) + 1._dp))
+          else
+             if(p%a(i)==0.) then
+                sample_pdf_cont_<T> = xi * (p%x(i+1) - p%x(i)) + p%x(i)
+             else
+                sample_pdf_cont_<T> = (- p%b(i) + sqrt(p%b(i) * p%b(i) + 2._8 * p%a(i) * (xi * (p%c2(i) - p%c1(i)) + p%c1(i)))) / p%a(i)
+             end if
+          end if
        end if
     end if
   end function sample_pdf_cont_<T>
