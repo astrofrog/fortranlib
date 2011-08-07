@@ -1,4 +1,4 @@
-! MD5 of template: 24726e865f3b5de2e8eb62fc9aec754e
+! MD5 of template: d3e2d53b7af16d45d0e638a84a5a2012
 ! 3D angle related routines
 ! Thomas Robitaille (c) 2009
 
@@ -419,7 +419,7 @@ contains
   type(angle3d_dp) function minus_angle_dp(a) result(b)
     implicit none
     type(angle3d_dp),intent(in) :: a
-    b = angle3d_dp(a%cost, -a%sint, a%cosp, -a%sinp)
+    b = angle3d_dp(-a%cost, a%sint, -a%cosp, -a%sinp)
   end function minus_angle_dp
 
 
@@ -752,7 +752,7 @@ contains
   type(angle3d_sp) function minus_angle_sp(a) result(b)
     implicit none
     type(angle3d_sp),intent(in) :: a
-    b = angle3d_sp(a%cost, -a%sint, a%cosp, -a%sinp)
+    b = angle3d_sp(-a%cost, a%sint, -a%cosp, -a%sinp)
   end function minus_angle_sp
 
 

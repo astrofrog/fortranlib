@@ -419,7 +419,7 @@ contains
   type(angle3d_<T>) function minus_angle_<T>(a) result(b)
     implicit none
     type(angle3d_<T>),intent(in) :: a
-    b = angle3d_<T>(a%cost, -a%sint, a%cosp, -a%sinp)
+    b = angle3d_<T>(-a%cost, a%sint, -a%cosp, -a%sinp)
   end function minus_angle_<T>
 
   !!@END FOR
