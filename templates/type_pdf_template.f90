@@ -33,7 +33,7 @@ module type_pdf
      ! to functions. The 'correct' way required 3 or 4 additional arrays to be
      ! pre-computed to make it faster, so it is more RAM intensive.
      logical :: simple = .false.
-     @T,allocatable :: c1(:),c2(:),a(:),b(:)
+     @T,allocatable :: a(:),b(:),r(:),rx(:),rc(:)
 
   end type pdf_<T>
 
@@ -243,23 +243,21 @@ contains
     if(.not.p%simple) then
        if(p%log) then
           allocate(p%b(p%n-1))
-          allocate(p%c1(p%n-1))
-          allocate(p%c2(p%n-1))
+          allocate(p%r(p%n-1))
           do i=1,p%n-1
              p%b(i) = log10(p%pdf(i) / p%pdf(i+1)) / log10(p%x(i) / p%x(i+1))
-             p%c1(i) = p%x(i) ** (p%b(i) + 1._dp)
-             p%c2(i) = p%x(i+1) ** (p%b(i) + 1._dp)
+             p%r(i) = (p%x(i+1) / p%x(i)) ** (p%b(i) + 1._dp)
           end do
        else
           allocate(p%a(p%n-1))
           allocate(p%b(p%n-1))
-          allocate(p%c1(p%n-1))
-          allocate(p%c2(p%n-1))
+          allocate(p%rx(p%n-1))
+          allocate(p%rc(p%n-1))
           do i=1,p%n-1
              p%a(i) = (p%pdf(i) - p%pdf(i+1)) / (p%x(i) - p%x(i+1))
              p%b(i) = p%pdf(i) - p%a(i) * p%x(i)
-             p%c1(i) = p%a(i) * p%x(i) * p%x(i) * 0.5_8 - p%b(i) * p%x(i)
-             p%c2(i) = p%a(i) * p%x(i+1) * p%x(i+1) * 0.5_8 - p%b(i) * p%x(i+1)
+             p%rx(i) = p%x(i+1) / p%x(i)
+             p%rc(i) = p%b(i) / p%a(i)
           end do
        end if
     end if
@@ -317,12 +315,18 @@ contains
           i = locate(p%cdf, xi)
           xi = (xi - p%cdf(i)) / (p%cdf(i+1) - p%cdf(i))
           if(p%log) then
-             sample_pdf_cont_<T> = (xi * (p%c2(i) - p%c1(i)) + p%c1(i)) ** (1._dp / (p%b(i) + 1._dp))
+             sample_pdf_cont_<T> = (xi * (p%r(i) - 1._dp) + 1._dp) ** (1._dp / (p%b(i) + 1._dp)) * p%x(i)
           else
-             if(p%a(i)==0.) then
+             if(p%a(i)==0._dp) then
                 sample_pdf_cont_<T> = xi * (p%x(i+1) - p%x(i)) + p%x(i)
+             else if(p%x(i)==0._dp) then
+                sample_pdf_cont_<T> = - p%rc(i) + sign(sqrt(p%rc(i) * p%rc(i) &
+                     &                                      + xi * p%x(i+1) * p%x(i+1) &
+                     &                                      + 2._dp * p%rc(i) * xi * p%x(i+1)),p%a(i))
              else
-                sample_pdf_cont_<T> = (- p%b(i) + sqrt(p%b(i) * p%b(i) + 2._8 * p%a(i) * (xi * (p%c2(i) - p%c1(i)) + p%c1(i)))) / p%a(i)
+                sample_pdf_cont_<T> = - p%rc(i) + sign(sqrt(p%rc(i) * p%rc(i) &
+                     &                                      + p%x(i) * p%x(i) * (xi * (p%rx(i) * p%rx(i) - 1._dp) + 1._dp) &
+                     &                                      + 2._dp * p%rc(i) * p%x(i) * (xi * (p%rx(i) - 1._dp) + 1._dp)),p%a(i))
              end if
           end if
        end if
