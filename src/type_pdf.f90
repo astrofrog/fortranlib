@@ -1,4 +1,4 @@
-! MD5 of template: 81ef25331847967aa83298984922c6fa
+! MD5 of template: 5ff437c9553214c629f41e2a465aae5c
 ! Probability Distribution Function (PDF) related routines
 ! Thomas Robitaille (c) 2009
 
@@ -349,11 +349,11 @@ contains
              else if(p%x(i)==0._dp) then
                 sample_pdf_cont_dp = - p%rc(i) + sign(sqrt(p%rc(i) * p%rc(i) &
                      &                                      + xi * p%x(i+1) * p%x(i+1) &
-                     &                                      + 2._dp * p%rc(i) * xi * p%x(i+1)),p%a(i))
+                     &                                      + 2._dp * p%rc(i) * xi * p%x(i+1)), p%a(i))
              else
                 sample_pdf_cont_dp = - p%rc(i) + sign(sqrt(p%rc(i) * p%rc(i) &
                      &                                      + p%x(i) * p%x(i) * (xi * (p%rx(i) * p%rx(i) - 1._dp) + 1._dp) &
-                     &                                      + 2._dp * p%rc(i) * p%x(i) * (xi * (p%rx(i) - 1._dp) + 1._dp)),p%a(i))
+                     &                                      + 2._dp * p%rc(i) * p%x(i) * (xi * (p%rx(i) - 1._dp) + 1._dp)), p%a(i))
              end if
           end if
        end if
@@ -599,11 +599,11 @@ contains
              else if(p%x(i)==0._dp) then
                 sample_pdf_cont_sp = - p%rc(i) + sign(sqrt(p%rc(i) * p%rc(i) &
                      &                                      + xi * p%x(i+1) * p%x(i+1) &
-                     &                                      + 2._dp * p%rc(i) * xi * p%x(i+1)),p%a(i))
+                     &                                      + 2._sp * p%rc(i) * xi * p%x(i+1)), p%a(i))
              else
                 sample_pdf_cont_sp = - p%rc(i) + sign(sqrt(p%rc(i) * p%rc(i) &
-                     &                                      + p%x(i) * p%x(i) * (xi * (p%rx(i) * p%rx(i) - 1._dp) + 1._dp) &
-                     &                                      + 2._dp * p%rc(i) * p%x(i) * (xi * (p%rx(i) - 1._dp) + 1._dp)),p%a(i))
+                     &                                      + p%x(i) * p%x(i) * (xi * (p%rx(i) * p%rx(i) - 1._sp) + 1._sp) &
+                     &                                      + 2._sp * p%rc(i) * p%x(i) * (xi * (p%rx(i) - 1._sp) + 1._sp)), p%a(i))
              end if
           end if
        end if

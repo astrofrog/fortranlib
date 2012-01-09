@@ -322,11 +322,11 @@ contains
              else if(p%x(i)==0._dp) then
                 sample_pdf_cont_<T> = - p%rc(i) + sign(sqrt(p%rc(i) * p%rc(i) &
                      &                                      + xi * p%x(i+1) * p%x(i+1) &
-                     &                                      + 2._dp * p%rc(i) * xi * p%x(i+1)),p%a(i))
+                     &                                      + 2._<T> * p%rc(i) * xi * p%x(i+1)), p%a(i))
              else
                 sample_pdf_cont_<T> = - p%rc(i) + sign(sqrt(p%rc(i) * p%rc(i) &
-                     &                                      + p%x(i) * p%x(i) * (xi * (p%rx(i) * p%rx(i) - 1._dp) + 1._dp) &
-                     &                                      + 2._dp * p%rc(i) * p%x(i) * (xi * (p%rx(i) - 1._dp) + 1._dp)),p%a(i))
+                     &                                      + p%x(i) * p%x(i) * (xi * (p%rx(i) * p%rx(i) - 1._<T>) + 1._<T>) &
+                     &                                      + 2._<T> * p%rc(i) * p%x(i) * (xi * (p%rx(i) - 1._<T>) + 1._<T>)), p%a(i))
              end if
           end if
        end if
