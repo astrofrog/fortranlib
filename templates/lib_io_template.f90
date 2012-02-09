@@ -82,7 +82,7 @@ contains
        write(len_char,'(I3.3)') len_trim(pretty_command)     
        write(*,'(" The following command will be run: ",A'//len_char//')') pretty_command
 
-       write(*,'(" Do you wish to continue? (y/n) ")',advance='no')
+       write(*,'(" Do you wish to continue? (y/n) ")')
 
        do 
           read *,rep
@@ -132,7 +132,7 @@ contains
        write(len_char,'(I3.3)') len_trim(pretty_command)     
        write(*,'(" The following command will be run: ",A'//len_char//')') pretty_command
 
-       write(*,'(" Do you wish to continue? (y/n) ")',advance='no')
+       write(*,'(" Do you wish to continue? (y/n) ")')
 
        do 
           read *,rep

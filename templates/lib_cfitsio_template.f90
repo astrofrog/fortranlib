@@ -254,7 +254,7 @@ contains
           write(*,'(" The following command will be run: ")',advance='no') 
           write(*,*) trim(command)     
           do 
-             write(*,'(" Do you wish to continue? (y/n) ")',advance='no')
+             write(*,'(" Do you wish to continue? (y/n) ")')
              read *,rep
              if(rep=="y".or.rep=="n") exit
              write(*,*) 'Please type y or n (case sensitive)'

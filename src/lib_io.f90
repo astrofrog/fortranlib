@@ -1,4 +1,4 @@
-! MD5 of template: 0848d19967ac5b17468ed9c9b4d1efb2
+! MD5 of template: 745f3ecc02464c9850d81eea69a58afe
 module lib_io
 
   use iso_fortran_env, only : iostat_end
@@ -83,7 +83,7 @@ contains
        write(len_char,'(I3.3)') len_trim(pretty_command)     
        write(*,'(" The following command will be run: ",A'//len_char//')') pretty_command
 
-       write(*,'(" Do you wish to continue? (y/n) ")',advance='no')
+       write(*,'(" Do you wish to continue? (y/n) ")')
 
        do 
           read *,rep
@@ -133,7 +133,7 @@ contains
        write(len_char,'(I3.3)') len_trim(pretty_command)     
        write(*,'(" The following command will be run: ",A'//len_char//')') pretty_command
 
-       write(*,'(" Do you wish to continue? (y/n) ")',advance='no')
+       write(*,'(" Do you wish to continue? (y/n) ")')
 
        do 
           read *,rep

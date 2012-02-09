@@ -1,4 +1,4 @@
-! MD5 of template: 2a9f002d6b81b130c9ed9ce5341c7d11
+! MD5 of template: eb5866022aef4796ca893c0a459e4828
 ! High level routines for cfitsio
 ! Thomas Robitaille (c) 2009
 
@@ -255,7 +255,7 @@ contains
           write(*,'(" The following command will be run: ")',advance='no') 
           write(*,*) trim(command)     
           do 
-             write(*,'(" Do you wish to continue? (y/n) ")',advance='no')
+             write(*,'(" Do you wish to continue? (y/n) ")')
              read *,rep
              if(rep=="y".or.rep=="n") exit
              write(*,*) 'Please type y or n (case sensitive)'

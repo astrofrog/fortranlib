@@ -1,4 +1,4 @@
-! MD5 of template: 998458e71319a0116565ffaef8d0ff6f
+! MD5 of template: 55e90650fc298af0511635a49b0f1494
 ! High level routines for HDF5
 ! Thomas Robitaille (c) 2010
 
@@ -324,7 +324,7 @@ contains
           write(*,'(" The following command will be run: ")',advance='no')
           write(*,*) trim(command)
           do
-             write(*,'(" Do you wish to continue? (y/n) ")',advance='no')
+             write(*,'(" Do you wish to continue? (y/n) ")')
              read *,rep
              if(rep=="y".or.rep=="n") exit
              write(*,*) 'Please type y or n (case sensitive)'
