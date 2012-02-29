@@ -1,4 +1,4 @@
-! MD5 of template: 4a195bfed33db471f4a880d9069bcaa9
+! MD5 of template: 339aa2b19d75bdc5beea455f6513061f
 ! High level routines for HDF5
 ! Thomas Robitaille (c) 2010
 
@@ -378,7 +378,7 @@ contains
   subroutine hdf5_create_external_link(handle, path, filename, object)
     implicit none
     integer(hid_t),intent(in) :: handle
-    character(len=*),intent(in) :: filename, path, object
+    character(len=*),intent(in) :: path, filename, object
     integer :: hdferr
     call h5lcreate_external_f(filename, object, handle, path, hdferr)
     call check_status(hdferr,'hdf5_create_group')

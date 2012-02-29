@@ -377,7 +377,7 @@ contains
   subroutine hdf5_create_external_link(handle, path, filename, object)
     implicit none
     integer(hid_t),intent(in) :: handle
-    character(len=*),intent(in) :: filename, path, object
+    character(len=*),intent(in) :: path, filename, object
     integer :: hdferr
     call h5lcreate_external_f(filename, object, handle, path, hdferr)
     call check_status(hdferr,'hdf5_create_group')
