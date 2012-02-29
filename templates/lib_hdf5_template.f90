@@ -26,6 +26,7 @@ module lib_hdf5
   public :: hdf5_open_read
   public :: hdf5_open_write
   public :: hdf5_close
+  public :: hdf5_create_external_link
   public :: hdf5_create_group
   public :: hdf5_open_group
   public :: hdf5_close_group
@@ -372,6 +373,15 @@ contains
     call h5close_f(hdferr)
     call check_status(hdferr,'hdf5_close')
   end subroutine hdf5_close
+
+  subroutine hdf5_create_external_link(handle, path, filename, object)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: filename, path, object
+    integer :: hdferr
+    call h5lcreate_external_f(filename, object, handle, path, hdferr)
+    call check_status(hdferr,'hdf5_create_group')
+  end subroutine hdf5_create_external_link
 
   integer(hid_t) function hdf5_create_group(handle, path) result(grp_id)
     implicit none
