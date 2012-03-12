@@ -983,7 +983,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path, name
     if(.not.hdf5_exists_keyword(handle, path, name)) then
-       print *, "ERROR: attribute "//trim(name)//" does not exist in HDF5 file"
+       write(0,*) "ERROR: attribute "//trim(name)//" does not exist in HDF5 file"
        stop
     end if
   end subroutine hdf5_check_exists_keyword

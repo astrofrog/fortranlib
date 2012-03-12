@@ -1,4 +1,4 @@
-! MD5 of template: 745f3ecc02464c9850d81eea69a58afe
+! MD5 of template: a679bec87739da68502fce69485b12be
 module lib_io
 
   use iso_fortran_env, only : iostat_end
@@ -754,9 +754,9 @@ contains
 
     if(n_results==0) then
 
-       write(*,*)
-       write(*,*) "ERROR - no match found for: ",trim(filename)
-       write(*,*)
+       write(0,*)
+       write(0,*) "ERROR - no match found for: ",trim(filename)
+       write(0,*)
        stop
 
     else if(n_results==1) then
@@ -768,18 +768,18 @@ contains
 
     else
 
-       write(*,*)
-       write(*,*) "ERROR - more than one possibility for: ",trim(filename)
+       write(0,*)
+       write(0,*) "ERROR - more than one possibility for: ",trim(filename)
 
        open(unit=u,file='/tmp/wildcard.tmp',status='old',iostat=ioerr)
        call open_status(ioerr,'/tmp/wildcard.tmp')
        do r=1,n_results
           read(u,*) filename_temp
-          write(*,*) " -> "//trim(filename_temp)
+          write(0,*) " -> "//trim(filename_temp)
        end do
        close(unit=u)
 
-       write(*,*)
+       write(0,*)
        stop
 
     end if

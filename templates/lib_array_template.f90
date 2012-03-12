@@ -211,7 +211,7 @@ contains
     n = size(x)
     if (n == 1) then
        if(xmin /= xmax) then
-          write(*,'("ERROR: Cannot call linspace with n=1 and xmin /= xmax")')
+          write(0,'("ERROR: Cannot call linspace with n=1 and xmin /= xmax")')
           stop
        else
           x = xmin
@@ -228,7 +228,7 @@ contains
     @T,intent(in) :: xmin,xmax
     @T,intent(out) :: x(:)
     if (size(x) == 1 .and. xmin /= xmax) then
-       write(*,'("ERROR: Cannot call logspace with n=1 and xmin /= xmax")')
+       write(0,'("ERROR: Cannot call logspace with n=1 and xmin /= xmax")')
        stop
     end if
     call linspace(log10(xmin),log10(xmax),x)
@@ -616,7 +616,7 @@ contains
 
     if(ipos == -1) then
        if(bounds_error_tmp) then
-          write(*,'("ERROR: Interpolation out of bounds : ",ES11.4," in [",ES11.4,":",ES11.4,"]")') xval,x(1),x(n)
+          write(0,'("ERROR: Interpolation out of bounds : ",ES11.4," in [",ES11.4,":",ES11.4,"]")') xval,x(1),x(n)
           stop
        else
           yval = fill_value_tmp
@@ -631,7 +631,7 @@ contains
     else if(ipos == 0) then
        yval = y(1)
     else
-       write(*,'("ERROR: Unexpected value of ipos : ",I0)') ipos
+       write(0,'("ERROR: Unexpected value of ipos : ",I0)') ipos
        stop
     end if
 
@@ -678,7 +678,7 @@ contains
 
     if(i1==-1) then
        if(bounds_error_tmp) then
-          write(*,'("ERROR: Interpolation out of bounds : ",ES11.4," in [",ES11.4,":",ES11.4,"]")') x0,x(1),x(size(x))
+          write(0,'("ERROR: Interpolation out of bounds : ",ES11.4," in [",ES11.4,":",ES11.4,"]")') x0,x(1),x(size(x))
           stop
        else
           value = fill_value_tmp
@@ -688,7 +688,7 @@ contains
 
     if(j1==-1) then
        if(bounds_error_tmp) then
-          write(*,'("ERROR: Interpolation out of bounds : ",ES11.4," in [",ES11.4,":",ES11.4,"]")') y0,y(1),y(size(y))
+          write(0,'("ERROR: Interpolation out of bounds : ",ES11.4," in [",ES11.4,":",ES11.4,"]")') y0,y(1),y(size(y))
           stop
        else
           value = fill_value_tmp

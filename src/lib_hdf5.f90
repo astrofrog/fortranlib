@@ -1,4 +1,4 @@
-! MD5 of template: 339aa2b19d75bdc5beea455f6513061f
+! MD5 of template: e1c477f46a1f97f6f2a54602151219e9
 ! High level routines for HDF5
 ! Thomas Robitaille (c) 2010
 
@@ -2257,7 +2257,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path, name
     if(.not.hdf5_exists_keyword(handle, path, name)) then
-       print *, "ERROR: attribute "//trim(name)//" does not exist in HDF5 file"
+       write(0,*) "ERROR: attribute "//trim(name)//" does not exist in HDF5 file"
        stop
     end if
   end subroutine hdf5_check_exists_keyword

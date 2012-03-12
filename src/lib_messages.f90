@@ -114,15 +114,15 @@ contains
     read(date(5:6),*) m
 
     call delimit
-    write(*,*) "ERROR   : ",trim(text)
-    write(*,*) "WHERE   : ",trim(location)
+    write(0,*) "ERROR   : ",trim(text)
+    write(0,*) "WHERE   : ",trim(location)
     call delimit
 
-    write(*,*)
-    write(*,*) " *** Execution aborted on "&
+    write(0,*)
+    write(0,*) " *** Execution aborted on "&
          &//date(7:8)//" "//trim(month(m))//" "//trim(date(1:4))//" at "&
          &//time(1:2)//":"//time(3:4)//":"//time(5:6)//" ***"
-    write(*,*) 
+    write(0,*)
 
     stop
 
