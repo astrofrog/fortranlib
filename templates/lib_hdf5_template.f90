@@ -35,8 +35,11 @@ module lib_hdf5
   public :: hdf5_close_dataset
   public :: hdf5_path_exists
   public :: hdf5_list_groups
+  public :: hdf5_list_datasets
+  public :: hdf5_copy_dataset
 
   ! keywords
+  public :: hdf5_list_keywords
   public :: hdf5_read_keyword
   public :: hdf5_write_keyword
   public :: hdf5_exists_keyword
@@ -49,6 +52,7 @@ module lib_hdf5
   public :: hdf5_copy_array
 
   ! table
+  public :: hdf5_copy_table
   public :: hdf5_table_write_header
   public :: hdf5_table_write_column
   public :: hdf5_table_read_column
@@ -201,6 +205,7 @@ module lib_hdf5
      character(len=255),allocatable :: field_names(:)
      integer(size_t),allocatable :: field_sizes(:)
      integer(size_t),allocatable :: field_offsets(:)
+     integer(hid_t),allocatable :: field_types(:)
      integer(size_t) :: type_size
   end type table_info
 
@@ -453,6 +458,20 @@ contains
     call check_status(hdferr,'hdf5_count_members')
   end function hdf5_count_members
 
+  integer function hdf5_count_keywords(handle, path) result(n_keywords)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer(hid_t) :: grp_id
+    integer :: hdferr
+    call h5gopen_f(handle, path, grp_id, hdferr)
+    call check_status(hdferr,'hdf5_count_keywords [1]')
+    call h5aget_num_attrs_f(grp_id, n_keywords, hdferr)
+    call check_status(hdferr,'hdf5_count_keywords [2]')
+    call h5gclose_f(grp_id, hdferr)
+    call check_status(hdferr,'hdf5_count_keywords [3]')
+  end function hdf5_count_keywords
+
   subroutine hdf5_member_info(handle, path, index, name, type)
     implicit none
     integer(hid_t),intent(in) :: handle
@@ -465,31 +484,187 @@ contains
     call check_status(hdferr,'hdf5_member_info')
   end subroutine hdf5_member_info
 
+  subroutine hdf5_list_keywords(handle, path, keywords)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    character(len=*),allocatable,intent(out) :: keywords(:)
+    integer :: n_keywords, n_groups, im, ig
+    integer :: type
+    integer(HSIZE_T) :: idx
+    integer :: hdferr
+    n_keywords = hdf5_count_keywords(handle, path)
+    allocate(keywords(n_keywords))
+    do idx=1,n_keywords
+       call h5aget_name_by_idx_f(handle, path, h5_index_name_f, h5_iter_native_f, idx-1, keywords(idx), hdferr)
+       call check_status(hdferr,'hdf5_list_keywords')
+    end do
+  end subroutine hdf5_list_keywords
+
+  subroutine hdf5_list_objects(handle, path, objects, filter_type)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    character(len=*),allocatable,intent(out) :: objects(:)
+    integer :: n_objects_all, n_objects, im, ig
+    integer,optional,intent(in) :: filter_type
+    character(len=len(objects)) :: name
+    integer :: type
+
+    ! Find total number of objects
+    n_objects_all = hdf5_count_members(handle, path)
+
+    ! Count how many objects to list
+    n_objects = 0
+    do im=1,n_objects_all
+       call hdf5_member_info(handle, path, im-1, name, type)
+       if(type==filter_type) n_objects = n_objects + 1
+    end do
+    allocate(objects(n_objects))
+    ig = 0
+    do im=1,n_objects_all
+       call hdf5_member_info(handle, path, im-1, name, type)
+       if(type==filter_type) then
+          ig=ig + 1
+          objects(ig) = name
+       end if
+    end do
+  end subroutine hdf5_list_objects
+
   subroutine hdf5_list_groups(handle, path, groups)
     implicit none
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     character(len=*),allocatable,intent(out) :: groups(:)
-    integer :: n_members, n_groups, im, ig
-    character(len=len(groups)) :: name
-    integer :: type
-    n_members = hdf5_count_members(handle, path)
-    n_groups = 0
-    do im=1,n_members
-       call hdf5_member_info(handle, path, im-1, name, type)
-       if(type==H5G_GROUP_F) n_groups = n_groups + 1
-    end do
-    allocate(groups(n_groups))
-    ig = 0
-    do im=1,n_members
-       call hdf5_member_info(handle, path, im-1, name, type)
-       if(type==H5G_GROUP_F) then
-          ig=ig + 1
-          groups(ig) = name
-       end if
-    end do
+    call hdf5_list_objects(handle, path, groups, H5G_GROUP_F)
   end subroutine hdf5_list_groups
 
+  subroutine hdf5_list_datasets(handle, path, datasets)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    character(len=*),allocatable,intent(out) :: datasets(:)
+    call hdf5_list_objects(handle, path, datasets, H5G_DATASET_F)
+  end subroutine hdf5_list_datasets
+
+  subroutine hdf5_list_links(handle, path, links)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    character(len=*),allocatable,intent(out) :: links(:)
+    call hdf5_list_objects(handle, path, links, H5G_LINK_F)
+  end subroutine hdf5_list_links
+
+  subroutine hdf5_copy_dataset(handle_in, path_in, handle_out, path_out)
+    implicit none
+    integer(hid_t), intent(in) :: handle_in, handle_out
+    character(len=*), intent(in) :: path_in, path_out
+    integer :: class
+    integer(hid_t) :: dset_id, datatype_id
+    integer :: hdferr
+    call h5dopen_f(handle_in, path_in, dset_id, hdferr)
+    call h5dget_type_f(dset_id, datatype_id, hdferr)
+    call h5tget_class_f(datatype_id, class, hdferr)
+    if(class == h5t_compound_f) then
+       call hdf5_copy_table(handle_in, path_in, handle_out, path_out)
+    else
+       call hdf5_copy_array(handle_in, path_in, handle_out, path_out)
+    end if
+  end subroutine hdf5_copy_dataset
+
+  subroutine hdf5_copy_table(handle_in, path_in, handle_out, path_out)
+    implicit none
+    integer(hid_t),intent(in) :: handle_in, handle_out
+    character(len=*),intent(in) :: path_in, path_out
+    type(table_info) :: info
+    integer(hid_t) :: dset_id, datatype_id, space_id
+    integer :: hdferr
+    logical :: flag
+    integer :: class
+    integer :: field_idx
+    logical :: is_string
+    logical :: is_array
+    logical :: is_h5t_std_i32le
+    logical :: is_h5t_std_i64le
+    logical :: is_h5t_ieee_f32le
+    logical :: is_h5t_ieee_f64le
+    character(len=255) :: col_name
+    integer :: rank
+
+    ! Copy over the table header
+    info = hdf5_read_table_info(handle_in, path_in)
+    call hdf5_table_write_header_info(handle_out, path_out, info)
+
+    ! Copy over the fields
+    do field_idx=1,info%n_cols
+
+       datatype_id = info%field_types(field_idx)
+       col_name = info%field_names(field_idx)
+
+       ! Check if column is a 2D array
+       call h5tget_class_f(datatype_id, class, hdferr)
+       is_array = class == h5t_array_f
+
+       if(is_array) then
+          call h5tget_array_ndims_f(datatype_id, rank, hdferr)
+          if(rank /= 1) then
+             write(0,'("ERROR: cannot copy ", I,"-dimensional fields")') rank
+             stop
+          end if
+          call h5tget_super_f(datatype_id, datatype_id, hdferr)
+       end if
+
+       ! Check the type of the array to copy
+       call h5tget_class_f(datatype_id, class, hdferr)
+       is_string = class == h5t_string_f
+       call h5tequal_f(datatype_id, h5t_std_i32le, is_h5t_std_i32le, hdferr)
+       call h5tequal_f(datatype_id, h5t_std_i64le, is_h5t_std_i64le, hdferr)
+       call h5tequal_f(datatype_id, h5t_ieee_f32le, is_h5t_ieee_f32le, hdferr)
+       call h5tequal_f(datatype_id, h5t_ieee_f64le, is_h5t_ieee_f64le, hdferr)
+
+       ! Close the datatype
+       call h5tclose_f(datatype_id, hdferr)
+
+       ! Copy over the array using the appropriate routine
+       if(is_string) then
+          if(is_array) then
+             write(0,'("ERROR: cannot read 2-d string columns")')
+             stop
+          else
+             call copy_table_column_1d_h5t_native_character(handle_in, path_in, col_name, handle_out, path_out, col_name)
+          end if
+       else if(is_h5t_std_i32le) then
+          if(is_array) then
+             call copy_table_column_2d_h5t_std_i32le(handle_in, path_in, col_name, handle_out, path_out, col_name)
+          else
+             call copy_table_column_1d_h5t_std_i32le(handle_in, path_in, col_name, handle_out, path_out, col_name)
+          end if
+       else if(is_h5t_std_i64le) then
+          if(is_array) then
+             call copy_table_column_2d_h5t_std_i64le(handle_in, path_in, col_name, handle_out, path_out, col_name)
+          else
+             call copy_table_column_1d_h5t_std_i64le(handle_in, path_in, col_name, handle_out, path_out, col_name)
+          end if
+       else if(is_h5t_ieee_f32le) then
+          if(is_array) then
+             call copy_table_column_2d_h5t_ieee_f32le(handle_in, path_in, col_name, handle_out, path_out, col_name)
+          else
+             call copy_table_column_1d_h5t_ieee_f32le(handle_in, path_in, col_name, handle_out, path_out, col_name)
+          end if
+       else if(is_h5t_ieee_f64le) then
+          if(is_array) then
+             call copy_table_column_2d_h5t_ieee_f64le(handle_in, path_in, col_name, handle_out, path_out, col_name)
+          else
+             call copy_table_column_1d_h5t_ieee_f64le(handle_in, path_in, col_name, handle_out, path_out, col_name)
+          end if
+       else
+          write(0,'("ERROR: unknown datatype ", I)') datatype_id
+          stop
+       end if
+
+    end do
+
+  end subroutine hdf5_copy_table
 
   subroutine hdf5_table_write_header(handle,path,n_rows,n_cols,names,widths,types)
     implicit none
@@ -524,6 +699,19 @@ contains
          & names,offsets,types,chunk_size,compress,hdferr)
     call check_status(hdferr,'hdf5_table_write_header')
   end subroutine hdf5_table_write_header
+
+  subroutine hdf5_table_write_header_info(handle,path,info)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    type(table_info),intent(in) :: info
+    integer(hsize_t) :: chunk_size = 10
+    integer,parameter :: compress = 0
+    integer :: hdferr
+    call h5tbmake_table_f('table_title',handle,path,info%n_cols,info%n_rows,info%type_size, &
+         & info%field_names,info%field_offsets,info%field_types,chunk_size,compress,hdferr)
+    call check_status(hdferr,'hdf5_table_write_header_info')
+  end subroutine hdf5_table_write_header_info
 
   subroutine read_table_column_1d_h5t_native_character(handle, path, col_name, values)
     implicit none
@@ -609,6 +797,15 @@ contains
     call read_table_column_2d_<T>(handle, path, col_name, values)
   end subroutine read_table_column_2d_alloc_<T>
 
+  subroutine copy_table_column_2d_<T>(handle_in,path_in,col_name_in, handle_out, path_out, col_name_out)
+    implicit none
+    integer(hid_t),intent(in) :: handle_in, handle_out
+    character(len=*),intent(in) :: path_in, path_out, col_name_in, col_name_out
+    @T,allocatable :: values(:,:)
+    call read_table_column_2d_alloc_<T>(handle_in, path_in, col_name_in, values)
+    call write_table_column_2d_<T>(handle_out, path_out, col_name_out, values)
+  end subroutine copy_table_column_2d_<T>
+
   !!@END FOR
 
   !!@FOR integer:h5t_std_i32le integer(idp):h5t_std_i64le real(sp):h5t_ieee_f32le real(dp):h5t_ieee_f64le character(len=*):h5t_native_character
@@ -642,6 +839,15 @@ contains
     call h5tbwrite_field_name_f(handle,path,col_name,start,nrecords,type_size,reshape(values,(/size(values)/)),hdferr)
     call check_status(hdferr,'write_table_column_2d_<T>')
   end subroutine write_table_column_2d_<T>
+
+  subroutine copy_table_column_1d_<T>(handle_in,path_in,col_name_in, handle_out, path_out, col_name_out)
+    implicit none
+    integer(hid_t),intent(in) :: handle_in, handle_out
+    character(len=*),intent(in) :: path_in, path_out, col_name_in, col_name_out
+    @T,allocatable :: values(:)
+    call read_table_column_1d_alloc_<T>(handle_in, path_in, col_name_in, values)
+    call write_table_column_1d_<T>(handle_out, path_out, col_name_out, values)
+  end subroutine copy_table_column_1d_<T>
 
   !!@END FOR
 
@@ -1240,6 +1446,7 @@ contains
     ! Read in keyword type
     call h5aopen_by_name_f(handle_in, path_in, attribute_in, attr_id, hdferr)
     call h5aget_type_f(attr_id, datatype_id, hdferr)
+    call h5aclose_f(attr_id, hdferr)
 
     ! Check the type of the array to copy
     call h5tget_class_f(datatype_id, class, hdferr)
@@ -1271,17 +1478,36 @@ contains
   end subroutine hdf5_copy_keyword
 
   type(table_info) function hdf5_read_table_info(handle, path) result(info)
+
     implicit none
+
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
-    integer :: hdferr
+    integer(hid_t) :: dset_id, datatype_id
+    integer :: field_idx, hdferr
+
+    ! Find out the overall table info
     call h5tbget_table_info_f(handle, path, info%n_cols, info%n_rows, hdferr)
+
     allocate(info%field_names(info%n_cols))
     allocate(info%field_sizes(info%n_cols))
     allocate(info%field_offsets(info%n_cols))
+    allocate(info%field_types(info%n_cols))
+
+    ! Read the default information
     call h5tbget_field_info_f(handle, path, info%n_cols, info%field_names,&
          & info%field_sizes, info%field_offsets, info%type_size, hdferr)
     call check_status(hdferr,'hdf5_read_table_info')
+
+    ! Work out the datatypes for the columns
+    call h5dopen_f(handle, path, dset_id, hdferr)
+    call h5dget_type_f(dset_id, datatype_id, hdferr)
+    do field_idx=1,info%n_cols
+       call h5tget_member_type_f(datatype_id, field_idx-1, info%field_types(field_idx), hdferr)
+    end do
+    call h5tclose_f(datatype_id, hdferr)
+    call h5dclose_f(dset_id, hdferr)
+
   end function hdf5_read_table_info
 
   integer function hdf5_table_column_number(info, col_name) result(col_id)
@@ -1292,7 +1518,7 @@ contains
        if(trim(adjustl(info%field_names(col_id))) == trim(col_name)) exit
     end do
     if(col_id==info%n_cols+1) then
-       print *, "column not found:"//trim(col_name)
+       write(0,'("Column not found", A)') trim(col_name)
        stop
     end if
   end function hdf5_table_column_number
