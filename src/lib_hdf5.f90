@@ -1,4 +1,4 @@
-! MD5 of template: e1c477f46a1f97f6f2a54602151219e9
+! MD5 of template: 1a02f2b105798d4955f541b37d4dda76
 ! High level routines for HDF5
 ! Thomas Robitaille (c) 2010
 
@@ -27,6 +27,7 @@ module lib_hdf5
   public :: hdf5_open_read
   public :: hdf5_open_write
   public :: hdf5_close
+  public :: hdf5_finalize
   public :: hdf5_create_external_link
   public :: hdf5_create_group
   public :: hdf5_open_group
@@ -40,11 +41,13 @@ module lib_hdf5
   public :: hdf5_read_keyword
   public :: hdf5_write_keyword
   public :: hdf5_exists_keyword
+  public :: hdf5_copy_keyword
 
   ! image
   public :: hdf5_write_array
   public :: hdf5_read_array
   public :: hdf5_read_array_auto
+  public :: hdf5_copy_array
 
   ! table
   public :: hdf5_table_write_header
@@ -371,9 +374,15 @@ contains
     integer(hid_t),intent(in) :: handle
     integer :: hdferr
     call h5fclose_f(handle, hdferr)
-    call h5close_f(hdferr)
     call check_status(hdferr,'hdf5_close')
   end subroutine hdf5_close
+
+  subroutine hdf5_finalize()
+    implicit none
+    integer :: hdferr
+    call h5close_f(hdferr)
+    call check_status(hdferr,'hdf5_finalize')
+  end subroutine hdf5_finalize
 
   subroutine hdf5_create_external_link(handle, path, filename, object)
     implicit none
@@ -381,7 +390,7 @@ contains
     character(len=*),intent(in) :: path, filename, object
     integer :: hdferr
     call h5lcreate_external_f(filename, object, handle, path, hdferr)
-    call check_status(hdferr,'hdf5_create_group')
+    call check_status(hdferr,'hdf5_create_external_link')
   end subroutine hdf5_create_external_link
 
   integer(hid_t) function hdf5_create_group(handle, path) result(grp_id)
@@ -1250,6 +1259,42 @@ contains
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_6d_array_h5t_ieee_f64le
 
+  subroutine hdf5_copy_array_h5t_ieee_f64le(handle_in, path_in, handle_out, path_out)
+
+    implicit none
+
+    integer(hid_t),intent(in) :: handle_in, handle_out
+    character(len=*),intent(in) :: path_in, path_out
+    real(dp),dimension(:),allocatable :: array
+
+    integer(hsize_t),dimension(:),allocatable :: dims, maxdims
+    integer(hid_t) :: dspace_id, dset_id, dprop_id
+    integer :: rank, hdferr
+
+    ! Read in data into 1D array
+    call h5dopen_f(handle_in, path_in, dset_id, hdferr)
+    call h5dget_space_f(dset_id, dspace_id, hdferr)
+    call h5sget_simple_extent_ndims_f(dspace_id, rank, hdferr)
+    allocate(dims(rank), maxdims(rank))
+    call h5sget_simple_extent_dims_f(dspace_id, dims, maxdims, hdferr)
+    ! Can't check hdferr here, because above routine sets it to rank
+    allocate(array(product(dims)))
+    call h5dread_f(dset_id, h5t_ieee_f64le, array, dims, hdferr)
+    call h5dclose_f(dset_id, hdferr)
+
+    ! Write data out
+    call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle_out, path_out, h5t_ieee_f64le, dspace_id, dset_id, hdferr, dprop_id)
+    call h5dwrite_f(dset_id, h5t_ieee_f64le, array, dims, hdferr)
+    call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
+    call h5sclose_f(dspace_id, hdferr)
+
+  end subroutine hdf5_copy_array_h5t_ieee_f64le
+
 
   subroutine hdf5_read_1d_array_h5t_ieee_f32le(handle, path, array)
     implicit none
@@ -1580,6 +1625,42 @@ contains
     call h5pclose_f(dprop_id, hdferr)
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_6d_array_h5t_ieee_f32le
+
+  subroutine hdf5_copy_array_h5t_ieee_f32le(handle_in, path_in, handle_out, path_out)
+
+    implicit none
+
+    integer(hid_t),intent(in) :: handle_in, handle_out
+    character(len=*),intent(in) :: path_in, path_out
+    real(sp),dimension(:),allocatable :: array
+
+    integer(hsize_t),dimension(:),allocatable :: dims, maxdims
+    integer(hid_t) :: dspace_id, dset_id, dprop_id
+    integer :: rank, hdferr
+
+    ! Read in data into 1D array
+    call h5dopen_f(handle_in, path_in, dset_id, hdferr)
+    call h5dget_space_f(dset_id, dspace_id, hdferr)
+    call h5sget_simple_extent_ndims_f(dspace_id, rank, hdferr)
+    allocate(dims(rank), maxdims(rank))
+    call h5sget_simple_extent_dims_f(dspace_id, dims, maxdims, hdferr)
+    ! Can't check hdferr here, because above routine sets it to rank
+    allocate(array(product(dims)))
+    call h5dread_f(dset_id, h5t_ieee_f32le, array, dims, hdferr)
+    call h5dclose_f(dset_id, hdferr)
+
+    ! Write data out
+    call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle_out, path_out, h5t_ieee_f32le, dspace_id, dset_id, hdferr, dprop_id)
+    call h5dwrite_f(dset_id, h5t_ieee_f32le, array, dims, hdferr)
+    call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
+    call h5sclose_f(dspace_id, hdferr)
+
+  end subroutine hdf5_copy_array_h5t_ieee_f32le
 
 
   subroutine hdf5_read_1d_array_h5t_std_i64le(handle, path, array)
@@ -1912,6 +1993,42 @@ contains
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_6d_array_h5t_std_i64le
 
+  subroutine hdf5_copy_array_h5t_std_i64le(handle_in, path_in, handle_out, path_out)
+
+    implicit none
+
+    integer(hid_t),intent(in) :: handle_in, handle_out
+    character(len=*),intent(in) :: path_in, path_out
+    integer(idp),dimension(:),allocatable :: array
+
+    integer(hsize_t),dimension(:),allocatable :: dims, maxdims
+    integer(hid_t) :: dspace_id, dset_id, dprop_id
+    integer :: rank, hdferr
+
+    ! Read in data into 1D array
+    call h5dopen_f(handle_in, path_in, dset_id, hdferr)
+    call h5dget_space_f(dset_id, dspace_id, hdferr)
+    call h5sget_simple_extent_ndims_f(dspace_id, rank, hdferr)
+    allocate(dims(rank), maxdims(rank))
+    call h5sget_simple_extent_dims_f(dspace_id, dims, maxdims, hdferr)
+    ! Can't check hdferr here, because above routine sets it to rank
+    allocate(array(product(dims)))
+    call h5dread_f(dset_id, h5t_std_i64le, array, dims, hdferr)
+    call h5dclose_f(dset_id, hdferr)
+
+    ! Write data out
+    call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle_out, path_out, h5t_std_i64le, dspace_id, dset_id, hdferr, dprop_id)
+    call h5dwrite_f(dset_id, h5t_std_i64le, array, dims, hdferr)
+    call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
+    call h5sclose_f(dspace_id, hdferr)
+
+  end subroutine hdf5_copy_array_h5t_std_i64le
+
 
   subroutine hdf5_read_1d_array_h5t_std_i32le(handle, path, array)
     implicit none
@@ -2243,6 +2360,85 @@ contains
     call h5sclose_f(dspace_id, hdferr)
   end subroutine hdf5_write_6d_array_h5t_std_i32le
 
+  subroutine hdf5_copy_array_h5t_std_i32le(handle_in, path_in, handle_out, path_out)
+
+    implicit none
+
+    integer(hid_t),intent(in) :: handle_in, handle_out
+    character(len=*),intent(in) :: path_in, path_out
+    integer,dimension(:),allocatable :: array
+
+    integer(hsize_t),dimension(:),allocatable :: dims, maxdims
+    integer(hid_t) :: dspace_id, dset_id, dprop_id
+    integer :: rank, hdferr
+
+    ! Read in data into 1D array
+    call h5dopen_f(handle_in, path_in, dset_id, hdferr)
+    call h5dget_space_f(dset_id, dspace_id, hdferr)
+    call h5sget_simple_extent_ndims_f(dspace_id, rank, hdferr)
+    allocate(dims(rank), maxdims(rank))
+    call h5sget_simple_extent_dims_f(dspace_id, dims, maxdims, hdferr)
+    ! Can't check hdferr here, because above routine sets it to rank
+    allocate(array(product(dims)))
+    call h5dread_f(dset_id, h5t_std_i32le, array, dims, hdferr)
+    call h5dclose_f(dset_id, hdferr)
+
+    ! Write data out
+    call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
+    call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
+    call h5dcreate_f(handle_out, path_out, h5t_std_i32le, dspace_id, dset_id, hdferr, dprop_id)
+    call h5dwrite_f(dset_id, h5t_std_i32le, array, dims, hdferr)
+    call h5dclose_f(dset_id, hdferr)
+    call h5pclose_f(dprop_id, hdferr)
+    call h5sclose_f(dspace_id, hdferr)
+
+  end subroutine hdf5_copy_array_h5t_std_i32le
+
+
+  subroutine hdf5_copy_array(handle_in, path_in, handle_out, path_out)
+
+    implicit none
+
+    integer(hid_t),intent(in) :: handle_in, handle_out
+    character(len=*),intent(in) :: path_in, path_out
+    integer(hsize_t),dimension(:),allocatable :: dims, maxdims
+    integer(hid_t) :: dset_id, datatype_id
+    integer :: hdferr
+    logical :: is_h5t_std_i32le
+    logical :: is_h5t_std_i64le
+    logical :: is_h5t_ieee_f32le
+    logical :: is_h5t_ieee_f64le
+
+    ! Read in array type
+    call h5dopen_f(handle_in, path_in, dset_id, hdferr)
+    call h5dget_type_f(dset_id, datatype_id, hdferr)
+
+    ! Check the type of the array to copy
+    call h5tequal_f(datatype_id, h5t_std_i32le, is_h5t_std_i32le, hdferr)
+    call h5tequal_f(datatype_id, h5t_std_i64le, is_h5t_std_i64le, hdferr)
+    call h5tequal_f(datatype_id, h5t_ieee_f32le, is_h5t_ieee_f32le, hdferr)
+    call h5tequal_f(datatype_id, h5t_ieee_f64le, is_h5t_ieee_f64le, hdferr)
+
+    ! Close the datatype
+    call h5tclose_f(datatype_id, hdferr)
+
+    ! Copy over the array using the appropriate routine
+    if(is_h5t_std_i32le) then
+       call hdf5_copy_array_h5t_std_i32le(handle_in, path_in, handle_out, path_out)
+    else if(is_h5t_std_i64le) then
+       call hdf5_copy_array_h5t_std_i64le(handle_in, path_in, handle_out, path_out)
+    else if(is_h5t_ieee_f32le) then
+       call hdf5_copy_array_h5t_ieee_f32le(handle_in, path_in, handle_out, path_out)
+    else if(is_h5t_ieee_f64le) then
+       call hdf5_copy_array_h5t_ieee_f64le(handle_in, path_in, handle_out, path_out)
+    else
+       write(0,'("ERROR: unknown datatype ", I)') datatype_id
+       stop
+    end if
+
+  end subroutine hdf5_copy_array
 
   logical function hdf5_exists_keyword(handle, path, name)
     implicit none
@@ -2344,6 +2540,15 @@ contains
     call check_status(hdferr,'hdf5_write_k_string [8]')
   end subroutine hdf5_write_k_string
 
+  subroutine hdf5_copy_k_string(handle_in, path_in, name_in, handle_out, path_out, name_out)
+    implicit none
+    integer(hid_t) :: handle_in, handle_out
+    character(len=*) :: path_in, name_in, path_out, name_out
+    character(len=1000) :: value
+    call hdf5_read_k_string(handle_in, path_in, name_in, value)
+    call hdf5_write_k_string(handle_out, path_out, name_out, value)
+  end subroutine hdf5_copy_k_string
+
 
   subroutine hdf5_read_k_h5t_ieee_f64le(handle,path,name,value)
     implicit none
@@ -2384,6 +2589,15 @@ contains
     call h5aclose_f(attr_id, hdferr)
     call check_status(hdferr,'hdf5_write_k_h5t_ieee_f64le [5]')
   end subroutine hdf5_write_k_h5t_ieee_f64le
+
+  subroutine hdf5_copy_k_h5t_ieee_f64le(handle_in, path_in, name_in, handle_out, path_out, name_out)
+    implicit none
+    integer(hid_t) :: handle_in, handle_out
+    character(len=*) :: path_in, name_in, path_out, name_out
+    real(dp) :: value
+    call hdf5_read_k_h5t_ieee_f64le(handle_in, path_in, name_in, value)
+    call hdf5_write_k_h5t_ieee_f64le(handle_out, path_out, name_out, value)
+  end subroutine hdf5_copy_k_h5t_ieee_f64le
 
 
   subroutine hdf5_read_k_h5t_ieee_f32le(handle,path,name,value)
@@ -2426,6 +2640,15 @@ contains
     call check_status(hdferr,'hdf5_write_k_h5t_ieee_f32le [5]')
   end subroutine hdf5_write_k_h5t_ieee_f32le
 
+  subroutine hdf5_copy_k_h5t_ieee_f32le(handle_in, path_in, name_in, handle_out, path_out, name_out)
+    implicit none
+    integer(hid_t) :: handle_in, handle_out
+    character(len=*) :: path_in, name_in, path_out, name_out
+    real(sp) :: value
+    call hdf5_read_k_h5t_ieee_f32le(handle_in, path_in, name_in, value)
+    call hdf5_write_k_h5t_ieee_f32le(handle_out, path_out, name_out, value)
+  end subroutine hdf5_copy_k_h5t_ieee_f32le
+
 
   subroutine hdf5_read_k_h5t_std_i64le(handle,path,name,value)
     implicit none
@@ -2466,6 +2689,15 @@ contains
     call h5aclose_f(attr_id, hdferr)
     call check_status(hdferr,'hdf5_write_k_h5t_std_i64le [5]')
   end subroutine hdf5_write_k_h5t_std_i64le
+
+  subroutine hdf5_copy_k_h5t_std_i64le(handle_in, path_in, name_in, handle_out, path_out, name_out)
+    implicit none
+    integer(hid_t) :: handle_in, handle_out
+    character(len=*) :: path_in, name_in, path_out, name_out
+    integer(idp) :: value
+    call hdf5_read_k_h5t_std_i64le(handle_in, path_in, name_in, value)
+    call hdf5_write_k_h5t_std_i64le(handle_out, path_out, name_out, value)
+  end subroutine hdf5_copy_k_h5t_std_i64le
 
 
   subroutine hdf5_read_k_h5t_std_i32le(handle,path,name,value)
@@ -2508,41 +2740,65 @@ contains
     call check_status(hdferr,'hdf5_write_k_h5t_std_i32le [5]')
   end subroutine hdf5_write_k_h5t_std_i32le
 
+  subroutine hdf5_copy_k_h5t_std_i32le(handle_in, path_in, name_in, handle_out, path_out, name_out)
+    implicit none
+    integer(hid_t) :: handle_in, handle_out
+    character(len=*) :: path_in, name_in, path_out, name_out
+    integer :: value
+    call hdf5_read_k_h5t_std_i32le(handle_in, path_in, name_in, value)
+    call hdf5_write_k_h5t_std_i32le(handle_out, path_out, name_out, value)
+  end subroutine hdf5_copy_k_h5t_std_i32le
 
 
-  !   subroutine hdf5_write_k_d(unit,name,value,comment)
-  !     implicit none
-  !     integer,intent(in) :: unit
-  !     character(len=*),intent(in) :: name
-  !     real(dp),intent(in) :: value
-  !     character(len=*),intent(in),optional :: comment
-  !     integer :: status
-  !     status = 0
-  !     if(present(comment)) then
-  !        call ftukyd(unit,name,value,10,comment,status)
-  !     else
-  !        call ftukyd(unit,name,value,10,"",status)
-  !     end if
-  !     call check_status(hdferr,'hdf5_write_k_d')
-  !   end subroutine hdf5_write_k_d
+  subroutine hdf5_copy_keyword(handle_in, path_in, attribute_in, handle_out, path_out, attribute_out)
 
+    implicit none
 
-  !   subroutine hdf5_write_k_e(unit,name,value,comment)
-  !     implicit none
-  !     integer,intent(in) :: unit
-  !     character(len=*),intent(in) :: name
-  !     real(sp),intent(in) :: value
-  !     character(len=*),intent(in),optional :: comment
-  !     integer :: status
-  !     status = 0
-  !     if(present(comment)) then
-  !        call ftukye(unit,name,value,10,comment,status)
-  !     else
-  !        call ftukye(unit,name,value,10,"",status)
-  !     end if
-  !     call check_status(hdferr,'hdf5_write_k_e')
-  !   end subroutine hdf5_write_k_e
+    integer(hid_t),intent(in) :: handle_in, handle_out
+    character(len=*),intent(in) :: path_in, path_out
+    character(len=*),intent(in) :: attribute_in, attribute_out
+    integer(hid_t) :: attr_id, datatype_id
+    integer :: hdferr
+    logical :: is_string
+    logical :: is_h5t_std_i32le
+    logical :: is_h5t_std_i64le
+    logical :: is_h5t_ieee_f32le
+    logical :: is_h5t_ieee_f64le
+    integer :: i, class
+    logical :: flag
 
+    ! Read in keyword type
+    call h5aopen_by_name_f(handle_in, path_in, attribute_in, attr_id, hdferr)
+    call h5aget_type_f(attr_id, datatype_id, hdferr)
+
+    ! Check the type of the array to copy
+    call h5tget_class_f(datatype_id, class, hdferr)
+    is_string = class == h5t_string_f
+    call h5tequal_f(datatype_id, h5t_std_i32le, is_h5t_std_i32le, hdferr)
+    call h5tequal_f(datatype_id, h5t_std_i64le, is_h5t_std_i64le, hdferr)
+    call h5tequal_f(datatype_id, h5t_ieee_f32le, is_h5t_ieee_f32le, hdferr)
+    call h5tequal_f(datatype_id, h5t_ieee_f64le, is_h5t_ieee_f64le, hdferr)
+
+    ! Close the datatype
+    call h5tclose_f(datatype_id, hdferr)
+
+    ! Copy over the array using the appropriate routine
+    if(is_string) then
+       call hdf5_copy_k_string(handle_in, path_in, attribute_in, handle_out, path_out, attribute_out)
+    else if(is_h5t_std_i32le) then
+       call hdf5_copy_k_h5t_std_i32le(handle_in, path_in, attribute_in, handle_out, path_out, attribute_out)
+    else if(is_h5t_std_i64le) then
+       call hdf5_copy_k_h5t_std_i64le(handle_in, path_in, attribute_in, handle_out, path_out, attribute_out)
+    else if(is_h5t_ieee_f32le) then
+       call hdf5_copy_k_h5t_ieee_f32le(handle_in, path_in, attribute_in, handle_out, path_out, attribute_out)
+    else if(is_h5t_ieee_f64le) then
+       call hdf5_copy_k_h5t_ieee_f64le(handle_in, path_in, attribute_in, handle_out, path_out, attribute_out)
+    else
+       write(0,'("ERROR: unknown datatype ", I)') datatype_id
+       stop
+    end if
+
+  end subroutine hdf5_copy_keyword
 
   type(table_info) function hdf5_read_table_info(handle, path) result(info)
     implicit none
