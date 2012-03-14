@@ -37,6 +37,7 @@ module lib_hdf5
   public :: hdf5_list_groups
   public :: hdf5_list_datasets
   public :: hdf5_copy_dataset
+  public :: hdf5_copy_group
 
   ! keywords
   public :: hdf5_list_keywords
@@ -462,13 +463,13 @@ contains
     implicit none
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
-    integer(hid_t) :: grp_id
+    integer(hid_t) :: obj_id
     integer :: hdferr
-    call h5gopen_f(handle, path, grp_id, hdferr)
+    call h5oopen_f(handle, path, obj_id, hdferr)
     call check_status(hdferr,'hdf5_count_keywords [1]')
-    call h5aget_num_attrs_f(grp_id, n_keywords, hdferr)
+    call h5aget_num_attrs_f(obj_id, n_keywords, hdferr)
     call check_status(hdferr,'hdf5_count_keywords [2]')
-    call h5gclose_f(grp_id, hdferr)
+    call h5oclose_f(obj_id, hdferr)
     call check_status(hdferr,'hdf5_count_keywords [3]')
   end function hdf5_count_keywords
 
@@ -489,8 +490,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     character(len=*),allocatable,intent(out) :: keywords(:)
-    integer :: n_keywords, n_groups, im, ig
-    integer :: type
+    integer :: n_keywords
     integer(HSIZE_T) :: idx
     integer :: hdferr
     n_keywords = hdf5_count_keywords(handle, path)
@@ -555,6 +555,52 @@ contains
     call hdf5_list_objects(handle, path, links, H5G_LINK_F)
   end subroutine hdf5_list_links
 
+  recursive subroutine hdf5_copy_group(handle_in, path_in, handle_out, path_out)
+
+    implicit none
+
+    integer(hid_t),intent(in) :: handle_in, handle_out
+    character(len=*), intent(in) :: path_in, path_out
+    character(len=255),allocatable :: keywords(:)
+    character(len=255),allocatable :: groups(:)
+    character(len=255),allocatable :: datasets(:)
+    integer :: data_idx, key_idx, group_idx
+    integer(hid_t) :: orig_id, dest_id, grp_id
+
+    ! Get reference to input and output groups
+    orig_id = hdf5_open_group(handle_in, path_in)
+    dest_id = hdf5_open_group(handle_out, path_out)
+
+    ! Loop over attributes and copy over
+    call hdf5_list_keywords(orig_id, '.', keywords)
+    do key_idx=1,size(keywords)
+       call hdf5_copy_keyword(orig_id, '.', keywords(key_idx), dest_id, '.', keywords(key_idx))
+    end do
+
+    ! Loop over datasets and copy over
+    call hdf5_list_datasets(orig_id, '.', datasets)
+    do data_idx=1,size(datasets)
+
+       ! Copy over dataset
+       call hdf5_copy_dataset(orig_id, datasets(data_idx), dest_id, datasets(data_idx))
+
+       ! Loop over dataset keywords and copy over
+       call hdf5_list_keywords(orig_id, datasets(data_idx), keywords)
+       do key_idx=1,size(keywords)
+          call hdf5_copy_keyword(orig_id, datasets(data_idx), keywords(key_idx), dest_id, datasets(data_idx), keywords(key_idx))
+       end do
+
+    end do
+
+    ! Loop over groups in reference and create groups for copy
+    call hdf5_list_groups(orig_id, '.', groups)
+    do group_idx=1,size(groups)
+       grp_id = hdf5_create_group(dest_id, groups(group_idx))
+       call hdf5_copy_group(orig_id, groups(group_idx), grp_id, '.')
+    end do
+
+  end subroutine hdf5_copy_group
+
   subroutine hdf5_copy_dataset(handle_in, path_in, handle_out, path_out)
     implicit none
     integer(hid_t), intent(in) :: handle_in, handle_out
@@ -573,15 +619,16 @@ contains
   end subroutine hdf5_copy_dataset
 
   subroutine hdf5_copy_table(handle_in, path_in, handle_out, path_out)
+
     implicit none
+
     integer(hid_t),intent(in) :: handle_in, handle_out
     character(len=*),intent(in) :: path_in, path_out
     type(table_info) :: info
-    integer(hid_t) :: dset_id, datatype_id, space_id
+    integer(hid_t) :: datatype_id
     integer :: hdferr
-    logical :: flag
-    integer :: class
     integer :: field_idx
+    integer :: class
     logical :: is_string
     logical :: is_array
     logical :: is_h5t_std_i32le
@@ -1227,7 +1274,6 @@ contains
 
     integer(hid_t),intent(in) :: handle_in, handle_out
     character(len=*),intent(in) :: path_in, path_out
-    integer(hsize_t),dimension(:),allocatable :: dims, maxdims
     integer(hid_t) :: dset_id, datatype_id
     integer :: hdferr
     logical :: is_h5t_std_i32le
@@ -1327,7 +1373,6 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path, name
     logical,intent(in) :: value
-    character(len=3) :: string_value
     if (value) then
        call hdf5_write_k_string(handle, path, name, 'yes')
     else
@@ -1440,8 +1485,7 @@ contains
     logical :: is_h5t_std_i64le
     logical :: is_h5t_ieee_f32le
     logical :: is_h5t_ieee_f64le
-    integer :: i, class
-    logical :: flag
+    integer :: class
 
     ! Read in keyword type
     call h5aopen_by_name_f(handle_in, path_in, attribute_in, attr_id, hdferr)
