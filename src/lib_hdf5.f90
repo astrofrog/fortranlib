@@ -1,4 +1,4 @@
-! MD5 of template: fd7f271d368d8e858f1cf23861c44b02
+! MD5 of template: 5ea6a8f0f64b48c384da2189bfd853aa
 ! High level routines for HDF5
 ! Thomas Robitaille (c) 2010
 
@@ -22,6 +22,7 @@ module lib_hdf5
 
   ! open/close
   public :: hdf5_set_compression
+  public :: hdf5_test_version
   public :: hdf5_exists
   public :: hdf5_open_new
   public :: hdf5_open_read
@@ -54,6 +55,7 @@ module lib_hdf5
   public :: hdf5_copy_array
 
   ! table
+  public :: hdf5_test_write_table
   public :: hdf5_copy_table
   public :: hdf5_table_write_header
   public :: hdf5_table_write_column
@@ -303,6 +305,16 @@ contains
     call h5tget_size_f(type_id, sizeof, hdferr)
   end function sizeof
 
+  logical function hdf5_test_version(testmaj, testmin, testrel) result(test)
+    ! Test whether the library version is equal or more recent to the specified version
+    implicit none
+    integer,intent(in) :: testmaj, testmin, testrel
+    integer :: majnum, minnum, relnum, hdferr
+    call h5get_libversion_f(majnum, minnum, relnum, hdferr)
+    call check_status(hdferr,'hdf5_test_version')
+    test = (majnum > testmaj .or. (majnum == testmaj .and. (minnum > testmin .or. (minnum == testmin .and. relnum >= testrel))))
+  end function hdf5_test_version
+
   logical function hdf5_exists(filename)
     implicit none
     character(len=*),intent(in) :: filename
@@ -470,8 +482,10 @@ contains
     call check_status(hdferr,'hdf5_count_keywords [1]')
     call h5aget_num_attrs_f(obj_id, n_keywords, hdferr)
     call check_status(hdferr,'hdf5_count_keywords [2]')
-    call h5oclose_f(obj_id, hdferr)
-    call check_status(hdferr,'hdf5_count_keywords [3]')
+    ! The following lines require a recent version of HDF5, so we leave them
+    ! commented for now.
+    ! call h5oclose_f(obj_id, hdferr)
+    ! call check_status(hdferr,'hdf5_count_keywords [3]')
   end function hdf5_count_keywords
 
   subroutine hdf5_member_info(handle, path, index, name, type)
@@ -743,6 +757,10 @@ contains
           stop "unknown type"
        end if
     end do
+    if(.not.hdf5_test_write_table(names)) then
+       write(0,'("ERROR: cannot write table, version of HDF5 is not recent enough")')
+       stop
+    end if
     call h5tbmake_table_f('table_title',handle,path,int(n_cols,hsize_t),int(n_rows,hsize_t),type_size, &
          & names,offsets,types,chunk_size,compress,hdferr)
     call check_status(hdferr,'hdf5_table_write_header')
@@ -756,10 +774,40 @@ contains
     integer(hsize_t) :: chunk_size = 10
     integer,parameter :: compress = 0
     integer :: hdferr
+    if(.not.hdf5_test_write_table(info%field_names)) then
+       write(0,'("ERROR: cannot write table, version of HDF5 is not recent enough")')
+       stop
+    end if
     call h5tbmake_table_f('table_title',handle,path,info%n_cols,info%n_rows,info%type_size, &
          & info%field_names,info%field_offsets,info%field_types,chunk_size,compress,hdferr)
     call check_status(hdferr,'hdf5_table_write_header_info')
   end subroutine hdf5_table_write_header_info
+
+  logical function hdf5_test_write_table(field_names) result(test)
+
+    ! Check whether the table can be written with the current version of HDF5
+
+    implicit none
+
+    character(len=*),intent(in) :: field_names(:)
+    integer :: i
+
+    ! Set can_write to .true. and then change to .false. if any tests fail
+    test = .true.
+
+    ! If version is 1.8.6 or more recent, there are no issues with writing
+    ! tables with fields that have different lengths
+    if(hdf5_test_version(1, 8, 6)) return
+
+    ! Otherwise, need to check that all fields match the field name length
+    do i = 1, size(field_names)
+       if (len(field_names(i)) /= len(trim(field_names(i)))) then
+          test = .false.
+          return
+       end if
+    end do
+
+  end function hdf5_test_write_table
 
   subroutine read_table_column_1d_h5t_native_character(handle, path, col_name, values)
     implicit none
