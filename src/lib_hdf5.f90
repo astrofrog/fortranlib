@@ -1,4 +1,4 @@
-! MD5 of template: 5ea6a8f0f64b48c384da2189bfd853aa
+! MD5 of template: d768f2eb3d6467aeb0a5d562932a7c7e
 ! High level routines for HDF5
 ! Thomas Robitaille (c) 2010
 
@@ -670,7 +670,7 @@ contains
        if(is_array) then
           call h5tget_array_ndims_f(datatype_id, rank, hdferr)
           if(rank /= 1) then
-             write(0,'("ERROR: cannot copy ", I,"-dimensional fields")') rank
+             write(0,'("ERROR: cannot copy ", I0,"-dimensional fields")') rank
              stop
           end if
           call h5tget_super_f(datatype_id, datatype_id, hdferr)
@@ -720,7 +720,7 @@ contains
              call copy_table_column_1d_h5t_ieee_f64le(handle_in, path_in, col_name, handle_out, path_out, col_name)
           end if
        else
-          write(0,'("ERROR: unknown datatype ", I)') datatype_id
+          write(0,'("ERROR: unknown datatype ", I0)') datatype_id
           stop
        end if
 
@@ -2797,7 +2797,7 @@ contains
     else if(is_h5t_ieee_f64le) then
        call hdf5_copy_array_h5t_ieee_f64le(handle_in, path_in, handle_out, path_out)
     else
-       write(0,'("ERROR: unknown datatype ", I)') datatype_id
+       write(0,'("ERROR: unknown datatype ", I0)') datatype_id
        stop
     end if
 
@@ -3156,7 +3156,7 @@ contains
     else if(is_h5t_ieee_f64le) then
        call hdf5_copy_k_h5t_ieee_f64le(handle_in, path_in, attribute_in, handle_out, path_out, attribute_out)
     else
-       write(0,'("ERROR: unknown datatype ", I)') datatype_id
+       write(0,'("ERROR: unknown datatype ", I0)') datatype_id
        stop
     end if
 
