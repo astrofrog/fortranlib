@@ -601,7 +601,9 @@ contains
        ! Loop over dataset keywords and copy over
        call hdf5_list_keywords(orig_id, datasets(data_idx), keywords)
        do key_idx=1,size(keywords)
-          call hdf5_copy_keyword(orig_id, datasets(data_idx), keywords(key_idx), dest_id, datasets(data_idx), keywords(key_idx))
+          if(.not.hdf5_exists_keyword(dest_id, datasets(data_idx), keywords(key_idx))) then
+             call hdf5_copy_keyword(orig_id, datasets(data_idx), keywords(key_idx), dest_id, datasets(data_idx), keywords(key_idx))
+          end if
        end do
 
     end do
