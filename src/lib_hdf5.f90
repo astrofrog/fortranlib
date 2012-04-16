@@ -1,4 +1,4 @@
-! MD5 of template: aaf6f00a0065690f780044af139ff30e
+! MD5 of template: 14d6d61f5e22a9aee5af6aa839b226a2
 ! High level routines for HDF5
 ! Thomas Robitaille (c) 2010
 
@@ -3030,7 +3030,7 @@ contains
     call hdf5_check_exists_keyword(handle, path, name)
     call h5aopen_by_name_f(handle, path, name, attr_id, hdferr)
     call check_status(hdferr,'hdf5_read_k_h5t_ieee_f64le [1]')
-    call h5aread_f(attr_id, h5t_ieee_f64le, values, shape(values, hsize_t), hdferr)
+    call h5aread_f(attr_id, h5t_ieee_f64le, values, int(shape(values), hsize_t), hdferr)
     call check_status(hdferr,'hdf5_read_k_h5t_ieee_f64le [2]')
     call h5aclose_f(attr_id, hdferr)
     call check_status(hdferr,'hdf5_read_k_h5t_ieee_f64le [3]')
@@ -3047,14 +3047,14 @@ contains
        call h5aopen_by_name_f(handle, path, name, attr_id, hdferr)
        call check_status(hdferr,'hdf5_write_k_h5t_ieee_f64le [1]')
     else
-       call h5screate_simple_f(1, shape(values, hsize_t), dspace_id, hdferr)
+       call h5screate_simple_f(1, int(shape(values), hsize_t), dspace_id, hdferr)
        call check_status(hdferr,'hdf5_write_k_h5t_ieee_f64le [1]')
        call h5acreate_by_name_f(handle, path, name, h5t_ieee_f64le, dspace_id, attr_id, hdferr)
        call check_status(hdferr,'hdf5_write_k_h5t_ieee_f64le [2]')
        call h5sclose_f(dspace_id, hdferr)
        call check_status(hdferr,'hdf5_write_k_h5t_ieee_f64le [3]')
     end if
-    call h5awrite_f(attr_id, h5t_ieee_f64le, values, shape(values, hsize_t), hdferr)
+    call h5awrite_f(attr_id, h5t_ieee_f64le, values, int(shape(values), hsize_t), hdferr)
     call check_status(hdferr,'hdf5_write_k_h5t_ieee_f64le [4]')
     call h5aclose_f(attr_id, hdferr)
     call check_status(hdferr,'hdf5_write_k_h5t_ieee_f64le [5]')
@@ -3160,7 +3160,7 @@ contains
     call hdf5_check_exists_keyword(handle, path, name)
     call h5aopen_by_name_f(handle, path, name, attr_id, hdferr)
     call check_status(hdferr,'hdf5_read_k_h5t_ieee_f32le [1]')
-    call h5aread_f(attr_id, h5t_ieee_f32le, values, shape(values, hsize_t), hdferr)
+    call h5aread_f(attr_id, h5t_ieee_f32le, values, int(shape(values), hsize_t), hdferr)
     call check_status(hdferr,'hdf5_read_k_h5t_ieee_f32le [2]')
     call h5aclose_f(attr_id, hdferr)
     call check_status(hdferr,'hdf5_read_k_h5t_ieee_f32le [3]')
@@ -3177,14 +3177,14 @@ contains
        call h5aopen_by_name_f(handle, path, name, attr_id, hdferr)
        call check_status(hdferr,'hdf5_write_k_h5t_ieee_f32le [1]')
     else
-       call h5screate_simple_f(1, shape(values, hsize_t), dspace_id, hdferr)
+       call h5screate_simple_f(1, int(shape(values), hsize_t), dspace_id, hdferr)
        call check_status(hdferr,'hdf5_write_k_h5t_ieee_f32le [1]')
        call h5acreate_by_name_f(handle, path, name, h5t_ieee_f32le, dspace_id, attr_id, hdferr)
        call check_status(hdferr,'hdf5_write_k_h5t_ieee_f32le [2]')
        call h5sclose_f(dspace_id, hdferr)
        call check_status(hdferr,'hdf5_write_k_h5t_ieee_f32le [3]')
     end if
-    call h5awrite_f(attr_id, h5t_ieee_f32le, values, shape(values, hsize_t), hdferr)
+    call h5awrite_f(attr_id, h5t_ieee_f32le, values, int(shape(values), hsize_t), hdferr)
     call check_status(hdferr,'hdf5_write_k_h5t_ieee_f32le [4]')
     call h5aclose_f(attr_id, hdferr)
     call check_status(hdferr,'hdf5_write_k_h5t_ieee_f32le [5]')
@@ -3290,7 +3290,7 @@ contains
     call hdf5_check_exists_keyword(handle, path, name)
     call h5aopen_by_name_f(handle, path, name, attr_id, hdferr)
     call check_status(hdferr,'hdf5_read_k_h5t_std_i64le [1]')
-    call h5aread_f(attr_id, h5t_std_i64le, values, shape(values, hsize_t), hdferr)
+    call h5aread_f(attr_id, h5t_std_i64le, values, int(shape(values), hsize_t), hdferr)
     call check_status(hdferr,'hdf5_read_k_h5t_std_i64le [2]')
     call h5aclose_f(attr_id, hdferr)
     call check_status(hdferr,'hdf5_read_k_h5t_std_i64le [3]')
@@ -3307,14 +3307,14 @@ contains
        call h5aopen_by_name_f(handle, path, name, attr_id, hdferr)
        call check_status(hdferr,'hdf5_write_k_h5t_std_i64le [1]')
     else
-       call h5screate_simple_f(1, shape(values, hsize_t), dspace_id, hdferr)
+       call h5screate_simple_f(1, int(shape(values), hsize_t), dspace_id, hdferr)
        call check_status(hdferr,'hdf5_write_k_h5t_std_i64le [1]')
        call h5acreate_by_name_f(handle, path, name, h5t_std_i64le, dspace_id, attr_id, hdferr)
        call check_status(hdferr,'hdf5_write_k_h5t_std_i64le [2]')
        call h5sclose_f(dspace_id, hdferr)
        call check_status(hdferr,'hdf5_write_k_h5t_std_i64le [3]')
     end if
-    call h5awrite_f(attr_id, h5t_std_i64le, values, shape(values, hsize_t), hdferr)
+    call h5awrite_f(attr_id, h5t_std_i64le, values, int(shape(values), hsize_t), hdferr)
     call check_status(hdferr,'hdf5_write_k_h5t_std_i64le [4]')
     call h5aclose_f(attr_id, hdferr)
     call check_status(hdferr,'hdf5_write_k_h5t_std_i64le [5]')
@@ -3420,7 +3420,7 @@ contains
     call hdf5_check_exists_keyword(handle, path, name)
     call h5aopen_by_name_f(handle, path, name, attr_id, hdferr)
     call check_status(hdferr,'hdf5_read_k_h5t_std_i32le [1]')
-    call h5aread_f(attr_id, h5t_std_i32le, values, shape(values, hsize_t), hdferr)
+    call h5aread_f(attr_id, h5t_std_i32le, values, int(shape(values), hsize_t), hdferr)
     call check_status(hdferr,'hdf5_read_k_h5t_std_i32le [2]')
     call h5aclose_f(attr_id, hdferr)
     call check_status(hdferr,'hdf5_read_k_h5t_std_i32le [3]')
@@ -3437,14 +3437,14 @@ contains
        call h5aopen_by_name_f(handle, path, name, attr_id, hdferr)
        call check_status(hdferr,'hdf5_write_k_h5t_std_i32le [1]')
     else
-       call h5screate_simple_f(1, shape(values, hsize_t), dspace_id, hdferr)
+       call h5screate_simple_f(1, int(shape(values), hsize_t), dspace_id, hdferr)
        call check_status(hdferr,'hdf5_write_k_h5t_std_i32le [1]')
        call h5acreate_by_name_f(handle, path, name, h5t_std_i32le, dspace_id, attr_id, hdferr)
        call check_status(hdferr,'hdf5_write_k_h5t_std_i32le [2]')
        call h5sclose_f(dspace_id, hdferr)
        call check_status(hdferr,'hdf5_write_k_h5t_std_i32le [3]')
     end if
-    call h5awrite_f(attr_id, h5t_std_i32le, values, shape(values, hsize_t), hdferr)
+    call h5awrite_f(attr_id, h5t_std_i32le, values, int(shape(values), hsize_t), hdferr)
     call check_status(hdferr,'hdf5_write_k_h5t_std_i32le [4]')
     call h5aclose_f(attr_id, hdferr)
     call check_status(hdferr,'hdf5_write_k_h5t_std_i32le [5]')
