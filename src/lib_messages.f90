@@ -107,16 +107,43 @@ contains
 
     character(len=8) :: date
     character(len=10) :: time
+    character(len=62) :: chunk
 
-    integer :: m
+    integer :: m, imin, imax, j
+    integer, parameter :: width = 61
 
     call date_and_time(date,time)
     read(date(5:6),*) m
 
-    call delimit
-    write(0,*) "ERROR   : ",trim(text)
+    write(0,*) repeat('-',60)
+
+    ! The following deals with the wrapping of the text, since it allows more
+    ! verbose errors without messing up the formatting
+    imin = 1
+    do
+       if(imin + width > len(text)) then
+          ! End of message has been reached
+          imax = len(text)
+       else
+          ! Look for spaces
+          do j = width, 1, -1
+             imax = imin + j
+             if(text(imax:imax) == ' ') exit
+          end do
+          ! No spaces found, just force cut
+          if(j == 0) imax = imin + width
+       end if
+       if(imin == 1) then
+          write(0,*) "ERROR   : ",text(imin:imax)
+       else
+          write(0,*) "          ",text(imin:imax)
+       end if
+       if(imax == len(text)) exit
+       imin = imax + 1
+    end do
+
     write(0,*) "WHERE   : ",trim(location)
-    call delimit
+    write(0,*) repeat('-',60)
 
     write(0,*)
     write(0,*) " *** Execution aborted on "&
