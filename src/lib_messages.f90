@@ -107,7 +107,6 @@ contains
 
     character(len=8) :: date
     character(len=10) :: time
-    character(len=62) :: chunk
 
     integer :: m, imin, imax, j
     integer, parameter :: width = 61
