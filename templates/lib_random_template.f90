@@ -100,10 +100,10 @@ contains
     implicit none
     character(len=*),intent(out) :: string
     integer :: i,j
-    real :: xi
+    real(dp) :: xi
     do i=1,len(string)
        call random(xi)
-       j = int(xi*26.)
+       j = int(xi*26._dp)
        call random(xi)
        if(xi < 0.5) then
           j = j + 65

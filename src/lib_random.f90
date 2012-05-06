@@ -1,4 +1,4 @@
-! MD5 of template: d747341e9c0cd132363f5182cd5ebb17
+! MD5 of template: 7caa295a67224215dc3ec4a8e7f8b3bf
 ! Random number generation related routines
 ! Thomas Robitaille (c) 2009
 
@@ -101,10 +101,10 @@ contains
     implicit none
     character(len=*),intent(out) :: string
     integer :: i,j
-    real :: xi
+    real(dp) :: xi
     do i=1,len(string)
        call random(xi)
-       j = int(xi*26.)
+       j = int(xi*26._dp)
        call random(xi)
        if(xi < 0.5) then
           j = j + 65
