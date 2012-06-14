@@ -195,9 +195,9 @@ contains
   !!@FOR real(sp):sp real(dp):dp integer:int integer(idp):int8
 
   logical elemental function is_nan_<T>(value) result(nan)
-    ! Rather than use x != x, we use !(x < x+x) as the former does not work with pgfortran
+    ! x != x does not work with pgfortran
     @T,intent(in) :: value
-    nan = .not. (value .lt. value + value)
+    nan = .not. (value > -1 .or. value < 1)
   end function is_nan_<T>
 
   !!@END FOR

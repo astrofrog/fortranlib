@@ -1,4 +1,4 @@
-! MD5 of template: 0a3b98ac4e15ee3511ae8f43ff596594
+! MD5 of template: 874b367ed9a2602d10f066584f750d00
 ! Array related routines (Integration, Interpolation, etc.)
 ! Thomas Robitaille (c) 2009
 
@@ -195,30 +195,30 @@ contains
 
 
   logical elemental function is_nan_int8(value) result(nan)
-    ! Rather than use x != x, we use !(x < x+x) as the former does not work with pgfortran
+    ! x != x does not work with pgfortran
     integer(idp),intent(in) :: value
-    nan = .not. (value .lt. value + value)
+    nan = .not. (value > -1 .or. value < 1)
   end function is_nan_int8
 
 
   logical elemental function is_nan_int(value) result(nan)
-    ! Rather than use x != x, we use !(x < x+x) as the former does not work with pgfortran
+    ! x != x does not work with pgfortran
     integer,intent(in) :: value
-    nan = .not. (value .lt. value + value)
+    nan = .not. (value > -1 .or. value < 1)
   end function is_nan_int
 
 
   logical elemental function is_nan_dp(value) result(nan)
-    ! Rather than use x != x, we use !(x < x+x) as the former does not work with pgfortran
+    ! x != x does not work with pgfortran
     real(dp),intent(in) :: value
-    nan = .not. (value .lt. value + value)
+    nan = .not. (value > -1 .or. value < 1)
   end function is_nan_dp
 
 
   logical elemental function is_nan_sp(value) result(nan)
-    ! Rather than use x != x, we use !(x < x+x) as the former does not work with pgfortran
+    ! x != x does not work with pgfortran
     real(sp),intent(in) :: value
-    nan = .not. (value .lt. value + value)
+    nan = .not. (value > -1 .or. value < 1)
   end function is_nan_sp
 
 
