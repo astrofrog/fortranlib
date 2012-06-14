@@ -1,4 +1,4 @@
-! MD5 of template: 5ff437c9553214c629f41e2a465aae5c
+! MD5 of template: 80314d9513d10c22ed6d6b03a54e510e
 ! Probability Distribution Function (PDF) related routines
 ! Thomas Robitaille (c) 2009
 
@@ -213,10 +213,7 @@ contains
     call allocate_pdf(p,size(y))
     p%x   = x
     p%pdf = y
-    if(present(log)) then
-       p%log = log
-       where(p%pdf==0.) p%pdf=tiny(p%pdf)
-    end if
+    if(present(log)) p%log = log
     if(present(simple)) p%simple = simple
     call normalize_pdf(p)
     call find_cdf(p)
@@ -258,7 +255,7 @@ contains
     type(pdf_dp),intent(inout) :: p
     integer :: i
     call check_pdf(p)
-    p%cdf(1) = tiny(p%cdf)
+    p%cdf(1) = 0._dp
     do i=2,p%n
        if(p%log) then
           p%cdf(i) = p%cdf(i-1) + integral_loglog(p%x,p%pdf,p%x(i-1),p%x(i))
@@ -463,10 +460,7 @@ contains
     call allocate_pdf(p,size(y))
     p%x   = x
     p%pdf = y
-    if(present(log)) then
-       p%log = log
-       where(p%pdf==0.) p%pdf=tiny(p%pdf)
-    end if
+    if(present(log)) p%log = log
     if(present(simple)) p%simple = simple
     call normalize_pdf(p)
     call find_cdf(p)
@@ -508,7 +502,7 @@ contains
     type(pdf_sp),intent(inout) :: p
     integer :: i
     call check_pdf(p)
-    p%cdf(1) = tiny(p%cdf)
+    p%cdf(1) = 0._sp
     do i=2,p%n
        if(p%log) then
           p%cdf(i) = p%cdf(i-1) + integral_loglog(p%x,p%pdf,p%x(i-1),p%x(i))

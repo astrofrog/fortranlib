@@ -186,10 +186,7 @@ contains
     call allocate_pdf(p,size(y))
     p%x   = x
     p%pdf = y
-    if(present(log)) then
-       p%log = log
-       where(p%pdf==0.) p%pdf=tiny(p%pdf)
-    end if
+    if(present(log)) p%log = log
     if(present(simple)) p%simple = simple
     call normalize_pdf(p)
     call find_cdf(p)
@@ -231,7 +228,7 @@ contains
     type(pdf_<T>),intent(inout) :: p
     integer :: i
     call check_pdf(p)
-    p%cdf(1) = tiny(p%cdf)
+    p%cdf(1) = 0._<T>
     do i=2,p%n
        if(p%log) then
           p%cdf(i) = p%cdf(i-1) + integral_loglog(p%x,p%pdf,p%x(i-1),p%x(i))
