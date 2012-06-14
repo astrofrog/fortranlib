@@ -195,8 +195,9 @@ contains
   !!@FOR real(sp):sp real(dp):dp integer:int integer(idp):int8
 
   logical elemental function is_nan_<T>(value) result(nan)
+    ! Rather than use x != x, we use !(x < x+x) as the former does not work with pgfortran
     @T,intent(in) :: value
-    nan = value .ne. value
+    nan = .not. (value .lt. value + value)
   end function is_nan_<T>
 
   !!@END FOR
@@ -1287,7 +1288,7 @@ contains
     array       = 0.
     array_count = 0.
 
-    w = nint(sigma * 5.)
+    w = nint(sigma * 5._dp)
 
     do i=1,nx
        do j=1,ny
@@ -1305,8 +1306,8 @@ contains
 
                 d = dx*dx+dy*dy
 
-                array(i,j) = array(i,j) + array_orig(ii,jj) * exp(-d/2.)
-                array_count(i,j) = array_count(i,j) + exp(-d/2.)
+                array(i,j) = array(i,j) + array_orig(ii,jj) * exp(-d/2._dp)
+                array_count(i,j) = array_count(i,j) + exp(-d/2._dp)
 
              end do
           end do

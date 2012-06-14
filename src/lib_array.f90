@@ -1,4 +1,4 @@
-! MD5 of template: 0497e5f8ca62c919b04f07cff0db2f1f
+! MD5 of template: 0a3b98ac4e15ee3511ae8f43ff596594
 ! Array related routines (Integration, Interpolation, etc.)
 ! Thomas Robitaille (c) 2009
 
@@ -195,26 +195,30 @@ contains
 
 
   logical elemental function is_nan_int8(value) result(nan)
+    ! Rather than use x != x, we use !(x < x+x) as the former does not work with pgfortran
     integer(idp),intent(in) :: value
-    nan = value .ne. value
+    nan = .not. (value .lt. value + value)
   end function is_nan_int8
 
 
   logical elemental function is_nan_int(value) result(nan)
+    ! Rather than use x != x, we use !(x < x+x) as the former does not work with pgfortran
     integer,intent(in) :: value
-    nan = value .ne. value
+    nan = .not. (value .lt. value + value)
   end function is_nan_int
 
 
   logical elemental function is_nan_dp(value) result(nan)
+    ! Rather than use x != x, we use !(x < x+x) as the former does not work with pgfortran
     real(dp),intent(in) :: value
-    nan = value .ne. value
+    nan = .not. (value .lt. value + value)
   end function is_nan_dp
 
 
   logical elemental function is_nan_sp(value) result(nan)
+    ! Rather than use x != x, we use !(x < x+x) as the former does not work with pgfortran
     real(sp),intent(in) :: value
-    nan = value .ne. value
+    nan = .not. (value .lt. value + value)
   end function is_nan_sp
 
 
@@ -2250,7 +2254,7 @@ contains
     array       = 0.
     array_count = 0.
 
-    w = nint(sigma * 5.)
+    w = nint(sigma * 5._dp)
 
     do i=1,nx
        do j=1,ny
@@ -2268,8 +2272,8 @@ contains
 
                 d = dx*dx+dy*dy
 
-                array(i,j) = array(i,j) + array_orig(ii,jj) * exp(-d/2.)
-                array_count(i,j) = array_count(i,j) + exp(-d/2.)
+                array(i,j) = array(i,j) + array_orig(ii,jj) * exp(-d/2._dp)
+                array_count(i,j) = array_count(i,j) + exp(-d/2._dp)
 
              end do
           end do
