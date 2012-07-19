@@ -114,7 +114,7 @@ contains
     call date_and_time(date,time)
     read(date(5:6),*) m
 
-    write(0,*) repeat('-',60)
+    write(0,*) repeat('-',72)
 
     ! The following deals with the wrapping of the text, since it allows more
     ! verbose errors without messing up the formatting
@@ -142,7 +142,7 @@ contains
     end do
 
     write(0,*) "WHERE   : ",trim(location)
-    write(0,*) repeat('-',60)
+    write(0,*) repeat('-',72)
 
     write(0,*)
     write(0,*) " *** Execution aborted on "&
@@ -173,7 +173,7 @@ contains
 
   subroutine delimit
     implicit none
-    write(*,*) repeat('-',60)
+    write(*,*) repeat('-',72)
   end subroutine delimit
 
 end module lib_messages
