@@ -1,7 +1,7 @@
-! MD5 of template: dcc92091c60de36c8666b51ca5b58c1a
+! MD5 of template: 9be7d8f3c28d3de980ef74431b8b731b
 module type_pdf2d
 
-  use lib_array, only : locate
+  use lib_array, only : locate, interp2d
   use lib_random, only : random
 
   implicit none
@@ -29,6 +29,7 @@ module type_pdf2d
      real(dp),allocatable :: cdf(:,:)
      real(dp),allocatable :: cdfy(:)
      real(dp),allocatable :: pdfy(:)
+     logical :: normalized = .false.
   end type pdf2d_dp
 
 
@@ -41,6 +42,7 @@ module type_pdf2d
      real(sp),allocatable :: cdf(:,:)
      real(sp),allocatable :: cdfy(:)
      real(sp),allocatable :: pdfy(:)
+     logical :: normalized = .false.
   end type pdf2d_sp
 
 
@@ -55,6 +57,12 @@ module type_pdf2d
      module procedure sample_pdf2d_sp
      module procedure sample_pdf2d_dp
   end interface sample_pdf2d
+
+  public :: interpolate_pdf2d
+  interface interpolate_pdf2d
+     module procedure interpolate_pdf2d_sp
+     module procedure interpolate_pdf2d_dp
+  end interface interpolate_pdf2d
 
 contains
 
@@ -81,6 +89,8 @@ contains
 
     real(dp),intent(in) :: x(:), y(:), prob(:,:)
     real(dp),allocatable :: area(:,:)
+
+    real(dp) :: norm
 
     integer :: i, j
 
@@ -118,6 +128,16 @@ contains
          & + prob(2:p%nx,2:p%ny)) &
          & * area
 
+    ! Find total probability
+    norm = sum(p%pdf)
+
+    ! Normalize unbinned probability
+    p%prob = p%prob / norm
+
+    ! Normalize PDF
+    p%pdf  = p%pdf / norm
+    p%normalized = .true.
+
     ! Compute 2-d CDF along x direction
 
     allocate(p%cdf(p%nx-1,p%ny-1))
@@ -141,9 +161,6 @@ contains
     do i=1,p%nx - 1
        p%cdf(i,:) = p%cdf(i,:) / p%cdf(p%nx-1,:)
     end do
-
-    !     print *,p%cdfy
-    !     stop
 
   end function set_pdf2d_dp
 
@@ -274,6 +291,35 @@ contains
 
   end subroutine sample_pdf2d_dp
 
+  real(dp) function interpolate_pdf2d_dp(p, x, y, bounds_error, fill_value) result(prob)
+
+    ! Interpolate a 2-d PDF
+    !
+    ! Parameters
+    ! ----------
+    ! p : pdf2d_dp
+    !     The PDF to interpolate
+    ! x, y : real(dp)
+    !     Position at which to interpolate the 2-d PDF
+    ! bounds_error : logical, optional
+    !     Whether to raise an error if the interpolation is out of bounds
+    ! fill_value : real(dp)
+    !     The value to use for out-of-bounds interpolation if bounds_error = .false.
+    !
+    ! Returns
+    ! -------
+    ! prob : real(dp)
+    !     The probability at the position requested
+
+    implicit none
+    type(pdf2d_dp),intent(in) :: p
+    real(dp),intent(in) :: x, y
+    logical,intent(in),optional :: bounds_error
+    real(dp),intent(in),optional :: fill_value
+    if(.not.p%normalized) stop "[interpolate_pdf] PDF is not normalized"
+    prob = interp2d(p%x, p%y, p%prob, x, y, bounds_error, fill_value)
+  end function interpolate_pdf2d_dp
+
 
   type(pdf2d_sp) function set_pdf2d_sp(x, y, prob) result(p)
 
@@ -297,6 +343,8 @@ contains
 
     real(sp),intent(in) :: x(:), y(:), prob(:,:)
     real(sp),allocatable :: area(:,:)
+
+    real(sp) :: norm
 
     integer :: i, j
 
@@ -334,6 +382,16 @@ contains
          & + prob(2:p%nx,2:p%ny)) &
          & * area
 
+    ! Find total probability
+    norm = sum(p%pdf)
+
+    ! Normalize unbinned probability
+    p%prob = p%prob / norm
+
+    ! Normalize PDF
+    p%pdf  = p%pdf / norm
+    p%normalized = .true.
+
     ! Compute 2-d CDF along x direction
 
     allocate(p%cdf(p%nx-1,p%ny-1))
@@ -357,9 +415,6 @@ contains
     do i=1,p%nx - 1
        p%cdf(i,:) = p%cdf(i,:) / p%cdf(p%nx-1,:)
     end do
-
-    !     print *,p%cdfy
-    !     stop
 
   end function set_pdf2d_sp
 
@@ -489,6 +544,35 @@ contains
     y = y * (p%y(ybin+1) - p%y(ybin)) + p%y(ybin)
 
   end subroutine sample_pdf2d_sp
+
+  real(sp) function interpolate_pdf2d_sp(p, x, y, bounds_error, fill_value) result(prob)
+
+    ! Interpolate a 2-d PDF
+    !
+    ! Parameters
+    ! ----------
+    ! p : pdf2d_sp
+    !     The PDF to interpolate
+    ! x, y : real(sp)
+    !     Position at which to interpolate the 2-d PDF
+    ! bounds_error : logical, optional
+    !     Whether to raise an error if the interpolation is out of bounds
+    ! fill_value : real(sp)
+    !     The value to use for out-of-bounds interpolation if bounds_error = .false.
+    !
+    ! Returns
+    ! -------
+    ! prob : real(sp)
+    !     The probability at the position requested
+
+    implicit none
+    type(pdf2d_sp),intent(in) :: p
+    real(sp),intent(in) :: x, y
+    logical,intent(in),optional :: bounds_error
+    real(sp),intent(in),optional :: fill_value
+    if(.not.p%normalized) stop "[interpolate_pdf] PDF is not normalized"
+    prob = interp2d(p%x, p%y, p%prob, x, y, bounds_error, fill_value)
+  end function interpolate_pdf2d_sp
 
 
 end module type_pdf2d

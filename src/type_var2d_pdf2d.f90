@@ -1,9 +1,9 @@
-! MD5 of template: f29ef24e5a466701d28eb0b497fa28fa
+! MD5 of template: 3074adc06f46370a112d45f93ae7f46b
 module type_var2d_pdf2d
 
-  use lib_array, only : locate
+  use lib_array, only : locate, interp2d
   use lib_random, only : random
-  use type_pdf2d, only : pdf2d_sp, pdf2d_dp, sample_pdf2d, set_pdf2d
+  use type_pdf2d, only : pdf2d_sp, pdf2d_dp, sample_pdf2d, set_pdf2d, interpolate_pdf2d
 
   implicit none
   save
@@ -110,7 +110,7 @@ contains
     !     The w and z value to sample the PDFs for
     ! v : var2d_pdf2d_dp
     !     The variable PDF to sample
-    ! 
+    !
     ! Returns
     ! -------
     ! x, y : real(dp)
@@ -153,6 +153,60 @@ contains
          &  / (v%w(iw+1) - v%w(iw)) / (v%z(iz+1) - v%z(iz))
 
   end subroutine sample_var2d_pdf2d_dp
+
+
+  real(dp) function interpolate_var2d_pdf2d_cont_dp(w, z, v, x, y, bounds_error, fill_value) result(prob)
+
+    ! Interpolate a 2-d PDF
+    !
+    ! Parameters
+    ! ----------
+    ! w, z : real(dp)
+    !     The w and z value to sample the PDFs for
+    ! v : var2d_pdf2d_dp
+    !     The variable PDF to interpolate
+    ! x, y : real(dp)
+    !     Position at which to interpolate the 2-d PDF
+    ! bounds_error : logical, optional
+    !     Whether to raise an error if the interpolation is out of bounds
+    ! fill_value : real(dp)
+    !     The value to use for out-of-bounds interpolation if bounds_error = .false.
+    !
+    ! Returns
+    ! -------
+    ! prob : real(dp)
+    !     The probability at the position requested
+
+    implicit none
+
+    real(dp),intent(in) :: w, z
+    type(var2d_pdf2d_dp),intent(in) :: v
+    real(dp),intent(in) :: x, y
+    logical,intent(in),optional :: bounds_error
+    real(dp),intent(in),optional :: fill_value
+
+    real(dp) :: p11,p12,p21,p22
+    integer :: iw, iz
+
+    ! Find bin in w and z arrays
+    iw = locate(v%w, w)
+    iz = locate(v%z, z)
+
+    ! Interpolate neighboring PDFs
+    p11 = interpolate_pdf2d(v%p(iw, iz), x, y, bounds_error, fill_value)
+    p21 = interpolate_pdf2d(v%p(iw+1, iz), x, y, bounds_error, fill_value)
+    p12 = interpolate_pdf2d(v%p(iw, iz+1), x, y, bounds_error, fill_value)
+    p22 = interpolate_pdf2d(v%p(iw+1, iz+1), x, y, bounds_error, fill_value)
+
+    ! Calculate result using bilinear interpolation
+
+    prob = (p11 * (v%w(iw + 1) - w) * (v%z(iz + 1) - z) &
+         &  + p21 * (w - v%w(iw)) * (v%z(iz + 1) - z) &
+         &  + p12 * (v%w(iw + 1) - w) * (z - v%z(iz)) &
+         &  + p22 * (w - v%w(iw)) * (z - v%z(iz))) &
+         &  / (v%w(iw+1) - v%w(iw)) / (v%z(iz+1) - v%z(iz))
+
+  end function interpolate_var2d_pdf2d_cont_dp
 
 
   type(var2d_pdf2d_sp) function set_var2d_pdf2d_sp(x, y, w, z, prob) result(v)
@@ -213,7 +267,7 @@ contains
     !     The w and z value to sample the PDFs for
     ! v : var2d_pdf2d_sp
     !     The variable PDF to sample
-    ! 
+    !
     ! Returns
     ! -------
     ! x, y : real(sp)
@@ -256,6 +310,60 @@ contains
          &  / (v%w(iw+1) - v%w(iw)) / (v%z(iz+1) - v%z(iz))
 
   end subroutine sample_var2d_pdf2d_sp
+
+
+  real(sp) function interpolate_var2d_pdf2d_cont_sp(w, z, v, x, y, bounds_error, fill_value) result(prob)
+
+    ! Interpolate a 2-d PDF
+    !
+    ! Parameters
+    ! ----------
+    ! w, z : real(sp)
+    !     The w and z value to sample the PDFs for
+    ! v : var2d_pdf2d_sp
+    !     The variable PDF to interpolate
+    ! x, y : real(sp)
+    !     Position at which to interpolate the 2-d PDF
+    ! bounds_error : logical, optional
+    !     Whether to raise an error if the interpolation is out of bounds
+    ! fill_value : real(sp)
+    !     The value to use for out-of-bounds interpolation if bounds_error = .false.
+    !
+    ! Returns
+    ! -------
+    ! prob : real(sp)
+    !     The probability at the position requested
+
+    implicit none
+
+    real(sp),intent(in) :: w, z
+    type(var2d_pdf2d_sp),intent(in) :: v
+    real(sp),intent(in) :: x, y
+    logical,intent(in),optional :: bounds_error
+    real(sp),intent(in),optional :: fill_value
+
+    real(sp) :: p11,p12,p21,p22
+    integer :: iw, iz
+
+    ! Find bin in w and z arrays
+    iw = locate(v%w, w)
+    iz = locate(v%z, z)
+
+    ! Interpolate neighboring PDFs
+    p11 = interpolate_pdf2d(v%p(iw, iz), x, y, bounds_error, fill_value)
+    p21 = interpolate_pdf2d(v%p(iw+1, iz), x, y, bounds_error, fill_value)
+    p12 = interpolate_pdf2d(v%p(iw, iz+1), x, y, bounds_error, fill_value)
+    p22 = interpolate_pdf2d(v%p(iw+1, iz+1), x, y, bounds_error, fill_value)
+
+    ! Calculate result using bilinear interpolation
+
+    prob = (p11 * (v%w(iw + 1) - w) * (v%z(iz + 1) - z) &
+         &  + p21 * (w - v%w(iw)) * (v%z(iz + 1) - z) &
+         &  + p12 * (v%w(iw + 1) - w) * (z - v%z(iz)) &
+         &  + p22 * (w - v%w(iw)) * (z - v%z(iz))) &
+         &  / (v%w(iw+1) - v%w(iw)) / (v%z(iz+1) - v%z(iz))
+
+  end function interpolate_var2d_pdf2d_cont_sp
 
 
 end module type_var2d_pdf2d

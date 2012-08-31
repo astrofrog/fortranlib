@@ -1,6 +1,6 @@
 module type_pdf2d
 
-  use lib_array, only : locate
+  use lib_array, only : locate, interp2d
   use lib_random, only : random
 
   implicit none
@@ -29,6 +29,7 @@ module type_pdf2d
      @T,allocatable :: cdf(:,:)
      @T,allocatable :: cdfy(:)
      @T,allocatable :: pdfy(:)
+     logical :: normalized = .false.
   end type pdf2d_<T>
 
   !!@END FOR
@@ -44,6 +45,12 @@ module type_pdf2d
      module procedure sample_pdf2d_sp
      module procedure sample_pdf2d_dp
   end interface sample_pdf2d
+
+  public :: interpolate_pdf2d
+  interface interpolate_pdf2d
+     module procedure interpolate_pdf2d_sp
+     module procedure interpolate_pdf2d_dp
+  end interface interpolate_pdf2d
 
 contains
 
@@ -71,6 +78,8 @@ contains
 
     @T,intent(in) :: x(:), y(:), prob(:,:)
     @T,allocatable :: area(:,:)
+
+    @T :: norm
 
     integer :: i, j
 
@@ -108,6 +117,16 @@ contains
          & + prob(2:p%nx,2:p%ny)) &
          & * area
 
+    ! Find total probability
+    norm = sum(p%pdf)
+
+    ! Normalize unbinned probability
+    p%prob = p%prob / norm
+
+    ! Normalize PDF
+    p%pdf  = p%pdf / norm
+    p%normalized = .true.
+
     ! Compute 2-d CDF along x direction
 
     allocate(p%cdf(p%nx-1,p%ny-1))
@@ -131,9 +150,6 @@ contains
     do i=1,p%nx - 1
        p%cdf(i,:) = p%cdf(i,:) / p%cdf(p%nx-1,:)
     end do
-
-    !     print *,p%cdfy
-    !     stop
 
   end function set_pdf2d_<T>
 
@@ -263,6 +279,35 @@ contains
     y = y * (p%y(ybin+1) - p%y(ybin)) + p%y(ybin)
 
   end subroutine sample_pdf2d_<T>
+
+  @T function interpolate_pdf2d_<T>(p, x, y, bounds_error, fill_value) result(prob)
+
+    ! Interpolate a 2-d PDF
+    !
+    ! Parameters
+    ! ----------
+    ! p : pdf2d_<T>
+    !     The PDF to interpolate
+    ! x, y : @T
+    !     Position at which to interpolate the 2-d PDF
+    ! bounds_error : logical, optional
+    !     Whether to raise an error if the interpolation is out of bounds
+    ! fill_value : @T
+    !     The value to use for out-of-bounds interpolation if bounds_error = .false.
+    !
+    ! Returns
+    ! -------
+    ! prob : @T
+    !     The probability at the position requested
+
+    implicit none
+    type(pdf2d_<T>),intent(in) :: p
+    @T,intent(in) :: x, y
+    logical,intent(in),optional :: bounds_error
+    real(<T>),intent(in),optional :: fill_value
+    if(.not.p%normalized) stop "[interpolate_pdf] PDF is not normalized"
+    prob = interp2d(p%x, p%y, p%prob, x, y, bounds_error, fill_value)
+  end function interpolate_pdf2d_<T>
 
   !!@END FOR
 
