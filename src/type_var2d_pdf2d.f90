@@ -1,4 +1,4 @@
-! MD5 of template: 4c530174f79035ccd9b748fc01f4f6cf
+! MD5 of template: f29ef24e5a466701d28eb0b497fa28fa
 module type_var2d_pdf2d
 
   use lib_array, only : locate
@@ -93,9 +93,9 @@ contains
     v%z = z
 
     do iw=1,v%nw
-    do iz=1,v%nz
-       v%p(iw,iz) = set_pdf2d(x, y, prob(:, :, iw, iz))
-    end do
+       do iz=1,v%nz
+          v%p(iw,iz) = set_pdf2d(x, y, prob(:, :, iw, iz))
+       end do
     end do
 
   end function set_var2d_pdf2d_dp
@@ -129,7 +129,7 @@ contains
 
     ! Sample random values
     do i=1,4
-      call random(xi(i))
+       call random(xi(i))
     end do
 
     ! Sample neighboring PDFs
@@ -141,17 +141,17 @@ contains
     ! Calculate result using bilinear interpolation
 
     x = (x11 * (v%w(iw + 1) - w) * (v%z(iz + 1) - z) &
-    &  + x21 * (w - v%w(iw)) * (v%z(iz + 1) - z) &
-    &  + x12 * (v%w(iw + 1) - w) * (z - v%z(iz)) &
-    &  + x22 * (w - v%w(iw)) * (z - v%z(iz))) &
-    &  / (v%w(iw+1) - v%w(iw)) / (v%z(iz+1) - v%z(iz))
+         &  + x21 * (w - v%w(iw)) * (v%z(iz + 1) - z) &
+         &  + x12 * (v%w(iw + 1) - w) * (z - v%z(iz)) &
+         &  + x22 * (w - v%w(iw)) * (z - v%z(iz))) &
+         &  / (v%w(iw+1) - v%w(iw)) / (v%z(iz+1) - v%z(iz))
 
     y = (y11 * (v%w(iw + 1) - w) * (v%z(iz + 1) - z) &
-    &  + y21 * (w - v%w(iw)) * (v%z(iz + 1) - z) &
-    &  + y12 * (v%w(iw + 1) - w) * (z - v%z(iz)) &
-    &  + y22 * (w - v%w(iw)) * (z - v%z(iz))) &
-    &  / (v%w(iw+1) - v%w(iw)) / (v%z(iz+1) - v%z(iz))
-    
+         &  + y21 * (w - v%w(iw)) * (v%z(iz + 1) - z) &
+         &  + y12 * (v%w(iw + 1) - w) * (z - v%z(iz)) &
+         &  + y22 * (w - v%w(iw)) * (z - v%z(iz))) &
+         &  / (v%w(iw+1) - v%w(iw)) / (v%z(iz+1) - v%z(iz))
+
   end subroutine sample_var2d_pdf2d_dp
 
 
@@ -196,9 +196,9 @@ contains
     v%z = z
 
     do iw=1,v%nw
-    do iz=1,v%nz
-       v%p(iw,iz) = set_pdf2d(x, y, prob(:, :, iw, iz))
-    end do
+       do iz=1,v%nz
+          v%p(iw,iz) = set_pdf2d(x, y, prob(:, :, iw, iz))
+       end do
     end do
 
   end function set_var2d_pdf2d_sp
@@ -232,7 +232,7 @@ contains
 
     ! Sample random values
     do i=1,4
-      call random(xi(i))
+       call random(xi(i))
     end do
 
     ! Sample neighboring PDFs
@@ -244,17 +244,17 @@ contains
     ! Calculate result using bilinear interpolation
 
     x = (x11 * (v%w(iw + 1) - w) * (v%z(iz + 1) - z) &
-    &  + x21 * (w - v%w(iw)) * (v%z(iz + 1) - z) &
-    &  + x12 * (v%w(iw + 1) - w) * (z - v%z(iz)) &
-    &  + x22 * (w - v%w(iw)) * (z - v%z(iz))) &
-    &  / (v%w(iw+1) - v%w(iw)) / (v%z(iz+1) - v%z(iz))
+         &  + x21 * (w - v%w(iw)) * (v%z(iz + 1) - z) &
+         &  + x12 * (v%w(iw + 1) - w) * (z - v%z(iz)) &
+         &  + x22 * (w - v%w(iw)) * (z - v%z(iz))) &
+         &  / (v%w(iw+1) - v%w(iw)) / (v%z(iz+1) - v%z(iz))
 
     y = (y11 * (v%w(iw + 1) - w) * (v%z(iz + 1) - z) &
-    &  + y21 * (w - v%w(iw)) * (v%z(iz + 1) - z) &
-    &  + y12 * (v%w(iw + 1) - w) * (z - v%z(iz)) &
-    &  + y22 * (w - v%w(iw)) * (z - v%z(iz))) &
-    &  / (v%w(iw+1) - v%w(iw)) / (v%z(iz+1) - v%z(iz))
-    
+         &  + y21 * (w - v%w(iw)) * (v%z(iz + 1) - z) &
+         &  + y12 * (v%w(iw + 1) - w) * (z - v%z(iz)) &
+         &  + y22 * (w - v%w(iw)) * (z - v%z(iz))) &
+         &  / (v%w(iw+1) - v%w(iw)) / (v%z(iz+1) - v%z(iz))
+
   end subroutine sample_var2d_pdf2d_sp
 
 
