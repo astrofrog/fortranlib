@@ -1,4 +1,4 @@
-! MD5 of template: 3074adc06f46370a112d45f93ae7f46b
+! MD5 of template: c3326a3ff2789df9aa4b0b513127f5b2
 module type_var2d_pdf2d
 
   use lib_array, only : locate, interp2d
@@ -48,6 +48,12 @@ module type_var2d_pdf2d
      module procedure sample_var2d_pdf2d_sp
      module procedure sample_var2d_pdf2d_dp
   end interface sample_var2d_pdf2d
+
+  public :: interpolate_var2d_pdf2d
+  interface interpolate_var2d_pdf2d
+     module procedure interpolate_var2d_pdf2d_sp
+     module procedure interpolate_var2d_pdf2d_dp
+  end interface interpolate_var2d_pdf2d
 
 contains
 
@@ -155,7 +161,7 @@ contains
   end subroutine sample_var2d_pdf2d_dp
 
 
-  real(dp) function interpolate_var2d_pdf2d_cont_dp(w, z, v, x, y, bounds_error, fill_value) result(prob)
+  real(dp) function interpolate_var2d_pdf2d_dp(w, z, v, x, y, bounds_error, fill_value) result(prob)
 
     ! Interpolate a 2-d PDF
     !
@@ -206,7 +212,7 @@ contains
          &  + p22 * (w - v%w(iw)) * (z - v%z(iz))) &
          &  / (v%w(iw+1) - v%w(iw)) / (v%z(iz+1) - v%z(iz))
 
-  end function interpolate_var2d_pdf2d_cont_dp
+  end function interpolate_var2d_pdf2d_dp
 
 
   type(var2d_pdf2d_sp) function set_var2d_pdf2d_sp(x, y, w, z, prob) result(v)
@@ -312,7 +318,7 @@ contains
   end subroutine sample_var2d_pdf2d_sp
 
 
-  real(sp) function interpolate_var2d_pdf2d_cont_sp(w, z, v, x, y, bounds_error, fill_value) result(prob)
+  real(sp) function interpolate_var2d_pdf2d_sp(w, z, v, x, y, bounds_error, fill_value) result(prob)
 
     ! Interpolate a 2-d PDF
     !
@@ -363,7 +369,7 @@ contains
          &  + p22 * (w - v%w(iw)) * (z - v%z(iz))) &
          &  / (v%w(iw+1) - v%w(iw)) / (v%z(iz+1) - v%z(iz))
 
-  end function interpolate_var2d_pdf2d_cont_sp
+  end function interpolate_var2d_pdf2d_sp
 
 
 end module type_var2d_pdf2d

@@ -41,6 +41,12 @@ module type_var2d_pdf2d
      module procedure sample_var2d_pdf2d_dp
   end interface sample_var2d_pdf2d
 
+  public :: interpolate_var2d_pdf2d
+  interface interpolate_var2d_pdf2d
+     module procedure interpolate_var2d_pdf2d_sp
+     module procedure interpolate_var2d_pdf2d_dp
+  end interface interpolate_var2d_pdf2d
+
 contains
 
   !!@FOR real(sp):sp real(<T>):dp
@@ -148,7 +154,7 @@ contains
   end subroutine sample_var2d_pdf2d_<T>
 
 
-  @T function interpolate_var2d_pdf2d_cont_<T>(w, z, v, x, y, bounds_error, fill_value) result(prob)
+  @T function interpolate_var2d_pdf2d_<T>(w, z, v, x, y, bounds_error, fill_value) result(prob)
 
     ! Interpolate a 2-d PDF
     !
@@ -199,7 +205,7 @@ contains
          &  + p22 * (w - v%w(iw)) * (z - v%z(iz))) &
          &  / (v%w(iw+1) - v%w(iw)) / (v%z(iz+1) - v%z(iz))
 
-  end function interpolate_var2d_pdf2d_cont_<T>
+  end function interpolate_var2d_pdf2d_<T>
 
   !!@END FOR
 
