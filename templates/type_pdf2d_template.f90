@@ -28,7 +28,7 @@ module type_pdf2d
      @T,allocatable :: pdf(:,:)
      @T,allocatable :: cdf(:,:)
      @T,allocatable :: cdfy(:)
-     @T,allocatable :: pdfy(:)  
+     @T,allocatable :: pdfy(:)
   end type pdf2d_<T>
 
   !!@END FOR
@@ -61,7 +61,7 @@ contains
     !     The y values at which the probabilites are defined
     ! prob : 2-d array (size nx x ny)
     !     The probabilities defined at (x,y)
-    ! 
+    !
     ! Returns
     ! -------
     ! p : pdf2d_<T>
@@ -102,7 +102,7 @@ contains
 
     allocate(p%pdf(p%nx-1,p%ny-1))
 
-    p%pdf = (prob(1:p%nx-1,1:p%ny-1) & 
+    p%pdf = (prob(1:p%nx-1,1:p%ny-1) &
          & + prob(1:p%nx-1,2:p%ny) &
          & + prob(2:p%nx,1:p%ny-1) &
          & + prob(2:p%nx,2:p%ny)) &
@@ -175,14 +175,18 @@ contains
     end if
 
     ! Find y bin
-    ybin = locate(p%cdfy, xi(1)) + 1
-
-    !    print *,ybin
+    if(xi(1) < p%cdfy(1)) then
+       ybin = 1
+    else
+       ybin = locate(p%cdfy, xi(1)) + 1
+    end if
 
     ! Find x bin
-    xbin = locate(p%cdf(:,ybin), xi(2)) + 1
-
-    !     print *,xbin, ybin
+    if(xi(2) < p%cdf(1, ybin)) then
+       xbin = 1
+    else
+       xbin = locate(p%cdf(:,ybin), xi(2)) + 1
+    end if
 
     ! Now sample the position within the rectangle. We first find the normalized position in the range [0:1,0:1]. We do this by sampling from a function given by the plane:
     !
@@ -194,7 +198,7 @@ contains
     b2 = p%prob(xbin + 1, ybin) - b1
     b3 = p%prob(xbin, ybin + 1) - b1
     b4 = p%prob(xbin + 1, ybin + 1) - b2 - b3 - b1
-    ! 
+    !
     !    print *,'-----'
     !    print *,p%prob(xbin, ybin)
     !    print *,p%prob(xbin+1, ybin)
