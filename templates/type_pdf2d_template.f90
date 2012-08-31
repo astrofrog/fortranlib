@@ -107,7 +107,7 @@ contains
        end do
     end do
 
-    ! Compute binned PDF as average of four neighboring points times area of rectangle (can drop factor of 4 since normalized)
+    ! Compute binned PDF as average of four neighboring points times area of rectangle
 
     allocate(p%pdf(p%nx-1,p%ny-1))
 
@@ -115,7 +115,7 @@ contains
          & + prob(1:p%nx-1,2:p%ny) &
          & + prob(2:p%nx,1:p%ny-1) &
          & + prob(2:p%nx,2:p%ny)) &
-         & * area
+         & * area * 0.25_dp
 
     ! Find total probability
     norm = sum(p%pdf)

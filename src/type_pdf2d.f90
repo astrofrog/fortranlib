@@ -1,4 +1,4 @@
-! MD5 of template: 9be7d8f3c28d3de980ef74431b8b731b
+! MD5 of template: 5ba5ddeab030884465be3b87d62b5995
 module type_pdf2d
 
   use lib_array, only : locate, interp2d
@@ -118,7 +118,7 @@ contains
        end do
     end do
 
-    ! Compute binned PDF as average of four neighboring points times area of rectangle (can drop factor of 4 since normalized)
+    ! Compute binned PDF as average of four neighboring points times area of rectangle
 
     allocate(p%pdf(p%nx-1,p%ny-1))
 
@@ -126,7 +126,7 @@ contains
          & + prob(1:p%nx-1,2:p%ny) &
          & + prob(2:p%nx,1:p%ny-1) &
          & + prob(2:p%nx,2:p%ny)) &
-         & * area
+         & * area * 0.25_dp
 
     ! Find total probability
     norm = sum(p%pdf)
@@ -372,7 +372,7 @@ contains
        end do
     end do
 
-    ! Compute binned PDF as average of four neighboring points times area of rectangle (can drop factor of 4 since normalized)
+    ! Compute binned PDF as average of four neighboring points times area of rectangle
 
     allocate(p%pdf(p%nx-1,p%ny-1))
 
@@ -380,7 +380,7 @@ contains
          & + prob(1:p%nx-1,2:p%ny) &
          & + prob(2:p%nx,1:p%ny-1) &
          & + prob(2:p%nx,2:p%ny)) &
-         & * area
+         & * area * 0.25_dp
 
     ! Find total probability
     norm = sum(p%pdf)
