@@ -834,9 +834,11 @@ contains
           ipos_<T> = 0
        else if(x > xmax) then
           ipos_<T> = nbin+1
-       else
+       else if(x < xmax) then
           frac=(x-xmin)/(xmax-xmin)
-          ipos_<T>=int(frac*real(nbin))+1
+          ipos_<T>=int(frac*real(nbin, <T>))+1
+       else  ! x == xmax
+          ipos_<T> = nbin
        end if
 
     else
@@ -845,9 +847,11 @@ contains
           ipos_<T> = 0
        else if(x > xmin) then
           ipos_<T> = nbin+1
-       else
+       else if(x < xmin) then
           frac=(x-xmin)/(xmax-xmin)
-          ipos_<T>=int(frac*real(nbin))+1
+          ipos_<T>=int(frac*real(nbin, <T>))+1
+       else  ! x == xmin
+          ipos_<T> = nbin
        end if
 
     end if

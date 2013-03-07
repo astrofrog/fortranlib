@@ -1,4 +1,4 @@
-! MD5 of template: 874b367ed9a2602d10f066584f750d00
+! MD5 of template: 712f522020dbe2eab390eba5980d46a1
 ! Array related routines (Integration, Interpolation, etc.)
 ! Thomas Robitaille (c) 2009
 
@@ -853,9 +853,11 @@ contains
           ipos_dp = 0
        else if(x > xmax) then
           ipos_dp = nbin+1
-       else
+       else if(x < xmax) then
           frac=(x-xmin)/(xmax-xmin)
-          ipos_dp=int(frac*real(nbin))+1
+          ipos_dp=int(frac*real(nbin, dp))+1
+       else  ! x == xmax
+          ipos_dp = nbin
        end if
 
     else
@@ -864,9 +866,11 @@ contains
           ipos_dp = 0
        else if(x > xmin) then
           ipos_dp = nbin+1
-       else
+       else if(x < xmin) then
           frac=(x-xmin)/(xmax-xmin)
-          ipos_dp=int(frac*real(nbin))+1
+          ipos_dp=int(frac*real(nbin, dp))+1
+       else  ! x == xmin
+          ipos_dp = nbin
        end if
 
     end if
@@ -1801,9 +1805,11 @@ contains
           ipos_sp = 0
        else if(x > xmax) then
           ipos_sp = nbin+1
-       else
+       else if(x < xmax) then
           frac=(x-xmin)/(xmax-xmin)
-          ipos_sp=int(frac*real(nbin))+1
+          ipos_sp=int(frac*real(nbin, sp))+1
+       else  ! x == xmax
+          ipos_sp = nbin
        end if
 
     else
@@ -1812,9 +1818,11 @@ contains
           ipos_sp = 0
        else if(x > xmin) then
           ipos_sp = nbin+1
-       else
+       else if(x < xmin) then
           frac=(x-xmin)/(xmax-xmin)
-          ipos_sp=int(frac*real(nbin))+1
+          ipos_sp=int(frac*real(nbin, sp))+1
+       else  ! x == xmin
+          ipos_sp = nbin
        end if
 
     end if
