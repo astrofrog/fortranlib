@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import sys
 import glob
 import os
@@ -20,7 +22,7 @@ def parse_fortran_template(input,output):
 
     # Read input file
 
-    program = open(input, "rb")
+    program = open(input, "r")
     lines = program.readlines()
     program.close()
 
@@ -34,7 +36,7 @@ def parse_fortran_template(input,output):
         except:
             break
 
-        print "  Block found from lines "+str(istart)+" to "+str(iend)
+        print("  Block found from lines "+str(istart)+" to "+str(iend))
 
         types = lines[istart].strip().rsplit()
 
@@ -63,5 +65,5 @@ def parse_fortran_template(input,output):
 
 
 for program in glob.glob(os.path.join('templates/','*_template.f90')):
-    print "Processing %s" % program
+    print("Processing %s" % program)
     parse_fortran_template(program, program.replace('_template.f90','.f90').replace('templates','src'))
