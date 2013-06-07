@@ -228,14 +228,11 @@ contains
     type(pdf_<T>),intent(inout) :: p
     integer :: i
     call check_pdf(p)
-    p%cdf(1) = 0._<T>
-    do i=2,p%n
-       if(p%log) then
-          p%cdf(i) = p%cdf(i-1) + integral_loglog(p%x,p%pdf,p%x(i-1),p%x(i))
-       else
-          p%cdf(i) = p%cdf(i-1) + integral(p%x,p%pdf,p%x(i-1),p%x(i))
-       end if
-    end do
+    if(p%log) then
+       p%cdf = cumulative_integral_loglog(p%x,p%pdf)
+    else
+       p%cdf = cumulative_integral(p%x,p%pdf)
+    end if
     p%cdf = p%cdf / p%cdf(p%n)
     if(.not.p%simple) then
        if(p%log) then

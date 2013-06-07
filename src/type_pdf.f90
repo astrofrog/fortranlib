@@ -1,4 +1,4 @@
-! MD5 of template: 80314d9513d10c22ed6d6b03a54e510e
+! MD5 of template: d2d10bc24ff81c9ceee086e0b4482987
 ! Probability Distribution Function (PDF) related routines
 ! Thomas Robitaille (c) 2009
 
@@ -255,14 +255,11 @@ contains
     type(pdf_dp),intent(inout) :: p
     integer :: i
     call check_pdf(p)
-    p%cdf(1) = 0._dp
-    do i=2,p%n
-       if(p%log) then
-          p%cdf(i) = p%cdf(i-1) + integral_loglog(p%x,p%pdf,p%x(i-1),p%x(i))
-       else
-          p%cdf(i) = p%cdf(i-1) + integral(p%x,p%pdf,p%x(i-1),p%x(i))
-       end if
-    end do
+    if(p%log) then
+       p%cdf = cumulative_integral_loglog(p%x,p%pdf)
+    else
+       p%cdf = cumulative_integral(p%x,p%pdf)
+    end if
     p%cdf = p%cdf / p%cdf(p%n)
     if(.not.p%simple) then
        if(p%log) then
@@ -502,14 +499,11 @@ contains
     type(pdf_sp),intent(inout) :: p
     integer :: i
     call check_pdf(p)
-    p%cdf(1) = 0._sp
-    do i=2,p%n
-       if(p%log) then
-          p%cdf(i) = p%cdf(i-1) + integral_loglog(p%x,p%pdf,p%x(i-1),p%x(i))
-       else
-          p%cdf(i) = p%cdf(i-1) + integral(p%x,p%pdf,p%x(i-1),p%x(i))
-       end if
-    end do
+    if(p%log) then
+       p%cdf = cumulative_integral_loglog(p%x,p%pdf)
+    else
+       p%cdf = cumulative_integral(p%x,p%pdf)
+    end if
     p%cdf = p%cdf / p%cdf(p%n)
     if(.not.p%simple) then
        if(p%log) then
