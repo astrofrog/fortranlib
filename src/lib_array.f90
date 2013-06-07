@@ -1,4 +1,4 @@
-! MD5 of template: 712f522020dbe2eab390eba5980d46a1
+! MD5 of template: 0b9f273f3eb8d1227efa1e89e6732368
 ! Array related routines (Integration, Interpolation, etc.)
 ! Thomas Robitaille (c) 2009
 
@@ -41,6 +41,14 @@ module lib_array
      module procedure integral_subset_dp
   end interface integral
 
+  public :: cumulative_integral
+  interface cumulative_integral
+     module procedure cumulative_integral_sp
+     module procedure cumulative_integral_dp
+     ! module procedure cumulative_integral_subset_sp
+     ! module procedure cumulative_integral_subset_dp
+  end interface cumulative_integral
+
   public :: integral_linlog
   interface integral_linlog
      module procedure integral_linlog_sp
@@ -48,6 +56,14 @@ module lib_array
      module procedure integral_linlog_subset_sp
      module procedure integral_linlog_subset_dp
   end interface integral_linlog
+
+  public :: cumulative_integral_linlog
+  interface cumulative_integral_linlog
+     module procedure cumulative_integral_linlog_sp
+     module procedure cumulative_integral_linlog_dp
+     ! module procedure cumulative_integral_linlog_subset_sp
+     ! module procedure cumulative_integral_linlog_subset_dp
+  end interface cumulative_integral_linlog
 
   public :: integral_loglin
   interface integral_loglin
@@ -57,6 +73,14 @@ module lib_array
      module procedure integral_loglin_subset_dp
   end interface integral_loglin
 
+  public :: cumulative_integral_loglin
+  interface cumulative_integral_loglin
+     module procedure cumulative_integral_loglin_sp
+     module procedure cumulative_integral_loglin_dp
+     ! module procedure cumulative_integral_loglin_subset_sp
+     ! module procedure cumulative_integral_loglin_subset_dp
+  end interface cumulative_integral_loglin
+
   public :: integral_loglog
   interface integral_loglog
      module procedure integral_loglog_sp
@@ -64,6 +88,14 @@ module lib_array
      module procedure integral_loglog_subset_sp
      module procedure integral_loglog_subset_dp
   end interface integral_loglog
+
+  public :: cumulative_integral_loglog
+  interface cumulative_integral_loglog
+     module procedure cumulative_integral_loglog_sp
+     module procedure cumulative_integral_loglog_dp
+     ! module procedure cumulative_integral_loglog_subset_sp
+     ! module procedure cumulative_integral_loglog_subset_dp
+  end interface cumulative_integral_loglog
 
   public :: locate
   interface locate
@@ -317,6 +349,41 @@ contains
     integral_loglog_subset_dp = integral_general_subset_dp(x, y, x1, x2, interp1d_loglog_dp, trapezium_loglog_dp)
   end function integral_loglog_subset_dp
 
+  function cumulative_integral_dp(x,y)
+    ! Total cumulative_integral of a function
+    implicit none
+    real(dp),intent(in) :: x(:),y(:)
+    real(dp), dimension(size(y)) :: cumulative_integral_dp
+    cumulative_integral_dp = cumulative_integral_general_dp(x, y, trapezium_dp)
+  end function cumulative_integral_dp
+
+  function cumulative_integral_linlog_dp(x,y)
+    ! Total cumulative_integral of a function
+    ! (uses linlog interpolation)
+    implicit none
+    real(dp),intent(in) :: x(:),y(:)
+    real(dp), dimension(size(y)) :: cumulative_integral_linlog_dp
+    cumulative_integral_linlog_dp = cumulative_integral_general_dp(x, y, trapezium_linlog_dp)
+  end function cumulative_integral_linlog_dp
+
+  function cumulative_integral_loglin_dp(x,y)
+    ! Total cumulative_integral of a function
+    ! (uses loglin interpolation)
+    implicit none
+    real(dp),intent(in) :: x(:),y(:)
+    real(dp), dimension(size(y)) :: cumulative_integral_loglin_dp
+    cumulative_integral_loglin_dp = cumulative_integral_general_dp(x, y, trapezium_loglin_dp)
+  end function cumulative_integral_loglin_dp
+
+  function cumulative_integral_loglog_dp(x,y)
+    ! Total cumulative_integral of a function
+    ! (uses log10 interpolation)
+    implicit none
+    real(dp),intent(in) :: x(:),y(:)
+    real(dp), dimension(size(y)) :: cumulative_integral_loglog_dp
+    cumulative_integral_loglog_dp = cumulative_integral_general_dp(x, y, trapezium_loglog_dp)
+  end function cumulative_integral_loglog_dp
+
   real(dp) function integral_general_dp(x,y,f_chunk) result(sum)
     ! Total integral of a function
     implicit none
@@ -334,6 +401,25 @@ contains
        sum=sum+f_chunk(x(j),y(j),x(j+1),y(j+1))
     end do
   end function integral_general_dp
+
+  function cumulative_integral_general_dp(x,y,f_chunk) result(c)
+    ! Total integral of a function
+    implicit none
+    real(dp),intent(in) :: x(:),y(:)
+    integer :: j
+    interface
+       real(dp) function f_chunk(x1,y1,x2,y2)
+         import :: dp
+         implicit none
+         real(dp),intent(in) :: x1,y1,x2,y2
+       end function f_chunk
+    end interface
+    real(dp), dimension(size(y)) :: c
+    c(1) = 0._dp
+    do j=1,size(x)-1
+       c(j+1)=c(j)+f_chunk(x(j),y(j),x(j+1),y(j+1))
+    end do
+  end function cumulative_integral_general_dp
 
   real(dp) function integral_general_subset_dp(x,y,x1,x2,f_interp,f_chunk) result(sum)
     ! Integral of a function between two limits
@@ -371,7 +457,7 @@ contains
     if(x1.gt.x(1)) then
        i1 = locate(x,x1)
        f1 = f_interp(x,y,x1)
-    else 
+    else
        i1 = 0
        f1 = 0._dp
     end if
@@ -1269,6 +1355,41 @@ contains
     integral_loglog_subset_sp = integral_general_subset_sp(x, y, x1, x2, interp1d_loglog_sp, trapezium_loglog_sp)
   end function integral_loglog_subset_sp
 
+  function cumulative_integral_sp(x,y)
+    ! Total cumulative_integral of a function
+    implicit none
+    real(sp),intent(in) :: x(:),y(:)
+    real(sp), dimension(size(y)) :: cumulative_integral_sp
+    cumulative_integral_sp = cumulative_integral_general_sp(x, y, trapezium_sp)
+  end function cumulative_integral_sp
+
+  function cumulative_integral_linlog_sp(x,y)
+    ! Total cumulative_integral of a function
+    ! (uses linlog interpolation)
+    implicit none
+    real(sp),intent(in) :: x(:),y(:)
+    real(sp), dimension(size(y)) :: cumulative_integral_linlog_sp
+    cumulative_integral_linlog_sp = cumulative_integral_general_sp(x, y, trapezium_linlog_sp)
+  end function cumulative_integral_linlog_sp
+
+  function cumulative_integral_loglin_sp(x,y)
+    ! Total cumulative_integral of a function
+    ! (uses loglin interpolation)
+    implicit none
+    real(sp),intent(in) :: x(:),y(:)
+    real(sp), dimension(size(y)) :: cumulative_integral_loglin_sp
+    cumulative_integral_loglin_sp = cumulative_integral_general_sp(x, y, trapezium_loglin_sp)
+  end function cumulative_integral_loglin_sp
+
+  function cumulative_integral_loglog_sp(x,y)
+    ! Total cumulative_integral of a function
+    ! (uses log10 interpolation)
+    implicit none
+    real(sp),intent(in) :: x(:),y(:)
+    real(sp), dimension(size(y)) :: cumulative_integral_loglog_sp
+    cumulative_integral_loglog_sp = cumulative_integral_general_sp(x, y, trapezium_loglog_sp)
+  end function cumulative_integral_loglog_sp
+
   real(sp) function integral_general_sp(x,y,f_chunk) result(sum)
     ! Total integral of a function
     implicit none
@@ -1286,6 +1407,25 @@ contains
        sum=sum+f_chunk(x(j),y(j),x(j+1),y(j+1))
     end do
   end function integral_general_sp
+
+  function cumulative_integral_general_sp(x,y,f_chunk) result(c)
+    ! Total integral of a function
+    implicit none
+    real(sp),intent(in) :: x(:),y(:)
+    integer :: j
+    interface
+       real(sp) function f_chunk(x1,y1,x2,y2)
+         import :: sp
+         implicit none
+         real(sp),intent(in) :: x1,y1,x2,y2
+       end function f_chunk
+    end interface
+    real(sp), dimension(size(y)) :: c
+    c(1) = 0._sp
+    do j=1,size(x)-1
+       c(j+1)=c(j)+f_chunk(x(j),y(j),x(j+1),y(j+1))
+    end do
+  end function cumulative_integral_general_sp
 
   real(sp) function integral_general_subset_sp(x,y,x1,x2,f_interp,f_chunk) result(sum)
     ! Integral of a function between two limits
@@ -1323,7 +1463,7 @@ contains
     if(x1.gt.x(1)) then
        i1 = locate(x,x1)
        f1 = f_interp(x,y,x1)
-    else 
+    else
        i1 = 0
        f1 = 0._sp
     end if

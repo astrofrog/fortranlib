@@ -28,6 +28,10 @@ lib_array.f90 (no dependencies)
     - integral_linlog: trapezium integration with linear-log interpolation
     - integral_loglin: trapezium integration with log-linear interpolation
     - integral_loglog: trapezium integration with log-log interpolation
+    - cumulative_integral: cumulative version of integral
+    - cumulative_integral_linlog: cumulative version of integral_linlog
+    - cumulative_integral_loglin: cumulative version of integral_loglin
+    - cumulative_integral_loglog: cumulative version of integral_loglog
     - locate: search for a value in a sorted array
     - interp1d: 1-D linear interpolation
     - interp2d: 2-D linear interpolation
