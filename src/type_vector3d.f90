@@ -1,4 +1,4 @@
-! MD5 of template: 38164525887db1ab9fbf50e1f20c6beb
+! MD5 of template: a15a5d409ff9a09b396dbe79b8a06efa
 ! 3D vector related routines
 ! Thomas Robitaille (c) 2009
 
@@ -41,6 +41,8 @@ module type_vector3d
      module procedure sub_vector3d_sp
      module procedure sub_vector3d_dp
   end interface operator(-)
+     module procedure minus_vector3d_sp
+     module procedure minus_vector3d_dp
 
   public :: operator(.dot.)
   interface operator(.dot.)
@@ -136,6 +138,22 @@ contains
     v%z = a%z - b%z
 
   end function sub_vector3d_dp
+
+  !**********************************************************************!
+  ! Unary minus for vectors
+  !**********************************************************************!
+
+  type(vector3d_dp) function minus_vector3d_dp(a) result(v)
+
+    implicit none
+
+    type(vector3d_dp),intent(in) :: a
+
+    v%x = -a%x
+    v%y = -a%y
+    v%z = -a%z
+
+  end function minus_vector3d_dp
 
   !**********************************************************************!
   ! Vector dot product
@@ -336,6 +354,22 @@ contains
     v%z = a%z - b%z
 
   end function sub_vector3d_sp
+
+  !**********************************************************************!
+  ! Unary minus for vectors
+  !**********************************************************************!
+
+  type(vector3d_sp) function minus_vector3d_sp(a) result(v)
+
+    implicit none
+
+    type(vector3d_sp),intent(in) :: a
+
+    v%x = -a%x
+    v%y = -a%y
+    v%z = -a%z
+
+  end function minus_vector3d_sp
 
   !**********************************************************************!
   ! Vector dot product

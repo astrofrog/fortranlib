@@ -40,6 +40,8 @@ module type_vector3d
      module procedure sub_vector3d_sp
      module procedure sub_vector3d_dp
   end interface operator(-)
+     module procedure minus_vector3d_sp
+     module procedure minus_vector3d_dp
 
   public :: operator(.dot.)
   interface operator(.dot.)
@@ -136,6 +138,22 @@ contains
     v%z = a%z - b%z
 
   end function sub_vector3d_<T>
+
+  !**********************************************************************!
+  ! Unary minus for vectors
+  !**********************************************************************!
+
+  type(vector3d_<T>) function minus_vector3d_<T>(a) result(v)
+
+    implicit none
+
+    type(vector3d_<T>),intent(in) :: a
+
+    v%x = -a%x
+    v%y = -a%y
+    v%z = -a%z
+
+  end function minus_vector3d_<T>
 
   !**********************************************************************!
   ! Vector dot product
