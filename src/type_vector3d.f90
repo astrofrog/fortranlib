@@ -1,4 +1,4 @@
-! MD5 of template: a15a5d409ff9a09b396dbe79b8a06efa
+! MD5 of template: 9d1b7eae3aae56f30054fec29b1f5ae7
 ! 3D vector related routines
 ! Thomas Robitaille (c) 2009
 
@@ -40,9 +40,9 @@ module type_vector3d
   interface operator(-)
      module procedure sub_vector3d_sp
      module procedure sub_vector3d_dp
-  end interface operator(-)
      module procedure minus_vector3d_sp
      module procedure minus_vector3d_dp
+  end interface operator(-)
 
   public :: operator(.dot.)
   interface operator(.dot.)

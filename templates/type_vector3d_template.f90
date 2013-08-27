@@ -39,9 +39,9 @@ module type_vector3d
   interface operator(-)
      module procedure sub_vector3d_sp
      module procedure sub_vector3d_dp
-  end interface operator(-)
      module procedure minus_vector3d_sp
      module procedure minus_vector3d_dp
+  end interface operator(-)
 
   public :: operator(.dot.)
   interface operator(.dot.)
