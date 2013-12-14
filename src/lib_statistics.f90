@@ -1,6 +1,32 @@
-! MD5 of template: c1ad43ed9e5862b91b0d659b2ae0bfb1
+! MD5 of template: de2e124b77d41b637ba47e23b573548c
 ! Statistics
-! Thomas Robitaille (c) 2010
+!
+! ------------------------------------------------------------------------------
+! Copyright (c) 2009-13, Thomas P. Robitaille
+!
+! All rights reserved.
+!
+! Redistribution and use in source and binary forms, with or without
+! modification, are permitted provided that the following conditions are met:
+!
+!  * Redistributions of source code must retain the above copyright notice, this
+!    list of conditions and the following disclaimer.
+!
+!  * Redistributions in binary form must reproduce the above copyright notice,
+!    this list of conditions and the following disclaimer in the documentation
+!    and/or other materials provided with the distribution.
+!
+! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+! DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+! FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+! DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+! SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+! CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+! OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+! OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+! ------------------------------------------------------------------------------
 
 module lib_statistics
 
@@ -52,9 +78,9 @@ contains
     real(dp),intent(in) :: x(:)
     logical,intent(in),optional :: mask(:)
     if(present(mask)) then
-       mean_dp = sum(x, mask=mask)/size(x)  
+       mean_dp = sum(x, mask=mask)/size(x)
     else
-       mean_dp = sum(x)/size(x)  
+       mean_dp = sum(x)/size(x)
     end if
   end function mean_dp
 
@@ -103,7 +129,7 @@ contains
     implicit none
     real(dp),intent(in) :: x(:)
     logical,intent(in),optional :: mask(:)
-    variance_dp = sum(x-mean(x, mask=mask)**2._dp)/(size(x)-1)  
+    variance_dp = sum(x-mean(x, mask=mask)**2._dp)/(size(x)-1)
   end function variance_dp
 
   real(dp) function clipped_mean_dp(x, n)
@@ -130,9 +156,9 @@ contains
     real(sp),intent(in) :: x(:)
     logical,intent(in),optional :: mask(:)
     if(present(mask)) then
-       mean_sp = sum(x, mask=mask)/size(x)  
+       mean_sp = sum(x, mask=mask)/size(x)
     else
-       mean_sp = sum(x)/size(x)  
+       mean_sp = sum(x)/size(x)
     end if
   end function mean_sp
 
@@ -181,7 +207,7 @@ contains
     implicit none
     real(sp),intent(in) :: x(:)
     logical,intent(in),optional :: mask(:)
-    variance_sp = sum(x-mean(x, mask=mask)**2._sp)/(size(x)-1)  
+    variance_sp = sum(x-mean(x, mask=mask)**2._sp)/(size(x)-1)
   end function variance_sp
 
   real(sp) function clipped_mean_sp(x, n)

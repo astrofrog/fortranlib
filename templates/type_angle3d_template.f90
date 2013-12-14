@@ -1,7 +1,31 @@
 ! 3D angle related routines
-! Thomas Robitaille (c) 2009
-
-! Depends on lib_random
+!
+! ------------------------------------------------------------------------------
+! Copyright (c) 2009-13, Thomas P. Robitaille
+!
+! All rights reserved.
+!
+! Redistribution and use in source and binary forms, with or without
+! modification, are permitted provided that the following conditions are met:
+!
+!  * Redistributions of source code must retain the above copyright notice, this
+!    list of conditions and the following disclaimer.
+!
+!  * Redistributions in binary form must reproduce the above copyright notice,
+!    this list of conditions and the following disclaimer in the documentation
+!    and/or other materials provided with the distribution.
+!
+! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+! DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+! FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+! DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+! SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+! CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+! OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+! OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+! ------------------------------------------------------------------------------
 
 module type_angle3d
 
@@ -138,7 +162,7 @@ contains
     ! This subroutine is used to add a local angle, such as as
     ! photon emission angle on the surface of a star, or a photon
     ! scattering angle, to an already existing position angle.
-    ! The former is given by a_local, the latter, by a_coord, and 
+    ! The former is given by a_local, the latter, by a_coord, and
     ! the final angle by a_angle. We solve this using spherical
     ! trigonometry. Consider a spherical triangle with corner angles
     ! (A,B,C) and side angles (a,b,c). The angle B is attached to the
@@ -174,12 +198,12 @@ contains
        if(a_coord%cost > 0._<T>) then
           a_final = a_local
           a_final%cosp = + a_local%cosp * a_coord%cosp + a_local%sinp * a_coord%sinp
-          a_final%sinp = + a_local%cosp * a_coord%sinp - a_local%sinp * a_coord%cosp 
+          a_final%sinp = + a_local%cosp * a_coord%sinp - a_local%sinp * a_coord%cosp
        else
           a_final = a_local
           a_final%cost = - a_local%cost
           a_final%cosp = + a_local%cosp * a_coord%cosp - a_local%sinp * a_coord%sinp
-          a_final%sinp = + a_local%cosp * a_coord%sinp + a_local%sinp * a_coord%cosp 
+          a_final%sinp = + a_local%cosp * a_coord%sinp + a_local%sinp * a_coord%cosp
        end if
        return
     end if
@@ -248,7 +272,7 @@ contains
 
     if(a_local%sinp < 0._<T>) then ! the top angle is old phi - new phi
        a_final%cosp = + cos_big_b * a_coord%cosp + sin_big_b * a_coord%sinp
-       a_final%sinp = + cos_big_b * a_coord%sinp - sin_big_b * a_coord%cosp       
+       a_final%sinp = + cos_big_b * a_coord%sinp - sin_big_b * a_coord%cosp
     else ! the top angle is new phi - old phi
        a_final%cosp = + cos_big_b * a_coord%cosp - sin_big_b * a_coord%sinp
        a_final%sinp = + cos_big_b * a_coord%sinp + sin_big_b * a_coord%cosp
@@ -298,12 +322,12 @@ contains
        if(a_coord%cost > 0._<T>) then
           a_local = a_final
           a_local%cosp = + a_coord%cosp * a_final%cosp + a_coord%sinp * a_final%sinp
-          a_local%sinp = - a_coord%cosp * a_final%sinp + a_coord%sinp * a_final%cosp 
+          a_local%sinp = - a_coord%cosp * a_final%sinp + a_coord%sinp * a_final%cosp
        else
           a_local = a_final
           a_local%cost = - a_local%cost
           a_local%cosp = + a_coord%cosp * a_final%cosp + a_coord%sinp * a_final%sinp
-          a_local%sinp = + a_coord%cosp * a_final%sinp - a_coord%sinp * a_final%cosp 
+          a_local%sinp = + a_coord%cosp * a_final%sinp - a_coord%sinp * a_final%cosp
        end if
        return
     end if

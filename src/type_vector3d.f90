@@ -1,8 +1,32 @@
-! MD5 of template: 9d1b7eae3aae56f30054fec29b1f5ae7
+! MD5 of template: 3549e07e97deb67e68b2b72e1c3d3ba3
 ! 3D vector related routines
-! Thomas Robitaille (c) 2009
-
-! Depends on lib_random
+!
+! ------------------------------------------------------------------------------
+! Copyright (c) 2009-13, Thomas P. Robitaille
+!
+! All rights reserved.
+!
+! Redistribution and use in source and binary forms, with or without
+! modification, are permitted provided that the following conditions are met:
+!
+!  * Redistributions of source code must retain the above copyright notice, this
+!    list of conditions and the following disclaimer.
+!
+!  * Redistributions in binary form must reproduce the above copyright notice,
+!    this list of conditions and the following disclaimer in the documentation
+!    and/or other materials provided with the distribution.
+!
+! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+! DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+! FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+! DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+! SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+! CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+! OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+! OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+! ------------------------------------------------------------------------------
 
 module type_vector3d
 
@@ -270,7 +294,7 @@ contains
     a%sinp = v%y / small_r
 
     a%cost = v%z / big_r
-    a%sint = small_r / big_r 
+    a%sint = small_r / big_r
 
   end subroutine vector3d_to_angle3d_dp
 
@@ -288,7 +312,7 @@ contains
 
     v%x = a%sint * a%cosp
     v%y = a%sint * a%sinp
-    v%z = a%cost 
+    v%z = a%cost
 
   end subroutine angle3d_to_vector3d_dp
 
@@ -486,7 +510,7 @@ contains
     a%sinp = v%y / small_r
 
     a%cost = v%z / big_r
-    a%sint = small_r / big_r 
+    a%sint = small_r / big_r
 
   end subroutine vector3d_to_angle3d_sp
 
@@ -504,7 +528,7 @@ contains
 
     v%x = a%sint * a%cosp
     v%y = a%sint * a%sinp
-    v%z = a%cost 
+    v%z = a%cost
 
   end subroutine angle3d_to_vector3d_sp
 

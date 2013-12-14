@@ -1,6 +1,32 @@
-! MD5 of template: eb5866022aef4796ca893c0a459e4828
+! MD5 of template: 683bb3d5c0383d2265e241a9884dd5ea
 ! High level routines for cfitsio
-! Thomas Robitaille (c) 2009
+!
+! ------------------------------------------------------------------------------
+! Copyright (c) 2009-13, Thomas P. Robitaille
+!
+! All rights reserved.
+!
+! Redistribution and use in source and binary forms, with or without
+! modification, are permitted provided that the following conditions are met:
+!
+!  * Redistributions of source code must retain the above copyright notice, this
+!    list of conditions and the following disclaimer.
+!
+!  * Redistributions in binary form must reproduce the above copyright notice,
+!    this list of conditions and the following disclaimer in the documentation
+!    and/or other materials provided with the distribution.
+!
+! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+! DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+! FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+! DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+! SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+! CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+! OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+! OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+! ------------------------------------------------------------------------------
 
 module lib_cfitsio
 
@@ -88,10 +114,10 @@ module lib_cfitsio
      module procedure fits_read_4d_array_d
      module procedure fits_read_5d_array_j
      module procedure fits_read_5d_array_e
-     module procedure fits_read_5d_array_d 
+     module procedure fits_read_5d_array_d
      module procedure fits_read_6d_array_j
      module procedure fits_read_6d_array_e
-     module procedure fits_read_6d_array_d   
+     module procedure fits_read_6d_array_d
   end interface fits_read_array
 
   interface fits_read_array_auto
@@ -106,10 +132,10 @@ module lib_cfitsio
      module procedure fits_read_4d_array_alloc_d
      module procedure fits_read_5d_array_alloc_j
      module procedure fits_read_5d_array_alloc_e
-     module procedure fits_read_5d_array_alloc_d 
+     module procedure fits_read_5d_array_alloc_d
      module procedure fits_read_6d_array_alloc_j
      module procedure fits_read_6d_array_alloc_e
-     module procedure fits_read_6d_array_alloc_d   
+     module procedure fits_read_6d_array_alloc_d
   end interface fits_read_array_auto
 
   interface fits_read_keyword
@@ -131,19 +157,19 @@ module lib_cfitsio
   interface fits_table_write_column
      module procedure write_table_column_0d_j
      module procedure write_table_column_1d_j
-     module procedure write_table_column_2d_j   
+     module procedure write_table_column_2d_j
      module procedure write_table_column_0d_e
      module procedure write_table_column_1d_e
-     module procedure write_table_column_2d_e   
+     module procedure write_table_column_2d_e
      module procedure write_table_column_0d_d
      module procedure write_table_column_1d_d
-     module procedure write_table_column_2d_d   
+     module procedure write_table_column_2d_d
      module procedure write_table_column_0d_s
      module procedure write_table_column_1d_s
      module procedure write_table_column_2d_s
      module procedure write_table_column_0d_l
      module procedure write_table_column_1d_l
-     module procedure write_table_column_2d_l  
+     module procedure write_table_column_2d_l
   end interface fits_table_write_column
 
   interface fits_table_read_column
@@ -252,9 +278,9 @@ contains
           write(*,*)
           write(*,'(" WARNING: File exists: ")',advance='no')
           write(*,*) trim(filename)
-          write(*,'(" The following command will be run: ")',advance='no') 
-          write(*,*) trim(command)     
-          do 
+          write(*,'(" The following command will be run: ")',advance='no')
+          write(*,*) trim(command)
+          do
              write(*,'(" Do you wish to continue? (y/n) ")')
              read *,rep
              if(rep=="y".or.rep=="n") exit
@@ -1652,7 +1678,7 @@ contains
     status = 0
     if(present(comment)) then
        call ftukyl(unit,name,value,comment,status)
-    else  
+    else
        call ftukyl(unit,name,value,"",status)
     end if
     call check_status(unit,status,'fits_write_kl')
@@ -1669,7 +1695,7 @@ contains
     status = 0
     if(present(comment)) then
        call ftukys(unit,name,value,comment,status)
-    else  
+    else
        call ftukys(unit,name,value,"",status)
     end if
     call check_status(unit,status,'fits_write_ks')
@@ -1686,7 +1712,7 @@ contains
     status = 0
     if(present(comment)) then
        call ftukyj(unit,name,value,comment,status)
-    else  
+    else
        call ftukyj(unit,name,value,"",status)
     end if
     call check_status(unit,status,'fits_write_kj')
