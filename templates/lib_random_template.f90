@@ -39,6 +39,7 @@ module lib_random
 
   integer :: idum = -1204132124
   real(dp) :: u(97)
+  !$OMP THREADPRIVATE(idum, u)
 
   real(dp),parameter :: pi = 3.14159265358979323846_dp
   real(sp),parameter :: pi_sp = 3.14159265358979323846_sp
@@ -96,6 +97,8 @@ module lib_random
 contains
 
   subroutine set_seed(seed)
+    ! Note: this should be called with a different seed in each thread or
+    ! process.
     implicit none
     integer,intent(in) :: seed
     idum = -abs(seed)
@@ -146,8 +149,10 @@ contains
     implicit none
     real(sp),intent(out) :: xi
     real(sp),save        :: am
+    !$OMP THREADPRIVATE(am)
     integer, parameter :: ia=16807,im=2147483647,iq=127773,ir=2836
     integer, save :: ix=-1,iy=-1,k
+    !$OMP THREADPRIVATE(ix, iy, k)
     if (idum <= 0 .or. iy < 0) then
        am=nearest(1.0_sp,-1.0_sp)/im
        iy=ior(ieor(888889999,abs(idum)),1)
@@ -171,6 +176,7 @@ contains
     integer,save :: i=97
     integer,save :: j=33
     real(dp),save :: c=0
+    !$OMP THREADPRIVATE(i, j, c)
     real(dp) :: x
     real(dp), parameter :: r=9007199254740881._dp/9007199254740992._dp
     real(dp), parameter :: d=362436069876._dp/9007199254740992._dp
@@ -250,6 +256,7 @@ contains
     real(<T>) :: em,harvest,t,y
 
     real(<T>), save :: alxm,g,oldm=-1.0_<T>,sq
+    !$OMP THREADPRIVATE(alxm,g,oldm,sq)
 
     if (xm < 12.0) then
        if (xm /= oldm) then
@@ -351,8 +358,10 @@ contains
          &-86.50532032941677_<T>,24.01409824083091_<T>,&
          &-1.231739572450155_<T>,.1208650973866179e-2_<T>,&
          &-.5395239384953e-5_<T>/)
+    !$OMP THREADPRIVATE(cof)
 
     real(<T>),save :: stp = 2.5066282746310005_<T>
+    !$OMP THREADPRIVATE(stp)
 
     x=xx
     y=x

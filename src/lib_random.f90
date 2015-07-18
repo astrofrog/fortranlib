@@ -1,4 +1,4 @@
-! MD5 of template: 888972e9e180574c8c83291b6532a6de
+! MD5 of template: 4e4c1de0723f7f9d694a1ee666961c00
 ! Random number generation related routines
 !
 ! ------------------------------------------------------------------------------
@@ -40,6 +40,7 @@ module lib_random
 
   integer :: idum = -1204132124
   real(dp) :: u(97)
+  !$OMP THREADPRIVATE(idum, u)
 
   real(dp),parameter :: pi = 3.14159265358979323846_dp
   real(sp),parameter :: pi_sp = 3.14159265358979323846_sp
@@ -97,6 +98,8 @@ module lib_random
 contains
 
   subroutine set_seed(seed)
+    ! Note: this should be called with a different seed in each thread or
+    ! process.
     implicit none
     integer,intent(in) :: seed
     idum = -abs(seed)
@@ -147,8 +150,10 @@ contains
     implicit none
     real(sp),intent(out) :: xi
     real(sp),save        :: am
+    !$OMP THREADPRIVATE(am)
     integer, parameter :: ia=16807,im=2147483647,iq=127773,ir=2836
     integer, save :: ix=-1,iy=-1,k
+    !$OMP THREADPRIVATE(ix, iy, k)
     if (idum <= 0 .or. iy < 0) then
        am=nearest(1.0_sp,-1.0_sp)/im
        iy=ior(ieor(888889999,abs(idum)),1)
@@ -172,6 +177,7 @@ contains
     integer,save :: i=97
     integer,save :: j=33
     real(dp),save :: c=0
+    !$OMP THREADPRIVATE(i, j, c)
     real(dp) :: x
     real(dp), parameter :: r=9007199254740881._dp/9007199254740992._dp
     real(dp), parameter :: d=362436069876._dp/9007199254740992._dp
@@ -250,6 +256,7 @@ contains
     real(dp) :: em,harvest,t,y
 
     real(dp), save :: alxm,g,oldm=-1.0_dp,sq
+    !$OMP THREADPRIVATE(alxm,g,oldm,sq)
 
     if (xm < 12.0) then
        if (xm /= oldm) then
@@ -351,8 +358,10 @@ contains
          &-86.50532032941677_dp,24.01409824083091_dp,&
          &-1.231739572450155_dp,.1208650973866179e-2_dp,&
          &-.5395239384953e-5_dp/)
+    !$OMP THREADPRIVATE(cof)
 
     real(dp),save :: stp = 2.5066282746310005_dp
+    !$OMP THREADPRIVATE(stp)
 
     x=xx
     y=x
@@ -430,6 +439,7 @@ contains
     real(sp) :: em,harvest,t,y
 
     real(sp), save :: alxm,g,oldm=-1.0_sp,sq
+    !$OMP THREADPRIVATE(alxm,g,oldm,sq)
 
     if (xm < 12.0) then
        if (xm /= oldm) then
@@ -531,8 +541,10 @@ contains
          &-86.50532032941677_sp,24.01409824083091_sp,&
          &-1.231739572450155_sp,.1208650973866179e-2_sp,&
          &-.5395239384953e-5_sp/)
+    !$OMP THREADPRIVATE(cof)
 
     real(sp),save :: stp = 2.5066282746310005_sp
+    !$OMP THREADPRIVATE(stp)
 
     x=xx
     y=x
