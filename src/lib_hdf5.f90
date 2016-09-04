@@ -925,6 +925,7 @@ contains
     integer :: hdferr
     integer :: col_id
     type(table_info) :: info
+    print *,'reading', path, col_name
     allocate(values_tmp(size(values)))
     info = hdf5_read_table_info(handle, path)
     col_id = hdf5_table_column_number(info, col_name)
