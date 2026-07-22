@@ -307,6 +307,29 @@ module lib_hdf5
 
 contains
 
+  function capped_chunk_dims(dims) result(chunk)
+
+    ! HDF5 requires chunks to contain fewer than 4GB of data. By default we
+    ! use the full array as a single chunk, but for very large arrays we
+    ! halve the dimensions (starting from the largest) until the number of
+    ! elements is below 2**28, which keeps chunks below 4GB even for 8-byte
+    ! types. Arrays smaller than this are not affected.
+
+    implicit none
+
+    integer(hsize_t),intent(in) :: dims(:)
+    integer(hsize_t) :: chunk(size(dims))
+    integer(hsize_t),parameter :: max_elements = 268435456_hsize_t
+    integer :: i(1)
+
+    chunk = max(dims, 1_hsize_t)
+    do while(product(chunk) > max_elements)
+       i = maxloc(chunk)
+       chunk(i(1)) = (chunk(i(1)) + 1) / 2
+    end do
+
+  end function capped_chunk_dims
+
   subroutine base_hdf5_verbose_enable
     implicit none
     verbose = .true.
@@ -1568,7 +1591,7 @@ contains
     dims = [size(array,1)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_ieee_f64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f64le, array, dims, hdferr)
@@ -1588,7 +1611,7 @@ contains
     dims = [size(array,1), size(array,2)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_ieee_f64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f64le, array, dims, hdferr)
@@ -1608,7 +1631,7 @@ contains
     dims = [size(array,1), size(array,2), size(array,3)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_ieee_f64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f64le, array, dims, hdferr)
@@ -1628,7 +1651,7 @@ contains
     dims = [size(array,1), size(array,2), size(array,3), size(array,4)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_ieee_f64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f64le, array, dims, hdferr)
@@ -1648,7 +1671,7 @@ contains
     dims = [size(array,1), size(array,2), size(array,3), size(array,4), size(array,5)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_ieee_f64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f64le, array, dims, hdferr)
@@ -1668,7 +1691,7 @@ contains
     dims = [size(array,1), size(array,2), size(array,3), size(array,4), size(array,5), size(array,6)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_ieee_f64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f64le, array, dims, hdferr)
@@ -1703,7 +1726,7 @@ contains
     ! Write data out
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle_out, path_out, h5t_ieee_f64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f64le, array, dims, hdferr)
@@ -1935,7 +1958,7 @@ contains
     dims = [size(array,1)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_ieee_f32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f32le, array, dims, hdferr)
@@ -1955,7 +1978,7 @@ contains
     dims = [size(array,1), size(array,2)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_ieee_f32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f32le, array, dims, hdferr)
@@ -1975,7 +1998,7 @@ contains
     dims = [size(array,1), size(array,2), size(array,3)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_ieee_f32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f32le, array, dims, hdferr)
@@ -1995,7 +2018,7 @@ contains
     dims = [size(array,1), size(array,2), size(array,3), size(array,4)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_ieee_f32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f32le, array, dims, hdferr)
@@ -2015,7 +2038,7 @@ contains
     dims = [size(array,1), size(array,2), size(array,3), size(array,4), size(array,5)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_ieee_f32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f32le, array, dims, hdferr)
@@ -2035,7 +2058,7 @@ contains
     dims = [size(array,1), size(array,2), size(array,3), size(array,4), size(array,5), size(array,6)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_ieee_f32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f32le, array, dims, hdferr)
@@ -2070,7 +2093,7 @@ contains
     ! Write data out
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle_out, path_out, h5t_ieee_f32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_ieee_f32le, array, dims, hdferr)
@@ -2302,7 +2325,7 @@ contains
     dims = [size(array,1)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_std_i64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i64le, array, dims, hdferr)
@@ -2322,7 +2345,7 @@ contains
     dims = [size(array,1), size(array,2)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_std_i64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i64le, array, dims, hdferr)
@@ -2342,7 +2365,7 @@ contains
     dims = [size(array,1), size(array,2), size(array,3)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_std_i64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i64le, array, dims, hdferr)
@@ -2362,7 +2385,7 @@ contains
     dims = [size(array,1), size(array,2), size(array,3), size(array,4)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_std_i64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i64le, array, dims, hdferr)
@@ -2382,7 +2405,7 @@ contains
     dims = [size(array,1), size(array,2), size(array,3), size(array,4), size(array,5)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_std_i64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i64le, array, dims, hdferr)
@@ -2402,7 +2425,7 @@ contains
     dims = [size(array,1), size(array,2), size(array,3), size(array,4), size(array,5), size(array,6)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_std_i64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i64le, array, dims, hdferr)
@@ -2437,7 +2460,7 @@ contains
     ! Write data out
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle_out, path_out, h5t_std_i64le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i64le, array, dims, hdferr)
@@ -2669,7 +2692,7 @@ contains
     dims = [size(array,1)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_std_i32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i32le, array, dims, hdferr)
@@ -2689,7 +2712,7 @@ contains
     dims = [size(array,1), size(array,2)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_std_i32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i32le, array, dims, hdferr)
@@ -2709,7 +2732,7 @@ contains
     dims = [size(array,1), size(array,2), size(array,3)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_std_i32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i32le, array, dims, hdferr)
@@ -2729,7 +2752,7 @@ contains
     dims = [size(array,1), size(array,2), size(array,3), size(array,4)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_std_i32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i32le, array, dims, hdferr)
@@ -2749,7 +2772,7 @@ contains
     dims = [size(array,1), size(array,2), size(array,3), size(array,4), size(array,5)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_std_i32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i32le, array, dims, hdferr)
@@ -2769,7 +2792,7 @@ contains
     dims = [size(array,1), size(array,2), size(array,3), size(array,4), size(array,5), size(array,6)]
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle, path, h5t_std_i32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i32le, array, dims, hdferr)
@@ -2804,7 +2827,7 @@ contains
     ! Write data out
     call h5screate_simple_f(size(dims), dims, dspace_id, hdferr)
     call h5pcreate_f(h5p_dataset_create_f, dprop_id, hdferr)
-    call h5pset_chunk_f(dprop_id, size(dims), dims, hdferr)
+    call h5pset_chunk_f(dprop_id, size(dims), capped_chunk_dims(dims), hdferr)
     if(compress) call h5pset_deflate_f(dprop_id, 9, hdferr)
     call h5dcreate_f(handle_out, path_out, h5t_std_i32le, dspace_id, dset_id, hdferr, dprop_id)
     call h5dwrite_f(dset_id, h5t_std_i32le, array, dims, hdferr)
