@@ -449,9 +449,9 @@ contains
     type(vector3d_sp),intent(in) :: a
     real(dp),intent(in)        :: b
 
-    v%x = a%x * b
-    v%y = a%y * b
-    v%z = a%z * b
+    v%x = real(a%x * b, sp)
+    v%y = real(a%y * b, sp)
+    v%z = real(a%z * b, sp)
 
   end function vector3d_scalar_mult_sp
 

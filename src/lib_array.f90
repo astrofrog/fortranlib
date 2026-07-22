@@ -2446,8 +2446,8 @@ contains
 
                 d = dx*dx+dy*dy
 
-                array(i,j) = array(i,j) + array_orig(ii,jj) * exp(-d/2._dp)
-                array_count(i,j) = array_count(i,j) + exp(-d/2._dp)
+                array(i,j) = array(i,j) + array_orig(ii,jj) * real(exp(-d/2._dp), sp)
+                array_count(i,j) = array_count(i,j) + real(exp(-d/2._dp), sp)
 
              end do
           end do

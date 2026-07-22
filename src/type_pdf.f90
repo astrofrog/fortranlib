@@ -537,7 +537,7 @@ contains
           allocate(p%r(p%n-1))
           do i=1,p%n-1
              p%b(i) = log10(p%pdf(i) / p%pdf(i+1)) / log10(p%x(i) / p%x(i+1))
-             p%r(i) = (p%x(i+1) / p%x(i)) ** (p%b(i) + 1._dp)
+             p%r(i) = real((p%x(i+1) / p%x(i)) ** (p%b(i) + 1._dp), sp)
           end do
        else
           allocate(p%a(p%n-1))
@@ -606,7 +606,7 @@ contains
           i = locate(p%cdf, xi)
           xi = (xi - p%cdf(i)) / (p%cdf(i+1) - p%cdf(i))
           if(p%log) then
-             sample_pdf_cont_sp = (xi * (p%r(i) - 1._dp) + 1._dp) ** (1._dp / (p%b(i) + 1._dp)) * p%x(i)
+             sample_pdf_cont_sp = real((xi * (p%r(i) - 1._dp) + 1._dp) ** (1._dp / (p%b(i) + 1._dp)), sp) * p%x(i)
           else
              if(p%a(i)==0._dp) then
                 sample_pdf_cont_sp = xi * (p%x(i+1) - p%x(i)) + p%x(i)
