@@ -463,10 +463,10 @@ contains
 
     real(sp),intent(in) :: theta,phi
 
-    a%cost = cos(theta*deg2rad)
-    a%sint = sin(theta*deg2rad)
-    a%cosp = cos(phi*deg2rad)
-    a%sinp = sin(phi*deg2rad)
+    a%cost = real(cos(theta*deg2rad), sp)
+    a%sint = real(sin(theta*deg2rad), sp)
+    a%cosp = real(cos(phi*deg2rad), sp)
+    a%sinp = real(sin(phi*deg2rad), sp)
 
   end function angle3d_deg_sp
 
@@ -711,7 +711,7 @@ contains
        end if
 
        if(diff >= 0._sp) then
-          sin_big_c = sqrt(diff)
+          sin_big_c = real(sqrt(diff), sp)
        else
           sin_big_c = 0._sp
        end if

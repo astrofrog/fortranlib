@@ -320,12 +320,12 @@ contains
 
   end subroutine check_status
 
-  integer(size_t) function sizeof(type_id)
+  integer(size_t) function hdf5_type_size(type_id)
     implicit none
     integer(hid_t),intent(in) :: type_id
     integer :: hdferr
-    call h5tget_size_f(type_id, sizeof, hdferr)
-  end function sizeof
+    call h5tget_size_f(type_id, hdf5_type_size, hdferr)
+  end function hdf5_type_size
 
   logical function hdf5_test_version(testmaj, testmin, testrel) result(test)
     ! Test whether the library version is equal or more recent to the specified version
@@ -664,7 +664,7 @@ contains
     integer(hid_t),intent(in) :: handle_in, handle_out
     character(len=*),intent(in) :: path_in, path_out
     type(table_info) :: info
-    integer(hid_t) :: datatype_id
+    integer(hid_t) :: datatype_id, super_id
     integer :: hdferr
     integer :: field_idx
     integer :: class
@@ -682,7 +682,7 @@ contains
     call hdf5_table_write_header_info(handle_out, path_out, info)
 
     ! Copy over the fields
-    do field_idx=1,info%n_cols
+    do field_idx=1,int(info%n_cols)
 
        datatype_id = info%field_types(field_idx)
        col_name = info%field_names(field_idx)
@@ -697,7 +697,8 @@ contains
              write(0,'("ERROR: cannot copy ", I0,"-dimensional fields")') rank
              stop
           end if
-          call h5tget_super_f(datatype_id, datatype_id, hdferr)
+          call h5tget_super_f(datatype_id, super_id, hdferr)
+          datatype_id = super_id
        end if
 
        ! Check the type of the array to copy
@@ -770,13 +771,13 @@ contains
     do i=1,n_cols
        offsets(i) = type_size
        if (types(i) == h5t_std_i32le) then
-          type_size = type_size + sizeof(h5t_std_i32le) * widths(i)
+          type_size = type_size + hdf5_type_size(h5t_std_i32le) * widths(i)
        else if(types(i) == h5t_ieee_f32le) then
-          type_size = type_size + sizeof(h5t_ieee_f32le) * widths(i)
+          type_size = type_size + hdf5_type_size(h5t_ieee_f32le) * widths(i)
        else if(types(i) == h5t_ieee_f64le) then
-          type_size = type_size + sizeof(h5t_ieee_f64le) * widths(i)
+          type_size = type_size + hdf5_type_size(h5t_ieee_f64le) * widths(i)
        else if(types(i) == h5t_native_character) then
-          type_size = type_size + sizeof(h5t_native_character) * widths(i)
+          type_size = type_size + hdf5_type_size(h5t_native_character) * widths(i)
        else
           stop "unknown type"
        end if
@@ -912,7 +913,7 @@ contains
     type(table_info) :: info
     info = hdf5_read_table_info(handle, path)
     col_id = hdf5_table_column_number(info, col_name)
-    allocate(values(info%field_sizes(col_id)/sizeof(h5t_ieee_f64le), info%n_rows))
+    allocate(values(info%field_sizes(col_id)/hdf5_type_size(h5t_ieee_f64le), info%n_rows))
     call read_table_column_2d_h5t_ieee_f64le(handle, path, col_name, values)
   end subroutine read_table_column_2d_alloc_h5t_ieee_f64le
 
@@ -975,7 +976,7 @@ contains
     type(table_info) :: info
     info = hdf5_read_table_info(handle, path)
     col_id = hdf5_table_column_number(info, col_name)
-    allocate(values(info%field_sizes(col_id)/sizeof(h5t_ieee_f32le), info%n_rows))
+    allocate(values(info%field_sizes(col_id)/hdf5_type_size(h5t_ieee_f32le), info%n_rows))
     call read_table_column_2d_h5t_ieee_f32le(handle, path, col_name, values)
   end subroutine read_table_column_2d_alloc_h5t_ieee_f32le
 
@@ -1038,7 +1039,7 @@ contains
     type(table_info) :: info
     info = hdf5_read_table_info(handle, path)
     col_id = hdf5_table_column_number(info, col_name)
-    allocate(values(info%field_sizes(col_id)/sizeof(h5t_std_i64le), info%n_rows))
+    allocate(values(info%field_sizes(col_id)/hdf5_type_size(h5t_std_i64le), info%n_rows))
     call read_table_column_2d_h5t_std_i64le(handle, path, col_name, values)
   end subroutine read_table_column_2d_alloc_h5t_std_i64le
 
@@ -1101,7 +1102,7 @@ contains
     type(table_info) :: info
     info = hdf5_read_table_info(handle, path)
     col_id = hdf5_table_column_number(info, col_name)
-    allocate(values(info%field_sizes(col_id)/sizeof(h5t_std_i32le), info%n_rows))
+    allocate(values(info%field_sizes(col_id)/hdf5_type_size(h5t_std_i32le), info%n_rows))
     call read_table_column_2d_h5t_std_i32le(handle, path, col_name, values)
   end subroutine read_table_column_2d_alloc_h5t_std_i32le
 
@@ -1126,7 +1127,7 @@ contains
     integer(hsize_t),parameter :: start=0
     integer :: hdferr
     nrecords = size(values)
-    type_size = sizeof(h5t_native_character)
+    type_size = hdf5_type_size(h5t_native_character)
     call h5tbwrite_field_name_f(handle,path,col_name,start,nrecords,type_size,values,hdferr)
     call check_status(hdferr,'write_table_column_1d_h5t_native_character')
   end subroutine write_table_column_1d_h5t_native_character
@@ -1141,7 +1142,7 @@ contains
     integer(hsize_t),parameter :: start=0
     integer :: hdferr
     nrecords = size(values, 2)
-    type_size = sizeof(h5t_native_character) * size(values, 1)
+    type_size = hdf5_type_size(h5t_native_character) * size(values, 1)
     call h5tbwrite_field_name_f(handle,path,col_name,start,nrecords,type_size,reshape(values,(/size(values)/)),hdferr)
     call check_status(hdferr,'write_table_column_2d_h5t_native_character')
   end subroutine write_table_column_2d_h5t_native_character
@@ -1166,7 +1167,7 @@ contains
     integer(hsize_t),parameter :: start=0
     integer :: hdferr
     nrecords = size(values)
-    type_size = sizeof(h5t_ieee_f64le)
+    type_size = hdf5_type_size(h5t_ieee_f64le)
     call h5tbwrite_field_name_f(handle,path,col_name,start,nrecords,type_size,values,hdferr)
     call check_status(hdferr,'write_table_column_1d_h5t_ieee_f64le')
   end subroutine write_table_column_1d_h5t_ieee_f64le
@@ -1181,7 +1182,7 @@ contains
     integer(hsize_t),parameter :: start=0
     integer :: hdferr
     nrecords = size(values, 2)
-    type_size = sizeof(h5t_ieee_f64le) * size(values, 1)
+    type_size = hdf5_type_size(h5t_ieee_f64le) * size(values, 1)
     call h5tbwrite_field_name_f(handle,path,col_name,start,nrecords,type_size,reshape(values,(/size(values)/)),hdferr)
     call check_status(hdferr,'write_table_column_2d_h5t_ieee_f64le')
   end subroutine write_table_column_2d_h5t_ieee_f64le
@@ -1206,7 +1207,7 @@ contains
     integer(hsize_t),parameter :: start=0
     integer :: hdferr
     nrecords = size(values)
-    type_size = sizeof(h5t_ieee_f32le)
+    type_size = hdf5_type_size(h5t_ieee_f32le)
     call h5tbwrite_field_name_f(handle,path,col_name,start,nrecords,type_size,values,hdferr)
     call check_status(hdferr,'write_table_column_1d_h5t_ieee_f32le')
   end subroutine write_table_column_1d_h5t_ieee_f32le
@@ -1221,7 +1222,7 @@ contains
     integer(hsize_t),parameter :: start=0
     integer :: hdferr
     nrecords = size(values, 2)
-    type_size = sizeof(h5t_ieee_f32le) * size(values, 1)
+    type_size = hdf5_type_size(h5t_ieee_f32le) * size(values, 1)
     call h5tbwrite_field_name_f(handle,path,col_name,start,nrecords,type_size,reshape(values,(/size(values)/)),hdferr)
     call check_status(hdferr,'write_table_column_2d_h5t_ieee_f32le')
   end subroutine write_table_column_2d_h5t_ieee_f32le
@@ -1246,7 +1247,7 @@ contains
     integer(hsize_t),parameter :: start=0
     integer :: hdferr
     nrecords = size(values)
-    type_size = sizeof(h5t_std_i64le)
+    type_size = hdf5_type_size(h5t_std_i64le)
     call h5tbwrite_field_name_f(handle,path,col_name,start,nrecords,type_size,values,hdferr)
     call check_status(hdferr,'write_table_column_1d_h5t_std_i64le')
   end subroutine write_table_column_1d_h5t_std_i64le
@@ -1261,7 +1262,7 @@ contains
     integer(hsize_t),parameter :: start=0
     integer :: hdferr
     nrecords = size(values, 2)
-    type_size = sizeof(h5t_std_i64le) * size(values, 1)
+    type_size = hdf5_type_size(h5t_std_i64le) * size(values, 1)
     call h5tbwrite_field_name_f(handle,path,col_name,start,nrecords,type_size,reshape(values,(/size(values)/)),hdferr)
     call check_status(hdferr,'write_table_column_2d_h5t_std_i64le')
   end subroutine write_table_column_2d_h5t_std_i64le
@@ -1286,7 +1287,7 @@ contains
     integer(hsize_t),parameter :: start=0
     integer :: hdferr
     nrecords = size(values)
-    type_size = sizeof(h5t_std_i32le)
+    type_size = hdf5_type_size(h5t_std_i32le)
     call h5tbwrite_field_name_f(handle,path,col_name,start,nrecords,type_size,values,hdferr)
     call check_status(hdferr,'write_table_column_1d_h5t_std_i32le')
   end subroutine write_table_column_1d_h5t_std_i32le
@@ -1301,7 +1302,7 @@ contains
     integer(hsize_t),parameter :: start=0
     integer :: hdferr
     nrecords = size(values, 2)
-    type_size = sizeof(h5t_std_i32le) * size(values, 1)
+    type_size = hdf5_type_size(h5t_std_i32le) * size(values, 1)
     call h5tbwrite_field_name_f(handle,path,col_name,start,nrecords,type_size,reshape(values,(/size(values)/)),hdferr)
     call check_status(hdferr,'write_table_column_2d_h5t_std_i32le')
   end subroutine write_table_column_2d_h5t_std_i32le
@@ -2991,7 +2992,7 @@ contains
     character(len=*),intent(in) :: path, name
     integer(hid_t) :: attr_id, dspace_id
     real(dp),intent(out),allocatable :: values(:)
-    integer :: hdferr, rank, ndims
+    integer :: hdferr, rank
     integer(hsize_t) :: dims(1), maxdims(1)
 
     ! Check that keyword exists
@@ -3121,7 +3122,7 @@ contains
     character(len=*),intent(in) :: path, name
     integer(hid_t) :: attr_id, dspace_id
     real(sp),intent(out),allocatable :: values(:)
-    integer :: hdferr, rank, ndims
+    integer :: hdferr, rank
     integer(hsize_t) :: dims(1), maxdims(1)
 
     ! Check that keyword exists
@@ -3251,7 +3252,7 @@ contains
     character(len=*),intent(in) :: path, name
     integer(hid_t) :: attr_id, dspace_id
     integer(idp),intent(out),allocatable :: values(:)
-    integer :: hdferr, rank, ndims
+    integer :: hdferr, rank
     integer(hsize_t) :: dims(1), maxdims(1)
 
     ! Check that keyword exists
@@ -3381,7 +3382,7 @@ contains
     character(len=*),intent(in) :: path, name
     integer(hid_t) :: attr_id, dspace_id
     integer,intent(out),allocatable :: values(:)
-    integer :: hdferr, rank, ndims
+    integer :: hdferr, rank
     integer(hsize_t) :: dims(1), maxdims(1)
 
     ! Check that keyword exists
@@ -3465,7 +3466,7 @@ contains
     character(len=*),intent(in) :: attribute_in, attribute_out
     integer(hid_t) :: attr_id, datatype_id, dspace_id
     integer :: hdferr, rank
-    logical :: is_string, is_vector
+    logical :: is_string
     logical :: is_h5t_std_i32le
     logical :: is_h5t_std_i64le
     logical :: is_h5t_ieee_f32le
@@ -3548,7 +3549,7 @@ contains
     ! Work out the datatypes for the columns
     call h5dopen_f(handle, path, dset_id, hdferr)
     call h5dget_type_f(dset_id, datatype_id, hdferr)
-    do field_idx=1,info%n_cols
+    do field_idx=1,int(info%n_cols)
        call h5tget_member_type_f(datatype_id, field_idx-1, info%field_types(field_idx), hdferr)
     end do
     call h5tclose_f(datatype_id, hdferr)
@@ -3560,7 +3561,7 @@ contains
     implicit none
     type(table_info),intent(in) :: info
     character(len=*),intent(in) :: col_name
-    do col_id=1,info%n_cols
+    do col_id=1,int(info%n_cols)
        if(trim(adjustl(info%field_names(col_id))) == trim(col_name)) exit
     end do
     if(col_id==info%n_cols+1) then

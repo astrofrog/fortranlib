@@ -155,7 +155,7 @@ contains
     integer, save :: ix=-1,iy=-1,k
     !$OMP THREADPRIVATE(ix, iy, k)
     if (idum <= 0 .or. iy < 0) then
-       am=nearest(1.0_sp,-1.0_sp)/im
+       am=nearest(1.0_sp,-1.0_sp)/real(im,sp)
        iy=ior(ieor(888889999,abs(idum)),1)
        ix=ieor(777755555,abs(idum))
        idum=abs(idum)+1
@@ -464,7 +464,7 @@ contains
        do
           do
              call random_sp(harvest)
-             y=tan(pi*harvest)
+             y=real(tan(pi*harvest),sp)
              em=sq*y+xm
              if (em >= 0.0) exit
           end do
