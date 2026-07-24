@@ -1,4 +1,4 @@
-! MD5 of template: 4f5c6d3840bf88952e83ee29dfbbb6fc
+! MD5 of template: 7bd053d641d62ff583cf30cacc7bae36
 ! Array related routines (Integration, Interpolation, etc.)
 !
 ! ------------------------------------------------------------------------------
@@ -982,14 +982,14 @@ contains
 
     else
 
-       if(x < xmax) then
+       if(x > xmin) then
           ipos_dp = 0
-       else if(x > xmin) then
+       else if(x < xmax) then
           ipos_dp = nbin+1
-       else if(x < xmin) then
+       else if(x > xmax) then
           frac=(x-xmin)/(xmax-xmin)
           ipos_dp=int(frac*real(nbin, dp))+1
-       else  ! x == xmin
+       else  ! x == xmax
           ipos_dp = nbin
        end if
 
@@ -1996,14 +1996,14 @@ contains
 
     else
 
-       if(x < xmax) then
+       if(x > xmin) then
           ipos_sp = 0
-       else if(x > xmin) then
+       else if(x < xmax) then
           ipos_sp = nbin+1
-       else if(x < xmin) then
+       else if(x > xmax) then
           frac=(x-xmin)/(xmax-xmin)
           ipos_sp=int(frac*real(nbin, sp))+1
-       else  ! x == xmin
+       else  ! x == xmax
           ipos_sp = nbin
        end if
 

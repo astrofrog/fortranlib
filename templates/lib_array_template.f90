@@ -963,14 +963,14 @@ contains
 
     else
 
-       if(x < xmax) then
+       if(x > xmin) then
           ipos_<T> = 0
-       else if(x > xmin) then
+       else if(x < xmax) then
           ipos_<T> = nbin+1
-       else if(x < xmin) then
+       else if(x > xmax) then
           frac=(x-xmin)/(xmax-xmin)
           ipos_<T>=int(frac*real(nbin, <T>))+1
-       else  ! x == xmin
+       else  ! x == xmax
           ipos_<T> = nbin
        end if
 
