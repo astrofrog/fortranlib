@@ -1,4 +1,4 @@
-! MD5 of template: e8ce72b1fbc6a396e11ba55e6dc29db9
+! MD5 of template: 38970a5d63fbd6c0c61fdf600f0968f9
 ! Probability Distribution Function (PDF) related routines
 !
 ! ------------------------------------------------------------------------------
@@ -390,7 +390,13 @@ contains
     else
        call random(xi)
     end if
-    sample_pdf_cont_log_dp = interp1d_loglog(p%cdf(:),p%x(:),xi)
+    if(xi <= p%cdf(1)) then
+       sample_pdf_cont_log_dp = p%x(1)
+    else if(xi >= p%cdf(p%n)) then
+       sample_pdf_cont_log_dp = p%x(p%n)
+    else
+       sample_pdf_cont_log_dp = interp1d_linlog(p%cdf(:),p%x(:),xi)
+    end if
   end function sample_pdf_cont_log_dp
 
   real(dp) function interpolate_pdf_cont_dp(p, x, bounds_error, fill_value) result(prob)
@@ -634,7 +640,13 @@ contains
     else
        call random(xi)
     end if
-    sample_pdf_cont_log_sp = interp1d_loglog(p%cdf(:),p%x(:),xi)
+    if(xi <= p%cdf(1)) then
+       sample_pdf_cont_log_sp = p%x(1)
+    else if(xi >= p%cdf(p%n)) then
+       sample_pdf_cont_log_sp = p%x(p%n)
+    else
+       sample_pdf_cont_log_sp = interp1d_linlog(p%cdf(:),p%x(:),xi)
+    end if
   end function sample_pdf_cont_log_sp
 
   real(sp) function interpolate_pdf_cont_sp(p, x, bounds_error, fill_value) result(prob)
