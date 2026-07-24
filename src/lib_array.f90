@@ -1,4 +1,4 @@
-! MD5 of template: 7bd053d641d62ff583cf30cacc7bae36
+! MD5 of template: a4d2f189e6a05079680e0b18e875b696
 ! Array related routines (Integration, Interpolation, etc.)
 !
 ! ------------------------------------------------------------------------------
@@ -1014,7 +1014,7 @@ contains
 
     real(dp) :: frac
 
-    frac=(real(i-1)+0.5)/real(nbin)
+    frac=(real(i-1,dp)+0.5_dp)/real(nbin,dp)
 
     xval_dp=frac*(xmax-xmin)+xmin
 
@@ -2028,7 +2028,7 @@ contains
 
     real(sp) :: frac
 
-    frac=(real(i-1)+0.5)/real(nbin)
+    frac=(real(i-1,sp)+0.5_sp)/real(nbin,sp)
 
     xval_sp=frac*(xmax-xmin)+xmin
 

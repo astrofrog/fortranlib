@@ -995,7 +995,7 @@ contains
 
     real(<T>) :: frac
 
-    frac=(real(i-1)+0.5)/real(nbin)
+    frac=(real(i-1,<T>)+0.5_<T>)/real(nbin,<T>)
 
     xval_<T>=frac*(xmax-xmin)+xmin
 
