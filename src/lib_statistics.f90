@@ -1,4 +1,4 @@
-! MD5 of template: de2e124b77d41b637ba47e23b573548c
+! MD5 of template: 735c35cef984eefb2cbe85fa23cb26bb
 ! Statistics
 !
 ! ------------------------------------------------------------------------------
@@ -129,7 +129,7 @@ contains
     implicit none
     real(dp),intent(in) :: x(:)
     logical,intent(in),optional :: mask(:)
-    variance_dp = sum(x-mean(x, mask=mask)**2._dp)/(size(x)-1)
+    variance_dp = sum((x-mean(x, mask=mask))**2._dp)/(size(x)-1)
   end function variance_dp
 
   real(dp) function clipped_mean_dp(x, n)
@@ -207,7 +207,7 @@ contains
     implicit none
     real(sp),intent(in) :: x(:)
     logical,intent(in),optional :: mask(:)
-    variance_sp = sum(x-mean(x, mask=mask)**2._sp)/(size(x)-1)
+    variance_sp = sum((x-mean(x, mask=mask))**2._sp)/(size(x)-1)
   end function variance_sp
 
   real(sp) function clipped_mean_sp(x, n)
