@@ -78,7 +78,7 @@ contains
     @T,intent(in) :: x(:)
     logical,intent(in),optional :: mask(:)
     if(present(mask)) then
-       mean_<T> = sum(x, mask=mask)/size(x)
+       mean_<T> = sum(x, mask=mask)/count(mask)
     else
        mean_<T> = sum(x)/size(x)
     end if

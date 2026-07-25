@@ -1,4 +1,4 @@
-! MD5 of template: 735c35cef984eefb2cbe85fa23cb26bb
+! MD5 of template: ed65b7e8a488cb6260b99427178b6e9f
 ! Statistics
 !
 ! ------------------------------------------------------------------------------
@@ -78,7 +78,7 @@ contains
     real(dp),intent(in) :: x(:)
     logical,intent(in),optional :: mask(:)
     if(present(mask)) then
-       mean_dp = sum(x, mask=mask)/size(x)
+       mean_dp = sum(x, mask=mask)/count(mask)
     else
        mean_dp = sum(x)/size(x)
     end if
@@ -156,7 +156,7 @@ contains
     real(sp),intent(in) :: x(:)
     logical,intent(in),optional :: mask(:)
     if(present(mask)) then
-       mean_sp = sum(x, mask=mask)/size(x)
+       mean_sp = sum(x, mask=mask)/count(mask)
     else
        mean_sp = sum(x)/size(x)
     end if
