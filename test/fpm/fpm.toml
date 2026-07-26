@@ -1,0 +1,9 @@
+name = "fortranlib-tests"
+version = "0.1.0"
+license = "BSD-2-Clause"
+
+[build]
+auto-executables = false
+
+[dev-dependencies]
+test-drive.git = "https://github.com/fortran-lang/test-drive"
