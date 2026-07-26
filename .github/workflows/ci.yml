@@ -21,6 +21,9 @@ jobs:
         uses: fortran-lang/setup-fortran@v1
         with:
           compiler: gcc
+          # Match the gcc the prebuilt fpm binary is linked against, so its
+          # libgfortran is present (otherwise fpm fails to load on macOS).
+          version: "12"
 
       - name: Set up fpm
         uses: fortran-lang/setup-fpm@v10
