@@ -78,7 +78,7 @@ contains
     @T,intent(in) :: x(:)
     logical,intent(in),optional :: mask(:)
     if(present(mask)) then
-       mean_<T> = sum(x, mask=mask)/size(x)
+       mean_<T> = sum(x, mask=mask)/count(mask)
     else
        mean_<T> = sum(x)/size(x)
     end if
@@ -129,7 +129,7 @@ contains
     implicit none
     @T,intent(in) :: x(:)
     logical,intent(in),optional :: mask(:)
-    variance_<T> = sum(x-mean(x, mask=mask)**2._<T>)/(size(x)-1)
+    variance_<T> = sum((x-mean(x, mask=mask))**2._<T>)/(size(x)-1)
   end function variance_<T>
 
   @T function clipped_mean_<T>(x, n)

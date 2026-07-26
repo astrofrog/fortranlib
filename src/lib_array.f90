@@ -1,4 +1,4 @@
-! MD5 of template: 13982be359376d65d4f966553ef27636
+! MD5 of template: a4d2f189e6a05079680e0b18e875b696
 ! Array related routines (Integration, Interpolation, etc.)
 !
 ! ------------------------------------------------------------------------------
@@ -454,7 +454,7 @@ contains
 
     real(dp),intent(in) :: x(:),y(:),x1,x2
     integer :: i1,i2
-    real(dp) :: f1,f2
+    real(dp) :: f1,f2,xx1,xx2
     integer :: n
 
     interface
@@ -483,17 +483,25 @@ contains
     if(x1.gt.x(1)) then
        i1 = locate(x,x1)
        f1 = f_interp(x,y,x1)
+       xx1 = x1
     else
+       ! Clamp the lower limit to the tabulated range so that no
+       ! spurious area is added outside the domain
        i1 = 0
-       f1 = 0._dp
+       f1 = y(1)
+       xx1 = x(1)
     end if
 
     if(x2.lt.x(n)) then
        i2 = locate(x,x2)
        f2 = f_interp(x,y,x2)
+       xx2 = x2
     else
+       ! Clamp the upper limit to the tabulated range so that no
+       ! spurious area is added outside the domain
        i2 = n
-       f2 = 0._dp
+       f2 = y(n)
+       xx2 = x(n)
     end if
 
     if(i2.gt.i1) then
@@ -506,12 +514,12 @@ contains
        end if
 
        ! Add extremities
-       sum = sum + f_chunk(x1,f1,x(i1+1),y(i1+1))
-       sum = sum + f_chunk(x(i2),y(i2),x2,f2)
+       sum = sum + f_chunk(xx1,f1,x(i1+1),y(i1+1))
+       sum = sum + f_chunk(x(i2),y(i2),xx2,f2)
 
     else
 
-       sum = f_chunk(x1,f1,x2,f2)
+       sum = f_chunk(xx1,f1,xx2,f2)
 
     end if
 
@@ -974,14 +982,14 @@ contains
 
     else
 
-       if(x < xmax) then
+       if(x > xmin) then
           ipos_dp = 0
-       else if(x > xmin) then
+       else if(x < xmax) then
           ipos_dp = nbin+1
-       else if(x < xmin) then
+       else if(x > xmax) then
           frac=(x-xmin)/(xmax-xmin)
           ipos_dp=int(frac*real(nbin, dp))+1
-       else  ! x == xmin
+       else  ! x == xmax
           ipos_dp = nbin
        end if
 
@@ -1006,7 +1014,7 @@ contains
 
     real(dp) :: frac
 
-    frac=(real(i-1)+0.5)/real(nbin)
+    frac=(real(i-1,dp)+0.5_dp)/real(nbin,dp)
 
     xval_dp=frac*(xmax-xmin)+xmin
 
@@ -1460,7 +1468,7 @@ contains
 
     real(sp),intent(in) :: x(:),y(:),x1,x2
     integer :: i1,i2
-    real(sp) :: f1,f2
+    real(sp) :: f1,f2,xx1,xx2
     integer :: n
 
     interface
@@ -1489,17 +1497,25 @@ contains
     if(x1.gt.x(1)) then
        i1 = locate(x,x1)
        f1 = f_interp(x,y,x1)
+       xx1 = x1
     else
+       ! Clamp the lower limit to the tabulated range so that no
+       ! spurious area is added outside the domain
        i1 = 0
-       f1 = 0._sp
+       f1 = y(1)
+       xx1 = x(1)
     end if
 
     if(x2.lt.x(n)) then
        i2 = locate(x,x2)
        f2 = f_interp(x,y,x2)
+       xx2 = x2
     else
+       ! Clamp the upper limit to the tabulated range so that no
+       ! spurious area is added outside the domain
        i2 = n
-       f2 = 0._sp
+       f2 = y(n)
+       xx2 = x(n)
     end if
 
     if(i2.gt.i1) then
@@ -1512,12 +1528,12 @@ contains
        end if
 
        ! Add extremities
-       sum = sum + f_chunk(x1,f1,x(i1+1),y(i1+1))
-       sum = sum + f_chunk(x(i2),y(i2),x2,f2)
+       sum = sum + f_chunk(xx1,f1,x(i1+1),y(i1+1))
+       sum = sum + f_chunk(x(i2),y(i2),xx2,f2)
 
     else
 
-       sum = f_chunk(x1,f1,x2,f2)
+       sum = f_chunk(xx1,f1,xx2,f2)
 
     end if
 
@@ -1980,14 +1996,14 @@ contains
 
     else
 
-       if(x < xmax) then
+       if(x > xmin) then
           ipos_sp = 0
-       else if(x > xmin) then
+       else if(x < xmax) then
           ipos_sp = nbin+1
-       else if(x < xmin) then
+       else if(x > xmax) then
           frac=(x-xmin)/(xmax-xmin)
           ipos_sp=int(frac*real(nbin, sp))+1
-       else  ! x == xmin
+       else  ! x == xmax
           ipos_sp = nbin
        end if
 
@@ -2012,7 +2028,7 @@ contains
 
     real(sp) :: frac
 
-    frac=(real(i-1)+0.5)/real(nbin)
+    frac=(real(i-1,sp)+0.5_sp)/real(nbin,sp)
 
     xval_sp=frac*(xmax-xmin)+xmin
 

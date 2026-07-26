@@ -363,7 +363,13 @@ contains
     else
        call random(xi)
     end if
-    sample_pdf_cont_log_<T> = interp1d_loglog(p%cdf(:),p%x(:),xi)
+    if(xi <= p%cdf(1)) then
+       sample_pdf_cont_log_<T> = p%x(1)
+    else if(xi >= p%cdf(p%n)) then
+       sample_pdf_cont_log_<T> = p%x(p%n)
+    else
+       sample_pdf_cont_log_<T> = interp1d_linlog(p%cdf(:),p%x(:),xi)
+    end if
   end function sample_pdf_cont_log_<T>
 
   @T function interpolate_pdf_cont_<T>(p, x, bounds_error, fill_value) result(prob)

@@ -435,7 +435,7 @@ contains
 
     real(<T>),intent(in) :: x(:),y(:),x1,x2
     integer :: i1,i2
-    real(<T>) :: f1,f2
+    real(<T>) :: f1,f2,xx1,xx2
     integer :: n
 
     interface
@@ -464,17 +464,25 @@ contains
     if(x1.gt.x(1)) then
        i1 = locate(x,x1)
        f1 = f_interp(x,y,x1)
+       xx1 = x1
     else
+       ! Clamp the lower limit to the tabulated range so that no
+       ! spurious area is added outside the domain
        i1 = 0
-       f1 = 0._<T>
+       f1 = y(1)
+       xx1 = x(1)
     end if
 
     if(x2.lt.x(n)) then
        i2 = locate(x,x2)
        f2 = f_interp(x,y,x2)
+       xx2 = x2
     else
+       ! Clamp the upper limit to the tabulated range so that no
+       ! spurious area is added outside the domain
        i2 = n
-       f2 = 0._<T>
+       f2 = y(n)
+       xx2 = x(n)
     end if
 
     if(i2.gt.i1) then
@@ -487,12 +495,12 @@ contains
        end if
 
        ! Add extremities
-       sum = sum + f_chunk(x1,f1,x(i1+1),y(i1+1))
-       sum = sum + f_chunk(x(i2),y(i2),x2,f2)
+       sum = sum + f_chunk(xx1,f1,x(i1+1),y(i1+1))
+       sum = sum + f_chunk(x(i2),y(i2),xx2,f2)
 
     else
 
-       sum = f_chunk(x1,f1,x2,f2)
+       sum = f_chunk(xx1,f1,xx2,f2)
 
     end if
 
@@ -955,14 +963,14 @@ contains
 
     else
 
-       if(x < xmax) then
+       if(x > xmin) then
           ipos_<T> = 0
-       else if(x > xmin) then
+       else if(x < xmax) then
           ipos_<T> = nbin+1
-       else if(x < xmin) then
+       else if(x > xmax) then
           frac=(x-xmin)/(xmax-xmin)
           ipos_<T>=int(frac*real(nbin, <T>))+1
-       else  ! x == xmin
+       else  ! x == xmax
           ipos_<T> = nbin
        end if
 
@@ -987,7 +995,7 @@ contains
 
     real(<T>) :: frac
 
-    frac=(real(i-1)+0.5)/real(nbin)
+    frac=(real(i-1,<T>)+0.5_<T>)/real(nbin,<T>)
 
     xval_<T>=frac*(xmax-xmin)+xmin
 
