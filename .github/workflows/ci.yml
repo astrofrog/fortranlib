@@ -23,7 +23,7 @@ jobs:
           compiler: gcc
 
       - name: Set up fpm
-        uses: fortran-lang/setup-fpm@v5
+        uses: fortran-lang/setup-fpm@v10
 
       - name: Run the test suite
         run: fpm test
